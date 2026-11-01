@@ -54,3 +54,10 @@ test('feature graphic is opaque 1024 by 500 PNG',async()=>{
   assert.equal(bytes.readUInt32BE(16),1024);assert.equal(bytes.readUInt32BE(20),500);
   assert.equal(bytes[25],2,'feature graphic must be RGB without alpha');
 });
+
+test('GitHub Pages publishes the playable dist folder instead of the README',async()=>{
+  const workflow=await read('.github/workflows/pages.yml');
+  assert.match(workflow,/actions\/upload-pages-artifact@v4/);
+  assert.match(workflow,/path: dist/);
+  assert.match(workflow,/actions\/deploy-pages@v4/);
+});
