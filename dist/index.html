@@ -8,18 +8,18 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="application-name" content="Petal Pounce">
-  <meta name="description" content="Fly through endless gardens in Petal Pounce. Grab honey pots, dodge beetles, unlock permanent backgrounds and keep your favorite garden equipped.">
-  <title>Petal Pounce — retro garden run</title>
+  <meta name="description" content="Fly through endless gardens in Petal Pounce. Bank flowers, unlock permanent backgrounds and keep your favorite garden equipped. Three lives, one sweet adventure.">
+  <title>Petal Pounce — The wildflower chase</title>
   <script>if(new URLSearchParams(location.search).get('app')==='android')document.documentElement.classList.add('android-shell')</script>
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=14">
-  <link rel="stylesheet" href="./shop.css?v=13">
+  <link rel="stylesheet" href="./style.css?v=15">
+  <link rel="stylesheet" href="./shop.css?v=15">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <symbol id="i-flower" viewBox="0 0 24 24"><path d="M8 4h8l1 2h2v2h-1l-1 9H7L6 8H5V6h2l1-2Z" fill="currentColor"/><path d="M8 9h8v5a4 4 0 0 1-4 4 4 4 0 0 1-4-4V9Z" fill="#f0b53d"/><path d="M9 10h6v2H9z" fill="#ffe28a"/></symbol>
+    <symbol id="i-flower" viewBox="0 0 24 24"><path d="M12 8c-7-10-13 2-5 4-8 6 3 13 5 5 5 8 13-1 5-5 9-4 0-14-5-4Z" fill="currentColor"/><circle cx="12" cy="12" r="3" fill="#e7ac43"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"/></symbol>
     <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Zm13-2c4 3 4 7 0 10m0-7c1 1 1 3 0 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
     <symbol id="i-muted" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4Zm13 0 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
@@ -35,23 +35,23 @@
     </header>
 
     <main>
-      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Grab honey pots.<br>Keep your wings.</p></div>
+      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge the wasps.</p></div>
 
       <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
-        <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 honey pots saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
+        <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
-          <canvas id="game" width="720" height="480" aria-label="Bee arcade playfield. Use left and right to move, and hold Space to fly. Collect all honey pots and avoid beetles."></canvas>
+          <canvas id="game" width="720" height="480" aria-label="Bee arcade playfield. Use left and right to move, and hold Space to fly. Collect all flowers and avoid purple thorns."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
-            <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">00000 FT</strong></div><div class="hud-right"><span class="hud-caption">POTS LEFT</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
+            <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
           <div class="overlay title-overlay" id="overlay">
             <div class="menu-panel" id="menu-panel">
-              <div class="menu-tag" id="menu-tag"><span></span> THE RETRO GARDEN RUN <span></span></div>
+              <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
-              <p id="menu-description">Snag honey pots, dodge beetles, and keep the run alive.<br><strong>Use the joystick to steer. Hold Fly to climb.</strong></p>
+              <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge the wasps. Go farther.</strong></p>
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
@@ -60,29 +60,18 @@
           <div class="toast" id="toast" role="status"></div>
           <div class="garden-label" id="garden-label">THE WILDFLOWER GARDEN <span>✦</span></div>
         </div></div>
-        <div class="control-deck retro-controls">
+        <div class="control-deck">
           <div class="move-controls">
-            <div class="joystick-wrap">
-              <div id="joystick" class="joystick" aria-label="Move joystick" role="application">
-                <span class="joystick-ring"></span>
-                <span class="joystick-shaft"></span>
-                <span class="joystick-knob"></span>
-              </div>
-              <div class="control-caption">MOVE</div>
-              <button id="left" class="control-key ghost-control" aria-label="Hold to steer left" tabindex="-1" aria-hidden="true"></button>
-              <button id="right" class="control-key ghost-control" aria-label="Hold to steer right" tabindex="-1" aria-hidden="true"></button>
+            <div class="direction-buttons">
+              <button id="left" class="control-key" aria-label="Hold to steer left"><svg><use href="#i-arrow"/></svg></button>
+              <button id="right" class="control-key" aria-label="Hold to steer right"><svg class="rotate"><use href="#i-arrow"/></svg></button>
             </div>
           </div>
-          <div class="fly-controls">
-            <button id="fly" class="fly-button arcade-fly" aria-label="Hold to fly upward" title="Hold to fly">
-              <svg class="wing-icon" aria-hidden="true"><use href="#i-wings"/></svg>
-            </button>
-            <div class="control-caption">FLY</div>
-          </div>
+          <div class="fly-controls"><button id="fly" class="fly-button" aria-label="Hold to fly upward" title="Hold to fly"><svg class="wing-icon" aria-hidden="true"><use href="#i-wings"/></svg></button></div>
         </div>
       </section>
 
-      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every honey pot.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Steer with the joystick.</strong><span>Smoother movement with the stick, then hold Fly to climb.</span></p></div><div><span class="guide-number">03</span><p><strong>Go a little further.</strong><span>The run keeps going, and beetles get meaner as you climb.</span></p></div></div>
+      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Dodge the wasps.</strong><span>Keep your three lives as long as possible.</span></p></div><div><span class="guide-number">03</span><p><strong>Go a little further.</strong><span>Wasps get faster the farther you fly.</span></p></div></div>
       <footer><span>MADE FOR THE JOY OF ONE MORE GO.</span><span class="fan-note">Small wings. Wild gardens. Sweet victories. · <a href="./privacy.html">Privacy</a></span><span>EST. 2026 <span class="footer-flower">✳</span></span></footer>
     </main>
   </div>
@@ -90,25 +79,25 @@
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Climb through an endless retro garden run. Collect every honey pot in a section to roll straight into the next one, and keep going with the lives you have left. Your chosen background stays equipped.</p>
-    <div class="help-row"><span>JOYSTICK</span><p><strong>Guide the stick to steer</strong>Drag the joystick left or right for smoother movement. You can steer and hold Fly at the same time. Keyboard: ← → or A / D.</p></div>
+    <p>Fly upward through an endless garden with no level-clear screens. Dodge wasps flying sideways as the difficulty increases with distance. Your chosen background stays equipped.</p>
+    <div class="help-row"><span>← / →</span><p><strong>Hold a button to steer</strong>Hold the left or right arrow button to move that way. You can steer and hold Fly at the same time. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
-    <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Each cleared section adds one life, up to three. The next section starts immediately. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
-    <div class="help-row"><span>GARDEN SHOP</span><p><strong>Pick a permanent garden</strong>Every honey pot adds one to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 pots or Glowwood for 120. Equip any owned garden for all your runs. Unlocks and honey pots are saved on this device.</p></div>
+    <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
+    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for all your levels. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Each honey pot also earns 10 honey for your run score. Clearing a section awards a bonus and can earn you a life. Banked honey pots and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
+    <p class="help-note">Each flower also earns 10 honey for your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
   </dialog>
   <dialog id="shop-dialog" class="garden-shop" aria-labelledby="shop-title">
     <button class="dialog-close" id="close-shop" aria-label="Close garden shop">×</button>
-    <div class="shop-heading"><div><p class="eyebrow">YOUR LITTLE GREENHOUSE</p><h2 id="shop-title">Garden shop.</h2></div><div class="shop-wallet"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="shop-balance">0</strong><span>POTS</span></div></div>
-    <p class="shop-intro">Collect honey pots. Unlock a new view. Keep the garden you love.</p>
+    <div class="shop-heading"><div><p class="eyebrow">YOUR LITTLE GREENHOUSE</p><h2 id="shop-title">Garden shop.</h2></div><div class="shop-wallet"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="shop-balance">0</strong><span>FLOWERS</span></div></div>
+    <p class="shop-intro">Collect flowers. Unlock a new view. Keep the garden you love.</p>
     <div id="shop-grid" class="shop-grid"></div>
-    <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
-    <div class="shop-footer"><span>Honey pots &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
+    <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every level.</p>
+    <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=14"></script>
+  <script type="module" src="./game.mjs?v=15"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
