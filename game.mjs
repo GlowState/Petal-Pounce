@@ -1,8 +1,8 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=15';
-import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=15';
-import { HoldControls } from './hold-controls.mjs?v=15';
-import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=15';
-import { paintFlower } from './flowers.mjs?v=15';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=16';
+import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
+import { HoldControls } from './hold-controls.mjs?v=16';
+import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
+import { paintFlower } from './flowers.mjs?v=16';
 
 const $ = id => document.getElementById(id);
 const canvas = $('game');
