@@ -14,8 +14,8 @@
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=13">
-  <link rel="stylesheet" href="./shop.css?v=13">
+  <link rel="stylesheet" href="./style.css?v=14">
+  <link rel="stylesheet" href="./shop.css?v=14">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -35,7 +35,7 @@
     </header>
 
     <main>
-      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Keep your wings.</p></div>
+      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge the wasps.</p></div>
 
       <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
         <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
@@ -43,7 +43,7 @@
           <canvas id="game" width="720" height="480" aria-label="Bee arcade playfield. Use left and right to move, and hold Space to fly. Collect all flowers and avoid purple thorns."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
-            <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">GARDEN 01</span><strong id="timer">2:25</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS LEFT</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
+            <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
@@ -51,7 +51,7 @@
             <div class="menu-panel" id="menu-panel">
               <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
-              <p id="menu-description">Longer gardens. One endless run.<br><strong>Clear a garden. Earn a life. Max 3.</strong></p>
+              <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge the wasps. Go farther.</strong></p>
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
@@ -71,7 +71,7 @@
         </div>
       </section>
 
-      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Keep your wings.</strong><span>Each clear earns a life. Max 3.</span></p></div><div><span class="guide-number">03</span><p><strong>Go a little further.</strong><span>Longer gardens. No final level.</span></p></div></div>
+      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Dodge the wasps.</strong><span>Keep your three lives as long as possible.</span></p></div><div><span class="guide-number">03</span><p><strong>Go a little further.</strong><span>Wasps get faster the farther you fly.</span></p></div></div>
       <footer><span>MADE FOR THE JOY OF ONE MORE GO.</span><span class="fan-note">Small wings. Wild gardens. Sweet victories. · <a href="./privacy.html">Privacy</a></span><span>EST. 2026 <span class="footer-flower">✳</span></span></footer>
     </main>
   </div>
@@ -79,13 +79,13 @@
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Clear longer gardens in a run with no final level. Collect every flower to reach the next checkpoint, then keep going with the lives you have left. Your chosen background stays equipped.</p>
+    <p>Fly upward through an endless garden with no level-clear screens. Dodge wasps flying sideways as the difficulty increases with distance. Your chosen background stays equipped.</p>
     <div class="help-row"><span>← / →</span><p><strong>Hold a button to steer</strong>Hold the left or right arrow button to move that way. You can steer and hold Fly at the same time. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
-    <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Each cleared garden adds one life, up to three. Starting the next garden keeps that total. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
+    <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for all your levels. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Each flower also earns 10 honey for your run score. Finish a garden for a time bonus. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
+    <p class="help-note">Each flower also earns 10 honey for your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
   </dialog>
@@ -97,7 +97,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every level.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=12"></script>
+  <script type="module" src="./game.mjs?v=14"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){

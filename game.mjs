@@ -1,8 +1,8 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=10';
-import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=10';
-import { HoldControls } from './hold-controls.mjs?v=12';
-import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=10';
-import { paintFlower } from './flowers.mjs?v=10';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=14';
+import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=14';
+import { HoldControls } from './hold-controls.mjs?v=14';
+import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=14';
+import { paintFlower } from './flowers.mjs?v=14';
 
 const $ = id => document.getElementById(id);
 const canvas = $('game');
@@ -52,7 +52,7 @@ function resize() {
   canvas.width = WIDTH;
   canvas.height = viewH;
   ctx.imageSmoothingEnabled = false;
-  camera = Math.max(0, Math.min(game.level.height - viewH + 30, game.bee.y - viewH * .6));
+  camera = game.bee.y - viewH * .6;
 }
 new ResizeObserver(resize).observe(screen);
 resize();
@@ -111,15 +111,9 @@ function primaryAction() {
   if (game.mode === 'title' || game.mode === 'over') {
     game.start();
     particles.length = 0;
-    camera = Math.max(0, game.bee.y - viewH * .6);
+    camera = game.bee.y - viewH * .6;
     notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
   } else if (game.mode === 'paused') game.resume();
-  else if (game.mode === 'complete') {
-    game.next();
-    particles.length = 0;
-    camera = Math.max(0, game.bee.y - viewH * .6);
-    notify(`GARDEN ${String(game.stage).padStart(2, '0')} · ${currentGarden().name.toUpperCase()}`);
-  }
   updateUI();
 }
 
@@ -253,13 +247,12 @@ function updateUI() {
   }
   $('best').textContent = fmtScore(game.best);
   $('score').textContent = fmtScore(game.score);
-  $('remaining').textContent = game.remaining;
-  const seconds = Math.ceil(game.time);
-  $('timer').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  $('timer').parentElement.classList.toggle('warning', seconds <= 20);
-  $('level-label').textContent = `GARDEN ${String(game.stage).padStart(2, '0')}`;
+  $('remaining').textContent = game.flowersCollected;
+  $('timer').textContent = `${game.distance}m`;
+  $('timer').parentElement.classList.remove('warning');
+  $('level-label').textContent = `DISTANCE · ZONE ${String(game.stage).padStart(2, '0')}`;
   $('level-label').title = garden.name;
-  $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (1 - game.bee.y / game.level.height) * 100))}%`;
+  $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (game.distance % 300) / 3))}%`;
   const inRun = mode !== 'title';
   $('hud').hidden = !inRun;
   $('lives').hidden = !inRun;
@@ -295,10 +288,9 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Longer gardens. One endless run.<br><strong>Clear a garden. Earn a life. Max 3.</strong>', 'LET’S FLY'],
+    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Fly as far as you can. Dodge the wasps.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
-    complete: [`GARDEN ${String(game.stage).padStart(2, '0')} COMPLETE`, 'SWEET<br>SUCCESS!', `+${game.bonus || 0} time bonus. ${game.earnedLife?'+1 LIFE!':'3 lives ready.'}<br>Your ${game.lives} ${game.lives===1?'life carries':'lives carry'} into the next garden.`, 'KEEP GOING'],
-    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.flowersCollected} flowers gathered · ${game.score} honey earned.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
+    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} honey earned.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
     const [tag, title, description, label] = titles[mode];
@@ -381,6 +373,19 @@ function drawThorn(t) {
   ctx.restore();
 }
 
+function drawWasp(w) {
+  const y = w.y - camera;
+  if (y < -35 || y > viewH + 35) return;
+  ctx.save();ctx.translate(w.x,y);
+  const flap = Math.sin(clock*28 + w.phase)*5;
+  ctx.fillStyle='rgba(230,245,255,.68)';
+  ctx.beginPath();ctx.ellipse(-9,-12-flap,10,7,-.3,0,Math.PI*2);ctx.ellipse(9,-12+flap,10,7,.3,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#eab840';ctx.beginPath();ctx.ellipse(0,0,17,11,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#3b273d';ctx.fillRect(-9,-9,5,18);ctx.fillRect(2,-10,5,20);
+  ctx.beginPath();ctx.moveTo(13,1);ctx.lineTo(24,5);ctx.lineTo(12,8);ctx.fill();
+  ctx.fillStyle='#fff';ctx.fillRect(-13,-6,4,4);ctx.restore();
+}
+
 function drawBee(b, offset = camera, attract = false) {
   if (!attract && game.mode === 'reviving') return;
   const y = b.y - offset;
@@ -441,6 +446,8 @@ function events() {
     } else if (event.type === 'over') {
       clearInput();
       $('toast').classList.remove('show');
+    } else if (event.type === 'distanceMilestone') {
+      notify(`ZONE ${String(event.stage).padStart(2,'0')} · WASPS GET FASTER`, 1800);
     } else if (event.type === 'complete') {
       [523,659,784,1047].forEach((note,i) => tone(note,.18,'triangle',i*.1));
       safeSet('nectar-tangle-best-v1', String(game.best));
@@ -452,7 +459,7 @@ function events() {
 function drawScene(dt) {
   const attract = game.mode === 'title';
   if (!attract) {
-    const target = Math.max(0, Math.min(Math.max(0, game.level.height-viewH+25), game.bee.y-viewH*.57));
+    const target = game.bee.y-viewH*.57;
     camera += (target-camera) * (1-Math.exp(-6*dt));
   }
   ctx.save();
@@ -471,6 +478,7 @@ function drawScene(dt) {
     for (const p of game.level.platforms) drawLeaf(p);
     for (const t of game.level.thorns) drawThorn(t);
     for (const f of game.level.flowers) drawFlower(f);
+    for (const w of game.level.wasps) drawWasp(w);
     drawBee(game.bee);
     if (game.mode === 'playing') {
       const above = game.level.flowers.filter(f=>!f.taken && f.y<camera+70).length;

@@ -1,15 +1,7 @@
-# Android/Gradle outputs
+*.jks
+*.keystore
+*.apk
+*.aab
 .gradle/
 **/build/
 local.properties
-*.iml
-.idea/
-
-# Signing material must never enter source control
-*.jks
-*.keystore
-keystore.properties
-
-# OS/editor files
-.DS_Store
-*.swp

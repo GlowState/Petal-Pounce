@@ -95,7 +95,7 @@ export function makeLevel(stage, seed = 6819) {
     if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 30)) continue;
     thorns.push(t);
   }
-  return { stage, pattern, height, platforms, flowers, thorns, route, seconds: 145 + (count - 16) * 5, total: count };
+  return { stage, pattern, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
 
 export class Game {
@@ -107,6 +107,7 @@ export class Game {
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
     this.stage = 1;
+    this.distance = 0;
     this.mode = 'title';
     this.events = [];
     this.loadLevel();
@@ -115,8 +116,13 @@ export class Game {
   loadLevel() {
     this.earnedLife = false;
     this.level = makeLevel(this.stage, (this.seed + this.run * 741103) >>> 0);
+    this.level.wasps = [];
+    this.topGenerated = 0;
+    this.startY = this.level.height - 104;
+    this.highestY = this.startY;
+    this.spawnWasps(this.level, 0);
     this.remaining = this.level.total;
-    this.time = this.level.seconds;
+    this.time = 0;
     this.respawn();
     this.reviveTime = 0;
   }
@@ -134,6 +140,7 @@ export class Game {
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
     this.stage = 1;
+    this.distance = 0;
     this.loadLevel();
     this.mode = 'playing';
     this.resumeMode = 'playing';
@@ -153,13 +160,39 @@ export class Game {
     if (this.mode === 'paused') this.mode = this.resumeMode || 'playing';
   }
 
-  next() {
-    if (this.mode !== 'complete') return;
-    this.stage++;
-    this.loadLevel();
-    this.mode = 'playing';
-    this.events.push({ type: 'start' });
+  // Each additional segment is attached above the previous one in the same world.
+  // There is no level-complete menu or camera reset.
+  extendWorld() {
+    const nextStage = this.stage + 1;
+    const piece = makeLevel(nextStage, (this.seed + this.run * 741103) >>> 0);
+    const offset = this.topGenerated - piece.height + 140;
+    for (const platform of piece.platforms.slice(1)) this.level.platforms.push({ ...platform, y: platform.y + offset });
+    for (const flower of piece.flowers) this.level.flowers.push({ ...flower, y: flower.y + offset });
+    for (const thorn of piece.thorns) this.level.thorns.push({ ...thorn, y: thorn.y + offset, endY: thorn.endY + offset });
+    this.spawnWasps(piece, offset);
+    this.topGenerated = offset;
+    this.stage = nextStage;
+    this.remaining += piece.flowers.length;
+    this.events.push({ type: 'distanceMilestone', stage: nextStage });
+    // Drop passed geometry, but retain a safe area below the bee for revives.
+    const cutoff = this.bee.y + 1800;
+    this.level.platforms = this.level.platforms.filter(p => p.y < cutoff || p.launch);
+    this.level.flowers = this.level.flowers.filter(f => f.y < cutoff);
+    this.level.thorns = this.level.thorns.filter(t => t.y < cutoff);
+    this.level.wasps = this.level.wasps.filter(w => w.y < cutoff);
   }
+
+  spawnWasps(piece, offset) {
+    const rng = random(this.seed + this.run * 53719 + piece.stage * 9137);
+    const count = Math.min(3 + piece.stage, 15);
+    for (let i = 0; i < count; i++) {
+      const y = offset + 190 + (piece.height - 380) * (i + .5) / count;
+      const x = 70 + rng() * (WIDTH - 140);
+      this.level.wasps.push({ x, y, homeX: x, phase: rng() * Math.PI * 2, amplitude: 85 + rng() * 125, speed: .8 + rng() * .6 + Math.min(piece.stage, 18) * .09 });
+    }
+  }
+
+  next() {} // Kept for compatibility with older UI consumers.
 
   loseLife(reason) {
     if (this.mode !== 'playing') return;
@@ -178,7 +211,6 @@ export class Game {
 
   revive() {
     if (this.mode !== 'reviving') return;
-    if (this.reason === 'time') this.time = this.level.seconds;
     const point = this.checkpoint;
     this.bee = { x: point.x, y: point.y, vx: 0, vy: -90, face: 1 };
     this.invulnerable = 2;
@@ -197,8 +229,11 @@ export class Game {
       return;
     }
     if (this.mode !== 'playing') return;
-    this.time = Math.max(0, this.time - dt);
-    if (this.time <= 0) { this.loseLife('time'); return; }
+    this.time += dt;
+    for (const wasp of this.level.wasps) {
+      wasp.phase += dt * wasp.speed;
+      wasp.x = Math.max(28, Math.min(WIDTH - 28, wasp.homeX + Math.sin(wasp.phase) * wasp.amplitude));
+    }
     this.invulnerable = Math.max(0, this.invulnerable - dt);
     const b = this.bee;
     const oldBottom = b.y + RADIUS;
@@ -213,7 +248,9 @@ export class Game {
     b.y += b.vy * dt;
     if (b.x < 25) { b.x = 25; b.vx = 0; }
     if (b.x > WIDTH - 25) { b.x = WIDTH - 25; b.vx = 0; }
-    if (b.y < 30) { b.y = 30; b.vy = Math.max(0, b.vy); }
+    this.highestY = Math.min(this.highestY, b.y);
+    this.distance = Math.max(this.distance, Math.floor((this.startY - this.highestY) / 10));
+    if (b.y < this.topGenerated + 800) this.extendWorld();
 
     for (const p of this.level.platforms) {
       const top = p.y - 3;
@@ -237,18 +274,10 @@ export class Game {
       }
     }
 
-    if (this.remaining === 0) {
-      this.bonus = Math.floor(this.time) * 2;
-      this.score += this.bonus;
-      this.earnedLife = this.lives < MAX_LIVES;
-      this.lives = Math.min(MAX_LIVES,this.lives + 1);
-      this.mode = 'complete';
-      this.record();
-      this.events.push({ type: 'complete' });
-      return;
-    }
-
     if (!this.invulnerable) {
+      for (const w of this.level.wasps) {
+        if (Math.hypot(b.x - w.x, b.y - w.y) < RADIUS + 15) { this.loseLife('wasp'); return; }
+      }
       for (const t of this.level.thorns) {
         if (thornDistance(b.x, b.y, t) < t.h + RADIUS - 3) {
           this.loseLife('thorn');
