@@ -1,0 +1,74 @@
+plugins {
+    id 'com.android.application'
+}
+
+def generatedWebAssets = file("$buildDir/generated/webAssets")
+def keystorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+def keystorePassword = System.getenv('ANDROID_KEYSTORE_PASSWORD')
+def keyAliasValue = System.getenv('ANDROID_KEY_ALIAS')
+def keyPasswordValue = System.getenv('ANDROID_KEY_PASSWORD')
+def hasReleaseSigning = [keystorePath, keystorePassword, keyAliasValue, keyPasswordValue].every { it }
+
+android {
+    namespace 'com.glowstate.petalpounce'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.glowstate.petalpounce'
+        minSdk 24
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(keystorePath)
+                storePassword keystorePassword
+                keyAlias keyAliasValue
+                keyPassword keyPasswordValue
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    sourceSets {
+        main.assets.srcDir generatedWebAssets
+    }
+}
+
+tasks.register('syncWebAssets', Sync) {
+    from rootProject.file('../dist')
+    into generatedWebAssets
+    exclude '**/.DS_Store'
+}
+
+tasks.named('preBuild').configure {
+    dependsOn tasks.named('syncWebAssets')
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.18.0'
+}
