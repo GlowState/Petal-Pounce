@@ -109,3 +109,90 @@
 @media(max-width:560px){.fly-button{width:90px;height:90px}.fly-button .wing-icon{width:59px;height:59px}}
 @media(max-width:365px){.fly-button{width:84px;height:84px}.fly-button .wing-icon{width:55px;height:55px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* FONT-ONLY CHANGE: Press Start 2P arcade typography. Gameplay/layout untouched. */
+:root {
+  --arcade-text: 'Press Start 2P', ui-monospace, monospace;
+  --sans: var(--arcade-text);
+  --mono: var(--arcade-text);
+}
+body, button, input, select, textarea,
+.game-title, .game-title > span:first-child,
+.brand, .brand-sub, .fan-note,
+.menu-panel, .menu-panel *, .hud, .hud *,
+.shop-trigger, .shop-card, .garden-shop,
+.help-row, .help-row *, footer, footer * {
+  font-family: var(--arcade-text);
+}
+/* Pixel glyphs are monospaced and wider than the original proportional text.
+   Restrict only type sizes/spacing so existing mobile panels keep their layout. */
+.brand { font-size: 16px; letter-spacing: -0.4px; }
+.brand-sub { font-size: 7px; letter-spacing: 1px; }
+h1 { font-size: clamp(16px, 2.35vw, 27px); letter-spacing: -0.9px; line-height: 1.55; }
+.text-button { font-size: 9px; }
+.eyebrow { font-size: 8px; letter-spacing: 1px; line-height: 1.8; }
+.game-title { font-size: clamp(46px, 7vw, 90px); line-height: 1.12; letter-spacing: -1px; }
+.game-title > span:first-child { font-size: clamp(11px, 1.4vw, 17px); letter-spacing: 1px; }
+.menu-tag { font-size: 8px; letter-spacing: 0.5px; line-height: 1.5; }
+.menu-panel > p { font-size: 10px; line-height: 1.75; }
+.menu-panel > p.start-hint { font-size: 7px; letter-spacing: 0; }
+.play-button { font-size: 10px; letter-spacing: 0; line-height: 1.5; }
+.secondary-button { font-size: 8px; }
+.cartridge, .best-label { letter-spacing: 0; font-size: 7px; }
+.best-label strong { font-size: 10px; letter-spacing: 0; }
+.hud-caption { font-size: 7px; letter-spacing: 0; line-height: 1.8; }
+.hud strong { font-size: 16px; letter-spacing: -1px; }
+.hud-center strong { font-size: 14px; }
+.lives span { font-size: 7px; letter-spacing: 0; }
+.toast { font-size: 7px; letter-spacing: 0; line-height: 1.6; }
+.garden-label { font-size: 7px; letter-spacing: 0; }
+.guide-number { font-size: 8px; }
+.field-guide strong { font-size: 9px; line-height: 1.65; }
+.field-guide p > span { font-size: 8px; line-height: 1.7; }
+footer { font-size: 6px; letter-spacing: 0; line-height: 1.8; }
+.fan-note { font-size: 6px; line-height: 1.8; }
+dialog h2 { font-size: clamp(17px, 3.2vw, 25px); line-height: 1.5; letter-spacing: 0; }
+dialog > p, .help-row p { font-size: 9px; line-height: 1.85; }
+.help-row > span { font-size: 7px; line-height: 1.6; }
+.help-note { font-size: 8px !important; }
+/* The selected font is wider than the prior UI font; constrain shop text as well. */
+.shop-trigger, .shop-wallet, .garden-action, .garden-price-note,
+.shop-status, .shop-intro, .shop-card-body, .shop-card-heading,
+.flower-variety, .shop-footer { letter-spacing: 0; }
+@media (max-width: 850px) {
+ .game-title { font-size: clamp(37px, 8vw, 69px); }
+ .menu-panel > p { font-size: 9px; }
+}
+@media (max-width: 560px) {
+ .brand { font-size: 12px; letter-spacing: -0.5px; }
+ .brand-sub { font-size: 6px; letter-spacing: 0; }
+ .text-button { font-size: 7px; }
+ h1 { font-size: 13px; line-height: 1.7; letter-spacing: -.5px; }
+ .eyebrow { font-size: 6px; letter-spacing: 0; }
+ .game-title { font-size: clamp(30px, 9.5vw, 43px); letter-spacing: -1px; margin-bottom: 16px; }
+ .game-title > span:first-child { font-size: 10px; letter-spacing: 0; }
+ .menu-tag { font-size: 6px; letter-spacing: 0; margin-bottom: 16px; }
+ .menu-panel > p { font-size: 8px; line-height: 1.7; margin-bottom: 14px; }
+ .play-button { font-size: 9px; min-width: 170px; }
+ .best-label { font-size: 5px; letter-spacing: 0; }
+ .best-label strong { font-size: 8px; }
+ .cartridge, .shop-trigger { font-size: 6px; letter-spacing: 0; }
+ .hud { padding-left: 11px; padding-right: 11px; }
+ .hud-caption { font-size: 5px; letter-spacing: 0; }
+ .hud strong { font-size: 11px; letter-spacing: -0.5px; }
+ .hud-center strong { font-size: 10px; }
+ .hud-right svg { width: 15px; height: 15px; }
+ .lives span { font-size: 5px; letter-spacing: 0; }
+ .garden-label { font-size: 5px; letter-spacing: 0; }
+ .field-guide strong { font-size: 8px; line-height: 1.8; }
+ .field-guide p > span { font-size: 7px; line-height: 1.7; }
+ footer, .fan-note { font-size: 5px; letter-spacing: 0; }
+ .state-overlay .game-title { font-size: clamp(27px, 7vw, 40px); }
+ .state-overlay .game-title > span:first-child { font-size: 9px; letter-spacing: 0; }
+ .state-overlay .menu-panel > p { font-size: 8px; }
+ dialog h2 { font-size: 17px; }
+ .help-row { grid-template-columns: 76px 1fr; gap: 10px; }
+ .help-row > span { font-size: 6px; }
+ .help-row p, dialog > p { font-size: 8px; }
+ .help-note { font-size: 7px !important; }
+}
