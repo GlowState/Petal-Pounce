@@ -1,30 +1,51 @@
-// The same flower artwork is used in the game and in garden-shop previews.
+// The same honey-pot artwork is used in the game and in garden-shop previews.
 export function paintFlower(c,f,{palette,time=0,reducedMotion=false,scale=1}={}) {
-  c.save();c.translate(Math.round(f.x),Math.round(f.y));c.scale(scale,scale);
-  c.fillStyle=palette.stem;c.fillRect(-1,7,4,29);c.fillRect(3,22,7,3);c.fillRect(7,18,4,5);
-  if(f.taken){c.fillStyle='#9ec4a5';c.fillRect(-1,5,5,5);c.restore();return;}
-  c.translate(reducedMotion?0:Math.sin(time*2+(f.phase??0))*1.2,0);
+  c.save();
+  c.translate(Math.round(f.x),Math.round(f.y));
+  c.scale(scale,scale);
+  const sway=reducedMotion?0:Math.sin(time*2+(f.phase??0))*1.1;
+  c.translate(sway,0);
+  c.fillStyle=palette.stem;
+  c.fillRect(-1,11,4,18);
+  if(f.taken){
+    c.fillStyle='#c8c2a2';
+    c.fillRect(-8,7,16,5);
+    c.fillStyle='#f4e8b0';
+    c.fillRect(-3,3,6,5);
+    c.restore();
+    return;
+  }
   if(palette.glow){
-    const halo=c.createRadialGradient(0,0,2,0,0,38);
-    halo.addColorStop(0,palette.glow+'70');halo.addColorStop(.45,palette.glow+'30');halo.addColorStop(1,palette.glow+'00');
-    c.fillStyle=halo;c.fillRect(-38,-38,76,76);c.shadowColor=palette.glow;c.shadowBlur=10;
+    const halo=c.createRadialGradient(0,6,2,0,6,34);
+    halo.addColorStop(0,palette.glow+'60');
+    halo.addColorStop(.5,palette.glow+'20');
+    halo.addColorStop(1,palette.glow+'00');
+    c.fillStyle=halo;
+    c.fillRect(-34,-18,68,68);
   }
-  if(palette.shape==='star'){
-    c.beginPath();
-    for(let i=0;i<16;i++){const a=i*Math.PI/8-Math.PI/2,r=i%2?6:16;const x=Math.cos(a)*r,y=Math.sin(a)*r;i?c.lineTo(x,y):c.moveTo(x,y);}
-    c.closePath();c.fillStyle=palette.petal;c.fill();
-    c.beginPath();c.moveTo(0,-11);c.lineTo(4,-2);c.lineTo(11,0);c.lineTo(4,3);c.lineTo(0,11);c.lineTo(-4,3);c.lineTo(-11,0);c.lineTo(-4,-2);c.closePath();c.fillStyle=palette.light;c.fill();
-  }else if(palette.shape==='daisy'){
-    for(let i=0;i<8;i++){const a=i*Math.PI/4;c.beginPath();c.ellipse(Math.cos(a)*8,Math.sin(a)*8,8,4,a,0,Math.PI*2);c.fillStyle=i%2?palette.light:palette.petal;c.fill();}
-  }else if(palette.shape==='bell'){
-    c.strokeStyle=palette.stem;c.lineWidth=2;c.beginPath();c.moveTo(0,12);c.quadraticCurveTo(-7,-9,2,-13);c.quadraticCurveTo(9,-15,9,-8);c.stroke();
-    c.beginPath();c.moveTo(1,-7);c.bezierCurveTo(-1,-14,18,-15,18,-5);c.quadraticCurveTo(17,1,23,7);c.quadraticCurveTo(17,12,7,10);c.quadraticCurveTo(2,8,-1,5);c.quadraticCurveTo(5,1,1,-7);c.fillStyle=palette.petal;c.fill();
-    c.beginPath();c.moveTo(6,-7);c.quadraticCurveTo(14,-10,14,-3);c.lineTo(17,5);c.quadraticCurveTo(12,7,8,5);c.fillStyle=palette.light;c.fill();
-    c.shadowBlur=0;c.fillStyle=palette.center;c.fillRect(10,9,3,6);c.fillRect(16,8,3,5);c.restore();return;
-  }else{
-    c.fillStyle=palette.petal;c.fillRect(-5,-14,11,12);c.fillRect(-14,-5,12,11);c.fillRect(4,-5,11,11);c.fillRect(-5,4,11,11);
-    c.fillStyle=palette.light;c.fillRect(-10,-10,8,8);c.fillRect(4,-10,8,8);c.fillRect(-10,4,8,8);c.fillRect(4,4,8,8);
-  }
-  c.shadowBlur=0;c.fillStyle=palette.center;c.beginPath();c.arc(0,0,palette.shape==='classic'?5:4.5,0,Math.PI*2);c.fill();
-  c.fillStyle=palette.spark;c.fillRect(-2,-3,3,3);c.restore();
+  c.fillStyle='#7a4c23';
+  c.beginPath();
+  c.moveTo(-10,7);c.lineTo(-8,18);c.lineTo(8,18);c.lineTo(10,7);c.lineTo(7,-4);c.lineTo(-7,-4);
+  c.closePath();c.fill();
+  c.fillStyle='#b6783f';
+  c.beginPath();
+  c.moveTo(-8,7);c.lineTo(-6,16);c.lineTo(6,16);c.lineTo(8,7);c.lineTo(6,-1);c.lineTo(-6,-1);
+  c.closePath();c.fill();
+  c.fillStyle=palette.center;
+  c.fillRect(-9,0,18,10);
+  c.fillStyle=palette.spark;
+  c.fillRect(-7,1,14,3);
+  c.fillStyle='#f4bd39';
+  c.fillRect(-8,3,16,7);
+  c.beginPath();c.arc(0,9,7,0,Math.PI);c.fill();
+  c.fillStyle='#ffd86d';
+  c.fillRect(-6,4,12,3);
+  c.fillStyle='#603913';
+  c.fillRect(-9,-2,18,3);
+  c.fillStyle='#d9b37a';
+  c.fillRect(-8,-3,16,2);
+  c.fillStyle='#ffeaa8';
+  c.fillRect(3,8,2,6);
+  c.fillRect(-2,10,2,5);
+  c.restore();
 }
