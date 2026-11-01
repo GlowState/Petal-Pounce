@@ -16,12 +16,12 @@ test('the installable app manifest has complete Android icon sizes',async()=>{
   }
 });
 
-test('the game deck exposes icon-only controls and registers the offline shell',async()=>{
+test('the game deck exposes a joystick and separate fly button and registers the offline shell',async()=>{
   const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
   const style=await readFile(new URL('../dist/style.css',import.meta.url),'utf8');
   const shopStyle=await readFile(new URL('../dist/shop.css',import.meta.url),'utf8');
-  const deck=html.match(/<div class="control-deck">([\s\S]*?)<\/section>/)?.[1]??'';
-  assert.ok(deck.includes('id="left"'));assert.ok(deck.includes('id="right"'));assert.ok(deck.includes('id="fly"'));
+  const deck=html.match(/<div class="control-deck retro-controls">([\s\S]*?)<\/section>/)?.[1]??'';
+  assert.ok(deck.includes('id="joystick"'));assert.ok(deck.includes('id="fly"'));
   assert.equal(deck.includes('control-label'),false);assert.equal(deck.includes('deck-message'),false);
   assert.ok(html.includes('manifest.webmanifest'));assert.ok(html.includes("serviceWorker.register('./sw.js')"));assert.ok(html.includes('privacy.html'));
   assert.equal(style.includes('@import url('),false,'the app shell must not contact an external font service');

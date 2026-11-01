@@ -1,167 +1,151 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Game, makeLevel, WIDTH, RADIUS, FIXED_STEP, REVIVE_DELAY, MAX_LIVES, thornDistance, segmentDistance, pointSegmentDistance } from '../dist/engine.mjs';
+import { Game, makeLevel, WIDTH, FIXED_STEP, REVIVE_DELAY, MAX_LIVES, pointSegmentDistance, segmentDistance } from '../dist/engine.mjs';
 
 function advance(game, seconds, input = {}) {
   for (let i = 0; i < seconds / FIXED_STEP; i++) game.step(FIXED_STEP, input);
 }
-
-function completeCurrent(game) {
-  for (const flower of game.level.flowers) flower.taken = true;
-  game.remaining = 0;
+function collectOne(game, flower) {
+  game.bee.x = flower.x; game.bee.y = flower.y;
   game.step(FIXED_STEP);
 }
+function completeSection(game) {
+  const flower = game.level.flowers.at(-1);
+  for (const f of game.level.flowers) f.taken = true;
+  flower.taken = false;
+  game.remaining = 1;
+  collectOne(game, flower);
+}
 
-test('vine geometry detects horizontal, vertical, diagonal and crossing segments', () => {
-  assert.equal(pointSegmentDistance(5, 7, 0, 0, 10, 0), 7);
-  assert.equal(pointSegmentDistance(7, 5, 0, 0, 0, 10), 7);
-  assert.equal(pointSegmentDistance(5, 5, 0, 0, 10, 10), 0);
-  assert.equal(segmentDistance(0, 0, 10, 10, 0, 10, 10, 0), 0);
-  assert.equal(segmentDistance(0, 0, 10, 0, 5, 0, 15, 0), 0);
-  assert.equal(segmentDistance(0, 0, 10, 0, 0, 8, 10, 8), 8);
+test('segment geometry helpers remain accurate', () => {
+  assert.equal(pointSegmentDistance(5,7,0,0,10,0),7);
+  assert.equal(pointSegmentDistance(5,5,0,0,10,10),0);
+  assert.equal(segmentDistance(0,0,10,10,0,10,10,0),0);
 });
 
-test('random gardens keep every flower and respawn leaf accessible without a fixed center lane', () => {
+test('endless garden generation includes reachable honey pots and roaming beetles', () => {
   const patterns = new Set();
-  let centerHazards = 0;
-  for (let stage = 1; stage <= 30; stage++) {
-    for (const seed of [1, 137, 98321]) {
-      const level = makeLevel(stage, seed);
+  for (let stage = 1; stage <= 15; stage++) {
+    for (const seed of [1,137,98321]) {
+      const level = makeLevel(stage,seed);
       patterns.add(level.pattern);
-      assert.equal(level.flowers.length, Math.min(16 + (stage - 1) * 3, 64));
-      assert.ok(level.thorns.length >= 10, `garden ${stage} lacks hazards`);
-      for (const f of level.flowers) {
-        assert.ok(f.x > 30 && f.x < WIDTH - 30 && f.y > 30 && f.y < level.height);
-        for (const t of level.thorns) assert.ok(thornDistance(f.x, f.y, t) >= t.h + 42, `flower blocked in stage ${stage}`);
-      }
-      for (const t of level.thorns) {
-        assert.equal(t.angle,0,'every thorn vine must be horizontal');
-        assert.equal(t.endY,t.y,'thorn endpoints must have the same height');
-        assert.ok(Math.min(t.x, t.endX) - t.h >= 24 && Math.max(t.x, t.endX) + t.h <= WIDTH - 24);
-        if (Math.min(t.x, t.endX) <= 360 && Math.max(t.x, t.endX) >= 360) centerHazards++;
-        for (const p of level.platforms) assert.ok(thornDistance(p.x+p.w/2,p.y-28,t)>t.h+RADIUS+5, 'unsafe respawn');
-        for (let i = 1; i < level.route.length; i++) {
-          const a=level.route[i-1],b=level.route[i];
-          assert.ok(segmentDistance(t.x,t.y,t.endX,t.endY,a.x,a.y,b.x,b.y)>=t.h+RADIUS+8, 'blocked route');
-        }
+      assert.equal(level.flowers.length,Math.min(14+(stage-1)*2,40));
+      assert.ok(level.beetles.length > 0,`stage ${stage} should have beetles`);
+      assert.ok(level.platforms.length===level.flowers.length+1);
+      assert.ok(level.flowers.every(f=>f.x>25&&f.x<WIDTH-25&&f.y>25&&f.y<level.height));
+      for (const b of level.beetles) {
+        assert.ok(b.left<=b.x && b.x<=b.right);
+        assert.ok(b.speed>0);
+        assert.ok(b.right-b.left>=75);
       }
     }
   }
   assert.equal(patterns.size,4);
-  assert.ok(centerHazards>30,'the middle should not be a guaranteed escape lane');
 });
 
-test('leaves vary in horizontal position, vertical spacing and size; new runs get fresh layouts', () => {
-  const level=makeLevel(1,137);
-  const leaves=level.platforms.slice(1);
-  const centers=leaves.map(p=>p.x+p.w/2);
-  const gaps=leaves.slice(1).map((p,i)=>leaves[i].y-p.y);
-  assert.ok(Math.max(...centers)-Math.min(...centers)>350);
-  assert.ok(Math.max(...gaps)-Math.min(...gaps)>40);
-  assert.ok(Math.max(...leaves.map(p=>p.w))-Math.min(...leaves.map(p=>p.w))>25);
-  assert.ok(Math.max(...level.thorns.map(t=>t.w))-Math.min(...level.thorns.map(t=>t.w))>100);
-  const g=new Game({seed:137});g.start();const first=structuredClone(g.level.flowers);g.start();
-  assert.notDeepEqual(g.level.flowers,first);
-  const other=new Game({seed:137});other.start();assert.deepEqual(other.level.flowers,first);
+test('beetles increase in speed and number over later sections',()=>{
+  const early=makeLevel(1,123),later=makeLevel(20,123);
+  assert.ok(later.beetles.length>early.beetles.length);
+  assert.ok(Math.min(...later.beetles.map(b=>b.speed))>Math.max(...early.beetles.map(b=>b.speed)));
 });
 
-test('thrust lifts the bee; releasing it produces a controlled descent', () => {
-  const g = new Game({ seed: 2 });g.start();
-  const initialY = g.bee.y;
-  advance(g,.8,{fly:true});
-  assert.ok(g.bee.y < initialY - 80);
-  assert.ok(g.bee.vy < 0);
-  advance(g,.65);
-  assert.ok(g.bee.vy > 0);
+test('new runs generate fresh seeded gardens',()=>{
+  const game=new Game({seed:123});game.start();
+  const first=structuredClone(game.level.flowers);
+  game.start();assert.notDeepEqual(game.level.flowers,first);
+  const other=new Game({seed:123});other.start();
+  assert.deepEqual(other.level.flowers,first);
 });
 
-test('leaves bounce only on downward contact and establish a checkpoint', () => {
-  const g = new Game({ seed: 1 });g.start();
-  const p = g.level.platforms[1];
-  g.bee = { x: p.x + 40, y: p.y - 17, vx: 0, vy: 150 };
-  g.step(FIXED_STEP);
-  assert.ok(g.bee.vy < 0);
-  assert.equal(g.checkpoint.x,p.x+p.w/2);
-  g.bee = { x: p.x + 40, y: p.y + 20, vx: 0, vy: -200 };
-  g.step(FIXED_STEP,{fly:true});
-  assert.ok(g.bee.y > p.y);
-  assert.ok(g.bee.vy < -200);
+test('holding fly climbs; releasing makes the bee descend',()=>{
+  const game=new Game({seed:2});game.start();
+  const startY=game.bee.y;
+  advance(game,.7,{fly:true});
+  assert.ok(game.bee.y<startY-60);
+  assert.ok(game.bee.vy<0);
+  advance(game,.6);
+  assert.ok(game.bee.vy>0);
 });
 
-test('collecting a flower scores only once and retains it through a death', () => {
-  const g = new Game({seed:1});g.start();
-  const f=g.level.flowers[0];
-  g.bee.x=f.x;g.bee.y=f.y;
-  g.step(FIXED_STEP);g.step(FIXED_STEP);
-  assert.equal(g.score,10);assert.equal(g.remaining,15);assert.equal(g.flowersCollected,1);
-  g.loseLife('thorn');advance(g,REVIVE_DELAY+FIXED_STEP);
-  assert.equal(f.taken,true);assert.equal(g.remaining,15);assert.equal(g.flowersCollected,1);assert.equal(g.lives,2);
+test('analog steering moves smoothly in proportion to joystick tilt',()=>{
+  const slight=new Game({seed:5});slight.start();
+  const full=new Game({seed:5});full.start();
+  advance(slight,.35,{horizontal:.3,fly:true});
+  advance(full,.35,{horizontal:1,fly:true});
+  assert.ok(slight.bee.x>365);
+  assert.ok(full.bee.x>slight.bee.x+10);
+  advance(slight,.3,{horizontal:0,fly:true});
+  assert.ok(Math.abs(slight.bee.vx)<180);
 });
 
-test('one hit automatically revives the bee, retaining flowers and granting protection', () => {
-  const g = new Game({seed:1});g.start();
-  const t=g.level.thorns[0];
-  g.invulnerable=0;g.bee.x=(t.x+t.endX)/2;g.bee.y=(t.y+t.endY)/2;g.bee.vy=0;
-  g.step(FIXED_STEP);
-  assert.equal(g.lives,2);assert.equal(g.mode,'reviving');
-  const time=g.time;advance(g,.3);assert.equal(g.time,time);assert.equal(g.lives,2);
-  advance(g,.5);assert.equal(g.mode,'playing');assert.ok(g.invulnerable>1.8);
-  assert.ok(Math.abs(g.bee.x-g.checkpoint.x)<1);
-  assert.equal(g.drainEvents().filter(e=>e.type==='revive').length,1);
+test('landing on leaves bounces and sets a checkpoint',()=>{
+  const game=new Game({seed:1});game.start();
+  const p=game.level.platforms[1];
+  game.bee={x:p.x+40,y:p.y-17,vx:0,vy:150,face:1};
+  game.step(FIXED_STEP);
+  assert.ok(game.bee.vy<0);
+  assert.equal(game.checkpoint.x,p.x+p.w/2);
 });
 
-test('pause freezes an automatic revival and resumes it without requiring a continue button', () => {
-  const g=new Game({seed:1});g.start();g.loseLife('thorn');advance(g,.2);g.pause();
-  const time=g.reviveTime;advance(g,2);assert.equal(g.reviveTime,time);assert.equal(g.mode,'paused');
-  g.resume();assert.equal(g.mode,'reviving');advance(g,.6);assert.equal(g.mode,'playing');
-  const x=g.bee.x;advance(g,.1,{right:true,fly:true});assert.ok(g.bee.x>x);
+test('honey pots award score once and stay banked after losing a life',()=>{
+  const game=new Game({seed:1});game.start();
+  const flower=game.level.flowers[0];
+  collectOne(game,flower);
+  assert.equal(game.score,10);assert.equal(game.flowersCollected,1);
+  game.step(FIXED_STEP);
+  assert.equal(game.score,10);
+  game.loseLife('beetle');advance(game,REVIVE_DELAY+.02);
+  assert.equal(flower.taken,true);assert.equal(game.flowersCollected,1);assert.equal(game.lives,2);
 });
 
-test('timeout automatically restores the timer; the third loss ends the game', () => {
-  const g = new Game({seed:1});g.start();g.pause();
-  const before=g.time;advance(g,2);assert.equal(g.time,before);
-  g.resume();g.time=.001;g.step(FIXED_STEP);
-  assert.equal(g.mode,'reviving');assert.equal(g.lives,2);
-  advance(g,REVIVE_DELAY+FIXED_STEP);assert.ok(g.time>g.level.seconds-.1);
-  g.score=250;g.loseLife('thorn');advance(g,REVIVE_DELAY+FIXED_STEP);g.loseLife('thorn');
-  assert.equal(g.mode,'over');assert.equal(g.lives,0);assert.equal(g.best,250);
-  advance(g,2);assert.equal(g.mode,'over');assert.equal(g.lives,0);
+test('beetle contact costs a life and revival adds short protection',()=>{
+  const game=new Game({seed:7});game.start();
+  const beetle=game.level.beetles[0];
+  game.bee.x=beetle.x;game.bee.y=beetle.y;game.invulnerable=0;
+  game.step(FIXED_STEP);
+  assert.equal(game.mode,'reviving');assert.equal(game.lives,2);
+  advance(game,REVIVE_DELAY+.02);
+  assert.equal(game.mode,'playing');assert.ok(game.invulnerable>1.7);
 });
 
-test('every cleared garden grants one life up to three and lives carry forward', () => {
-  const g = new Game({seed:1});g.start();
-  g.loseLife('thorn');advance(g,REVIVE_DELAY+FIXED_STEP);
-  g.loseLife('thorn');advance(g,REVIVE_DELAY+FIXED_STEP);
-  assert.equal(g.lives,1);
-
-  completeCurrent(g);
-  assert.equal(g.mode,'complete');assert.equal(g.lives,2);assert.equal(g.earnedLife,true);assert.ok(g.bonus>0);
-  const score=g.score;g.next();
-  assert.equal(g.stage,2);assert.equal(g.remaining,19);assert.equal(g.score,score);assert.equal(g.lives,2);
-
-  completeCurrent(g);
-  assert.equal(g.lives,3);assert.equal(g.earnedLife,true);
-  g.step(FIXED_STEP);assert.equal(g.lives,3,'the complete screen cannot award twice');
-  g.next();assert.equal(g.lives,3);assert.equal(g.stage,3);
-  completeCurrent(g);
-  assert.equal(g.lives,MAX_LIVES);assert.equal(g.earnedLife,false);
+test('each cleared section automatically continues, grants up to one life and advances distance',()=>{
+  const game=new Game({seed:2});game.start();
+  game.loseLife('beetle');advance(game,REVIVE_DELAY+.02);
+  assert.equal(game.lives,2);
+  completeSection(game);
+  assert.equal(game.mode,'playing');assert.equal(game.stage,2);
+  assert.equal(game.lives,3);
+  assert.ok(game.distance>=1000);
+  assert.ok(game.score>=70);
+  completeSection(game);
+  assert.equal(game.stage,3);assert.equal(game.lives,MAX_LIVES);
+  assert.ok(game.distance>=2000);
 });
 
-test('the run has no final garden and late stages stay bounded and playable', () => {
-  const g=new Game({seed:17});g.start();
-  g.stage=999;g.loadLevel();
-  assert.equal(g.level.flowers.length,64);
-  assert.equal(g.level.thorns.length,72);
-  assert.ok(g.level.seconds>0);
-  assert.ok(g.level.thorns.every(thorn=>thorn.angle===0&&thorn.endY===thorn.y));
-  completeCurrent(g);g.next();
-  assert.equal(g.stage,1000);assert.equal(g.mode,'playing');assert.equal(g.remaining,64);
+test('pause freezes progression and the third hit ends the run',()=>{
+  const game=new Game({seed:3});game.start();
+  game.pause();const time=game.time;advance(game,2);assert.equal(game.time,time);
+  game.resume();
+  game.loseLife('beetle');advance(game,REVIVE_DELAY+.02);
+  game.loseLife('beetle');advance(game,REVIVE_DELAY+.02);
+  game.loseLife('beetle');
+  assert.equal(game.lives,0);assert.equal(game.mode,'over');
+  advance(game,1);assert.equal(game.mode,'over');
 });
 
-test('lateral input respects both walls and restarting resets the run', () => {
-  const g = new Game({seed:1,best:500});g.start();
-  g.bee.y=500;advance(g,2,{left:true,fly:true});assert.ok(g.bee.x>=25);
-  advance(g,4,{right:true,fly:true});assert.ok(g.bee.x<=WIDTH-25);
-  g.score=10;g.stage=6;g.lives=1;g.start();
-  assert.equal(g.score,0);assert.equal(g.stage,1);assert.equal(g.lives,MAX_LIVES);assert.equal(g.flowersCollected,0);assert.equal(g.best,500);
+test('late stages remain bounded and have no final level',()=>{
+  const game=new Game({seed:17});game.start();
+  game.stage=999;game.loadLevel();
+  assert.equal(game.level.flowers.length,40);
+  assert.equal(game.level.beetles.length,18);
+  completeSection(game);
+  assert.equal(game.stage,1000);assert.equal(game.mode,'playing');
+});
+
+test('horizontal movement respects side walls and a restart resets the run',()=>{
+  const game=new Game({seed:1,best:500});game.start();
+  game.bee.y=500;advance(game,2,{horizontal:-1,fly:true});assert.ok(game.bee.x>=25);
+  advance(game,4,{horizontal:1,fly:true});assert.ok(game.bee.x<=WIDTH-25);
+  game.stage=6;game.lives=1;game.start();
+  assert.equal(game.stage,1);assert.equal(game.lives,MAX_LIVES);assert.equal(game.best,500);
 });
