@@ -1,8 +1,8 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=10';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=14';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=10';
-import { HoldControls } from './hold-controls.mjs?v=12';
+import { HoldControls } from './hold-controls.mjs?v=14';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=10';
-import { paintFlower } from './flowers.mjs?v=10';
+import { paintFlower } from './flowers.mjs?v=14';
 
 const $ = id => document.getElementById(id);
 const canvas = $('game');
@@ -19,8 +19,9 @@ const game = new Game({ best: Number.isFinite(loadedBest) ? Math.max(0, loadedBe
 const input = { left: false, right: false, fly: false };
 const controls = new HoldControls({
   buttons: { left:$('left'), right:$('right'), fly:$('fly') },
+  joystick: $('joystick'),
   canPress: () => ['playing','reviving'].includes(game.mode) && !$('help-dialog').open && !$('shop-dialog').open,
-  onPress: key => { ensureAudio(); if(game.mode === 'title' && key === 'fly') primaryAction(); },
+  onPress: key => { ensureAudio(); if(game.mode === 'title' && (key === 'fly' || key === 'move')) primaryAction(); },
   onChange: state => Object.assign(input,state)
 });
 let viewH = 480;
@@ -112,14 +113,8 @@ function primaryAction() {
     game.start();
     particles.length = 0;
     camera = Math.max(0, game.bee.y - viewH * .6);
-    notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
+    notify(`${currentGarden().name.toUpperCase()} · GUIDE THE STICK AND FLY`, 4000);
   } else if (game.mode === 'paused') game.resume();
-  else if (game.mode === 'complete') {
-    game.next();
-    particles.length = 0;
-    camera = Math.max(0, game.bee.y - viewH * .6);
-    notify(`GARDEN ${String(game.stage).padStart(2, '0')} · ${currentGarden().name.toUpperCase()}`);
-  }
   updateUI();
 }
 
@@ -163,7 +158,7 @@ function renderShop() {
     const owned=profile.data.owned.includes(garden.id),equipped=profile.data.equipped===garden.id,affordable=profile.data.flowers>=garden.price;
     const card=document.createElement('article');card.className='shop-card'+(equipped?' equipped':'');
     card.style.setProperty('--garden-color',garden.flower.petal);
-    card.innerHTML=`<canvas width="320" height="160" aria-hidden="true"></canvas><div class="shop-card-body"><div class="shop-card-heading"><h3>${garden.name}</h3>${equipped?'<span class="equipped-badge">IN USE</span>':''}</div><p class="flower-variety">${garden.flower.name}</p><button class="garden-action" ${equipped||(!owned&&!affordable)?'disabled':''}>${equipped?'EQUIPPED ✓':owned?'USE GARDEN':`UNLOCK · ${garden.price} FLOWERS`}</button><p class="garden-price-note">${owned?'Yours to keep':affordable?'Unlock once. Keep forever.':`${garden.price-profile.data.flowers} more flowers to unlock`}</p></div>`;
+    card.innerHTML=`<canvas width="320" height="160" aria-hidden="true"></canvas><div class="shop-card-body"><div class="shop-card-heading"><h3>${garden.name}</h3>${equipped?'<span class="equipped-badge">IN USE</span>':''}</div><p class="flower-variety">${garden.flower.name}</p><button class="garden-action" ${equipped||(!owned&&!affordable)?'disabled':''}>${equipped?'EQUIPPED ✓':owned?'USE GARDEN':`UNLOCK · ${garden.price} POTS`}</button><p class="garden-price-note">${owned?'Yours to keep':affordable?'Unlock once. Keep forever.':`${garden.price-profile.data.flowers} more honey pots to unlock`}</p></div>`;
     $('shop-grid').append(card);
     const preview=card.querySelector('canvas'),brush=preview.getContext('2d');
     shopScenery.draw(brush,{theme:garden,width:320,height:160,clock:0,camera:0,groundY:200});
@@ -171,7 +166,7 @@ function renderShop() {
     paintFlower(brush,{x:125,y:112,phase:0},{palette:garden.flower,reducedMotion:true,scale:.85});
     card.querySelector('button').addEventListener('click',()=>{
       const result=owned?profile.equip(garden.id):profile.buy(garden.id);
-      if(!result.ok){$('shop-status').textContent=result.reason==='funds'?'Collect a few more flowers first.':'This garden is already unlocked.';renderShop();return;}
+      if(!result.ok){$('shop-status').textContent=result.reason==='funds'?'Collect a few more honey pots first.':'This garden is already unlocked.';renderShop();return;}
       $('shop-status').textContent=result.saved?`${garden.name} equipped. ${owned?'':'Unlocked permanently on this device.'}`:'Equipped for this session. Saving is unavailable on this device.';
       tone(660,.1);tone(880,.13,'sine',.08);
       updateUI();renderShop();
@@ -181,7 +176,7 @@ function renderShop() {
 
 function openShop() {
   shopWasPlaying=game.pause();clearInput();updateUI();
-  $('shop-status').textContent='Your chosen garden stays equipped for every level.';
+  $('shop-status').textContent='Your chosen garden stays equipped for every run.';
   renderShop();$('shop-dialog').showModal();
 }
 $('open-shop').addEventListener('click',openShop);
@@ -243,7 +238,7 @@ function updateUI() {
   if(displayedFlowers!==profile.data.flowers){
     displayedFlowers=profile.data.flowers;
     $('flower-balance').textContent=profile.data.flowers;
-    $('open-shop').setAttribute('aria-label',`Open garden shop. ${profile.data.flowers} flowers saved`);
+    $('open-shop').setAttribute('aria-label',`Open garden shop. ${profile.data.flowers} honey pots saved`);
   }
   if (displayedGarden !== garden.id) {
     displayedGarden = garden.id;
@@ -254,10 +249,9 @@ function updateUI() {
   $('best').textContent = fmtScore(game.best);
   $('score').textContent = fmtScore(game.score);
   $('remaining').textContent = game.remaining;
-  const seconds = Math.ceil(game.time);
-  $('timer').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  $('timer').parentElement.classList.toggle('warning', seconds <= 20);
-  $('level-label').textContent = `GARDEN ${String(game.stage).padStart(2, '0')}`;
+  $('timer').textContent = `${String(game.distance).padStart(5, '0')} FT`;
+  $('timer').parentElement.classList.remove('warning');
+  $('level-label').textContent = 'DISTANCE';
   $('level-label').title = garden.name;
   $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (1 - game.bee.y / game.level.height) * 100))}%`;
   const inRun = mode !== 'title';
@@ -295,10 +289,9 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Longer gardens. One endless run.<br><strong>Clear a garden. Earn a life. Max 3.</strong>', 'LET’S FLY'],
-    paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
-    complete: [`GARDEN ${String(game.stage).padStart(2, '0')} COMPLETE`, 'SWEET<br>SUCCESS!', `+${game.bonus || 0} time bonus. ${game.earnedLife?'+1 LIFE!':'3 lives ready.'}<br>Your ${game.lives} ${game.lives===1?'life carries':'lives carry'} into the next garden.`, 'KEEP GOING'],
-    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.flowersCollected} flowers gathered · ${game.score} honey earned.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
+    title: ['THE RETRO GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Snag honey pots. Dodge beetles.<br><strong>Use the joystick to steer. Hold Fly to climb.</strong>', 'LET’S FLY'],
+    paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your run is waiting right where you left it.', 'KEEP FLYING'],
+    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.flowersCollected} honey pots gathered · ${game.score} honey earned.<br>Your honey-pot bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
     const [tag, title, description, label] = titles[mode];
@@ -308,7 +301,6 @@ function updateUI() {
     $('play').innerHTML = `${label} <span>↗</span>`;
     $('secondary').textContent = mode === 'paused' ? 'End run' : 'Back to title';
     $('start-hint').textContent = mode === 'title' ? 'PRESS ENTER TO START' : 'PRESS ENTER TO CONTINUE';
-    // Prevent an old focused pause button from intercepting the next Enter press.
     if (document.activeElement instanceof HTMLButtonElement && !$('help-dialog').open && !$('shop-dialog').open) document.activeElement.blur();
   }
 }
@@ -362,22 +354,23 @@ function drawFlower(f, offset = camera) {
   paintFlower(ctx,{...f,y},{palette:currentGarden().flower,time:clock,reducedMotion});
 }
 
-function drawThorn(t) {
-  if (Math.max(t.y, t.endY) < camera - 35 || Math.min(t.y, t.endY) > camera + viewH + 35) return;
-  const w = Math.round(t.w), h = t.h;
+function drawBeetle(beetle) {
+  const y = (beetle.renderY ?? beetle.y) - camera;
+  if (y < -50 || y > viewH + 50) return;
   ctx.save();
-  ctx.translate(Math.round(t.x), Math.round(t.y - camera));
-  ctx.rotate(t.angle);
-  const night = currentGarden().night;
-  const stem = Math.max(6, Math.round(h * .55));
-  ctx.fillStyle = night ? '#a57aab' : '#443a43';ctx.fillRect(0,-stem/2,w,stem);
-  ctx.fillStyle = night ? '#dfb1dc' : '#876071';ctx.fillRect(3,-stem/2,w-6,2);
-  for (let i = 5; i < w - 3; i += t.spacing) {
-    poly([[i-4,-2],[i+2,-h],[i+7,-2]], night ? '#bc83bb' : '#6b435a');
-    poly([[i-4,2],[i+4,h],[i+8,2]], night ? '#966b9b' : '#644254');
-    ctx.fillStyle = night ? '#ffe0eb' : '#d39b94';ctx.fillRect(i+1,-h,2,3);
-  }
-  ctx.fillStyle = '#b78385';ctx.fillRect(0,-stem/2,3,stem);ctx.fillRect(w-3,-stem/2,3,stem);
+  ctx.translate(Math.round(beetle.x), Math.round(y));
+  ctx.scale(beetle.dir >= 0 ? 1 : -1, 1);
+  const shell = currentGarden().night ? '#69345c' : '#7f3f1d';
+  const shellLight = currentGarden().night ? '#9c5b8e' : '#b45e26';
+  const body = '#2c2218';
+  const wing = '#d8ebd4';
+  poly([[-14,-2],[-9,-10],[0,-13],[9,-10],[14,-2],[13,8],[8,13],[-8,13],[-13,8]], shell);
+  poly([[-10,0],[-6,-7],[0,-9],[6,-7],[10,0],[9,7],[5,10],[-5,10],[-9,7]], shellLight);
+  ctx.fillStyle = body;ctx.fillRect(-3,-12,6,24);ctx.fillRect(-16,-3,8,4);ctx.fillRect(8,-3,8,4);
+  poly([[-5,-1],[-16,-8],[-19,-2],[-16,6],[-7,3]], wing);
+  poly([[5,-1],[16,-8],[19,-2],[16,6],[7,3]], wing);
+  ctx.fillStyle = '#efc84b';ctx.fillRect(-2,-3,4,5);
+  ctx.fillStyle = '#1b120d';ctx.fillRect(-7,10,3,5);ctx.fillRect(4,10,3,5);
   ctx.restore();
 }
 
@@ -421,7 +414,7 @@ function events() {
   for (const event of game.drainEvents()) {
     if (event.type === 'flower') {
       const credit=profile.collect();
-      if(!credit.saved)notify('FLOWER SAVED FOR THIS SESSION · DEVICE STORAGE UNAVAILABLE',3000);
+      if(!credit.saved)notify('HONEY POT SAVED FOR THIS SESSION · DEVICE STORAGE UNAVAILABLE',3000);
       addBurst(event.x, event.y);
       tone(784,.08,'sine');tone(1047,.12,'sine',.065);
       safeSet('nectar-tangle-best-v1', String(game.best));
@@ -434,18 +427,20 @@ function events() {
         const speed = 45 + Math.random() * 105;
         particles.push({x:event.x,y:event.y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,life:.7,max:.7,color:i%2?'#ffe28b':'#fff3d2'});
       }
-      if (game.mode === 'reviving') notify(`LIFE LOST · ${game.lives} LEFT`, 1800);
+      if (game.mode === 'reviving') notify(`OUCH · ${game.lives} ${game.lives === 1 ? 'LIFE' : 'LIVES'} LEFT`, 1800);
     } else if (event.type === 'revive') {
       tone(440,.12,'triangle');tone(660,.14,'triangle',.08);
-      notify(`BACK IN THE GARDEN · ${game.lives} ${game.lives === 1 ? 'LIFE' : 'LIVES'} LEFT`, 1800);
+      notify(`BACK IN THE RUN · ${game.lives} ${game.lives === 1 ? 'LIFE' : 'LIVES'} LEFT`, 1800);
+    } else if (event.type === 'section') {
+      [523,659,784,1047].forEach((note,i) => tone(note,.12,'triangle',i*.08));
+      safeSet('nectar-tangle-best-v1', String(game.best));
+      notify(`SECTION ${String(event.stage - 1).padStart(2, '0')} CLEAR · +${event.bonus} HONEY${event.earnedLife ? ' · +1 LIFE' : ''}`, 2400);
     } else if (event.type === 'over') {
       clearInput();
       $('toast').classList.remove('show');
-    } else if (event.type === 'complete') {
-      [523,659,784,1047].forEach((note,i) => tone(note,.18,'triangle',i*.1));
-      safeSet('nectar-tangle-best-v1', String(game.best));
-      clearInput();
-    } else if (event.type === 'start') { tone(392);tone(523,.15,'triangle',.1); }
+    } else if (event.type === 'start') {
+      tone(392);tone(523,.15,'triangle',.1);
+    }
   }
 }
 
@@ -466,18 +461,19 @@ function drawScene(dt) {
     drawFlower({x:WIDTH-83,y:viewH*.77-31,phase:2},0);
     drawLeaf({x:95,y:viewH-35,w:115},0);
     drawFlower({x:194,y:viewH-66,phase:3},0);
+    drawBeetle({x:WIDTH*.35,y:viewH*.33,renderY:viewH*.33,dir:1,size:18});
     drawBee({x:WIDTH*.85+Math.sin(clock*.8)*20,y:viewH*.37+Math.sin(clock*1.5)*12,vx:0},0,true);
   } else {
     for (const p of game.level.platforms) drawLeaf(p);
-    for (const t of game.level.thorns) drawThorn(t);
+    for (const beetle of game.level.beetles) drawBeetle(beetle);
     for (const f of game.level.flowers) drawFlower(f);
     drawBee(game.bee);
     if (game.mode === 'playing') {
       const above = game.level.flowers.filter(f=>!f.taken && f.y<camera+70).length;
       const below = game.level.flowers.filter(f=>!f.taken && f.y>camera+viewH-45).length;
       ctx.font = '11px monospace';ctx.textAlign='right';ctx.fillStyle=currentGarden().hint;
-      if (above) ctx.fillText(`${above} ABOVE ↑`,WIDTH-24,90);
-      if (below) ctx.fillText(`${below} BELOW ↓`,WIDTH-24,viewH-12);
+      if (above) ctx.fillText(`${above} POTS ABOVE ↑`,WIDTH-24,90);
+      if (below) ctx.fillText(`${below} POTS BELOW ↓`,WIDTH-24,viewH-12);
     }
   }
   for (let i=particles.length-1;i>=0;i--) {
@@ -485,8 +481,8 @@ function drawScene(dt) {
     p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
     if(p.life<=0){particles.splice(i,1);continue;}
     ctx.globalAlpha=Math.min(1,p.life/p.max*2);
-    if(p.text){ctx.font='bold 17px monospace';ctx.textAlign='center';ctx.fillStyle='#456039';ctx.fillText(p.text,p.x+1,p.y-camera+2);ctx.fillStyle='#fff4b9';ctx.fillText(p.text,p.x,p.y-camera);}
-    else {ctx.fillStyle=p.color;ctx.fillRect(Math.round(p.x),Math.round(p.y-camera),4,4);}
+    if(p.text){ctx.font='bold 17px monospace';ctx.textAlign='center';ctx.fillStyle='#456039';ctx.fillText(p.text,p.x+1,p.y-camera+2);ctx.fillStyle='#fff4b9';ctx.fillText(p.text,p.x,p.y-camera);} 
+    else {ctx.fillStyle=p.color;ctx.fillRect(Math.round(p.x),Math.round(p.y-camera),4,4);} 
   }
   ctx.globalAlpha=1;
   ctx.restore();

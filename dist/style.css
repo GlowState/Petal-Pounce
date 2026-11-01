@@ -33,3 +33,40 @@
 @media(max-width:560px){.fly-button{width:90px;height:90px}.fly-button .wing-icon{width:59px;height:59px}}
 @media(max-width:365px){.fly-button{width:84px;height:84px}.fly-button .wing-icon{width:55px;height:55px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* --- Retro cabinet + joystick refresh --- */
+.cabinet{
+  background:linear-gradient(180deg,#3b1745 0%,#25112b 54%,#160b1b 100%);
+  border:2px solid #8b5cb7;
+  border-radius:18px;
+  box-shadow:0 28px 70px #0007,0 0 0 3px #2b1032 inset,0 0 0 7px #512b64 inset;
+  overflow:hidden;
+}
+.cabinet::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.6;
+  background:linear-gradient(90deg,#ff5b7d 0 8px,transparent 8px calc(100% - 8px),#54d3ff calc(100% - 8px) 100%),
+             linear-gradient(180deg,#ffd55a 0 6px,transparent 6px calc(100% - 6px),#8eff8e calc(100% - 6px) 100%);
+}
+.cabinet-bar{background:linear-gradient(180deg,#4a2357,#31163a);min-height:58px;position:relative;z-index:1}
+.screen-frame{background:linear-gradient(180deg,#091012,#0f1417);border-color:#6d5a7e;border-radius:12px;padding:10px;box-shadow:0 10px 20px #0008 inset,0 0 0 1px #c9c1d31c inset}
+.best-label strong{color:#ffe278;text-shadow:0 0 12px #ffbf2c55}
+.shop-trigger,.play-button{box-shadow:0 4px 0 #412454,0 0 0 1px #ffffff10 inset}
+.control-deck.retro-controls{background:linear-gradient(180deg,#2a132f,#170b1a);border-top:1px solid #6b5582;display:flex;justify-content:space-between;align-items:center;padding:18px 22px 20px;gap:24px;position:relative}
+.control-deck.retro-controls::before{content:"ARCADE CONTROL PANEL";position:absolute;left:50%;top:8px;transform:translateX(-50%);font:700 9px var(--mono);letter-spacing:2px;color:#d8cce8;opacity:.75}
+.move-controls,.fly-controls{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;flex:1}
+.control-caption{font:700 10px var(--mono);letter-spacing:2px;color:#efdafc;text-shadow:0 0 10px #ce9cff4d}
+.ghost-control{position:absolute;opacity:0;pointer-events:none;width:0;height:0;padding:0;border:0}
+.joystick-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px}
+.joystick{--joy-x:0px;--joy-y:0px;position:relative;width:128px;height:128px;border-radius:50%;touch-action:none;user-select:none;-webkit-user-select:none;background:radial-gradient(circle at 30% 30%,#8f7aa3 0,#4d345b 32%,#231228 66%,#150b18 100%);border:4px solid #c89cf8;box-shadow:0 0 0 6px #2f1738 inset,0 10px 22px #0008,0 0 20px #b274ff22}
+.joystick-ring{position:absolute;inset:12px;border-radius:50%;border:3px dashed #ffffff2a;box-shadow:0 0 0 1px #0008 inset}
+.joystick-shaft{position:absolute;left:50%;top:50%;width:14px;height:42px;border-radius:8px;background:linear-gradient(180deg,#bfc6d9,#4d5566);transform:translate(-50%,-18%);box-shadow:0 0 0 2px #242936}
+.joystick-knob{position:absolute;left:50%;top:50%;width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe279 0,#ff6c52 78%,#95261e 100%);transform:translate(calc(-50% + var(--joy-x)),calc(-50% + var(--joy-y) - 10px));box-shadow:0 8px 16px #0008,0 0 0 3px #3a0f0f,0 0 18px #ffac6a33;transition:transform .05s linear}
+.joystick.active .joystick-knob{box-shadow:0 10px 18px #000a,0 0 0 3px #3a0f0f,0 0 24px #ffd07366}
+.arcade-fly{width:118px;height:118px;border-radius:50%;border:5px solid #ffd6ea;background:radial-gradient(circle at 35% 30%,#ffb2d0 0,#ff4f89 58%,#a21948 100%);box-shadow:0 14px 24px #0008,0 0 0 7px #32101d inset,0 0 20px #ff6ba444;color:#fff2fb}
+.arcade-fly.pressed,.arcade-fly:active{transform:translateY(2px) scale(.985);box-shadow:0 6px 14px #0008,0 0 0 7px #32101d inset,0 0 28px #ff8eb944}
+.arcade-fly .wing-icon{width:54px;height:54px}
+@media (max-width: 760px){
+  .control-deck.retro-controls{padding:18px 14px 18px;gap:12px}
+  .joystick{width:112px;height:112px}
+  .arcade-fly{width:104px;height:104px}
+}

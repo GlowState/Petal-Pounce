@@ -1,5 +1,5 @@
-const CACHE='petal-pounce-v13';
-const SHELL=['./','./index.html','./privacy.html','./style.css?v=13','./shop.css?v=13','./game.mjs?v=12','./engine.mjs?v=10','./scenery.mjs?v=10','./flowers.mjs?v=10','./hold-controls.mjs?v=12','./profile.mjs?v=10','./bee.svg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const CACHE='petal-pounce-v14';
+const SHELL=['./','./index.html','./privacy.html','./style.css?v=14','./shop.css?v=13','./game.mjs?v=14','./engine.mjs?v=14','./scenery.mjs?v=10','./flowers.mjs?v=14','./hold-controls.mjs?v=14','./profile.mjs?v=10','./bee.svg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
