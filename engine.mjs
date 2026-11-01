@@ -35,15 +35,11 @@ export function segmentDistance(ax, ay, bx, by, cx, cy, dx, dy) {
   );
 }
 
-// Kept for backwards compatibility with any older imports.
 export const thornDistance = (x, y, thorn) => pointSegmentDistance(x, y, thorn.x, thorn.y, thorn.endX, thorn.endY);
-
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const beetleHit = (bee, beetle) => Math.hypot(bee.x - beetle.x, bee.y - beetle.y) < beetle.size + RADIUS - 1;
 
 export function makeLevel(stage, seed = 6819) {
   const rng = random(seed + stage * 1171);
-  const count = Math.min(14 + (stage - 1) * 2, 40);
+  const count = Math.min(16 + (stage - 1) * 3, 64);
   const pattern = ['scatter', 'steps', 'pockets', 'weave'][Math.floor(rng() * 4)];
   const drafts = [];
   const clampCenter = x => Math.max(82, Math.min(WIDTH - 82, x));
@@ -51,64 +47,55 @@ export function makeLevel(stage, seed = 6819) {
   let stepX = 95 + rng() * 530;
   let stepDirection = rng() > .5 ? 1 : -1;
   let pocketX = 180 + rng() * 360;
-
   for (let i = 0; i < count; i++) {
-    if (i) climb += rng() < .35 ? 68 + rng() * 26 : 108 + rng() * 62;
-    const w = 72 + rng() * Math.max(34, 62 - stage * 1.1);
+    if (i) climb += rng() < .3 ? 62 + rng() * 30 : 105 + rng() * 65;
+    const w = 70 + rng() * Math.max(35, 60 - stage * 1.2);
     let center = 82 + rng() * (WIDTH - 164);
     if (pattern === 'steps') {
-      stepX += stepDirection * (108 + rng() * 86);
+      stepX += stepDirection * (105 + rng() * 90);
       if (stepX < 100 || stepX > WIDTH - 100) stepDirection *= -1;
       stepX = clampCenter(stepX);
-      center = clampCenter(stepX + (rng() - .5) * 72);
+      center = clampCenter(stepX + (rng() - .5) * 75);
     } else if (pattern === 'pockets') {
       if (i % 3 === 0) pocketX = 150 + rng() * 420;
-      center = clampCenter(pocketX + (rng() - .5) * 308);
+      center = clampCenter(pocketX + (rng() - .5) * 310);
     } else if (pattern === 'weave') {
       center = clampCenter(360 + Math.sin(i * 1.65 + seed) * (160 + rng() * 100) + (rng() - .5) * 110);
     }
-    if (rng() < .18) center = 82 + rng() * (WIDTH - 164);
+    if (rng() < .2) center = 82 + rng() * (WIDTH - 164);
     const p = { x: center - w / 2, y: -climb, w, flip: rng() > .5 };
+    // Close vertical pairs must be side by side, with room for wings between leaves.
     for (let attempt = 0; drafts.some(other => Math.abs(other.y - p.y) < 82 && p.x < other.x + other.w + 25 && p.x + p.w + 25 > other.x); attempt++) {
       if (attempt < 16) p.x = 82 + rng() * (WIDTH - 164) - w / 2;
       else { climb += 35; p.y = -climb; }
     }
     drafts.push(p);
   }
-
   const height = Math.ceil(climb + 220);
   const platforms = [{ x: 310, y: height - 70, w: 110, launch: true }, ...drafts.map(p => ({ ...p, y: p.y + height }))];
-  const flowers = platforms.slice(1).map(p => ({ x: p.flip ? p.x + 16 : p.x + p.w - 16, y: p.y - 32, taken: false, phase: rng() * 7 }));
+  const flowers = platforms.slice(1).map(p => ({ x: p.flip ? p.x + 16 : p.x + p.w - 16, y: p.y - 31, taken: false, phase: rng() * 7 }));
   const spawn = { x: 365, y: height - 104 };
+  // Keep a winding route through all flowers, rather than a straight safe lane.
   const route = [spawn, ...flowers.map(f => ({ x: f.x, y: f.y }))];
-
-  const beetles = [];
-  const target = Math.min(4 + stage, 18);
-  for (let attempt = 0; attempt < target * 60 && beetles.length < target; attempt++) {
-    const size = 15 + rng() * 8;
-    const y = 90 + rng() * (height - 280);
-    const span = 140 + rng() * 170;
-    const center = 95 + rng() * (WIDTH - 190);
-    const left = clamp(center - span / 2, 38, WIDTH - 160);
-    const right = clamp(center + span / 2, 160, WIDTH - 38);
-    const x = left + rng() * (right - left);
-    const beetle = {
-      x, y, left, right,
-      dir: rng() > .5 ? 1 : -1,
-      speed: 72 + stage * 6 + rng() * 56,
-      size,
-      bob: rng() * Math.PI * 2,
-      bobSpeed: 1.8 + rng() * 1.4,
-      colorShift: rng()
-    };
-    if (Math.hypot(beetle.x - spawn.x, beetle.y - spawn.y) < 150) continue;
-    if (flowers.some(f => Math.abs(f.y - beetle.y) < 40 && f.x > beetle.left - 36 && f.x < beetle.right + 36)) continue;
-    if (platforms.some(p => Math.abs((p.y - 26) - beetle.y) < 28 && p.x - 30 < beetle.right && p.x + p.w + 30 > beetle.left)) continue;
-    if (beetles.some(other => Math.abs(other.y - beetle.y) < 45 && !(beetle.right < other.left - 24 || beetle.left > other.right + 24))) continue;
-    beetles.push(beetle);
+  const thorns = [];
+  const target = Math.min(18 + (stage - 1) * 3, 72);
+  const maxLength = 230 + Math.min(stage, 8) * 9;
+  for (let attempt = 0; attempt < target * 150 && thorns.length < target; attempt++) {
+    const angle = 0;
+    const w = attempt % 9 === 0 ? 195 + rng() * (maxLength - 195) : 55 + rng() * (maxLength - 55);
+    const h = 9 + rng() * 10 + Math.min(stage - 1, 10) * .5;
+    const cx = 45 + rng() * (WIDTH - 90), cy = 90 + rng() * (height - 310);
+    const dx = Math.cos(angle) * w / 2, dy = Math.sin(angle) * w / 2;
+    const t = { x: cx - dx, y: cy - dy, endX: cx + dx, endY: cy + dy, w, h, angle, spacing: 14 + rng() * 9 };
+    if (Math.min(t.x, t.endX) < 24 + h || Math.max(t.x, t.endX) > WIDTH - 24 - h || Math.min(t.y, t.endY) < 45 + h || Math.max(t.y, t.endY) > height - 165) continue;
+    if (thornDistance(spawn.x, spawn.y, t) < 120 + h) continue;
+    if (flowers.some(f => thornDistance(f.x, f.y, t) < h + 43)) continue;
+    if (platforms.some(p => segmentDistance(t.x, t.y, t.endX, t.endY, p.x, p.y - 12, p.x + p.w, p.y - 12) < h + 38)) continue;
+    if (route.slice(1).some((p, i) => segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, p.x, p.y) < h + RADIUS + 9)) continue;
+    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 30)) continue;
+    thorns.push(t);
   }
-
-  return { stage, pattern, height, platforms, flowers, beetles, thorns: [], route, seconds: 165 + (count - 14) * 4, total: count };
+  return { stage, pattern, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
 
 export class Game {
@@ -117,10 +104,10 @@ export class Game {
     this.run = 0;
     this.best = best;
     this.score = 0;
-    this.distance = 0;
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
     this.stage = 1;
+    this.distance = 0;
     this.mode = 'title';
     this.events = [];
     this.loadLevel();
@@ -128,10 +115,14 @@ export class Game {
 
   loadLevel() {
     this.earnedLife = false;
-    this.bonus = 0;
     this.level = makeLevel(this.stage, (this.seed + this.run * 741103) >>> 0);
+    this.level.wasps = [];
+    this.topGenerated = 0;
+    this.startY = this.level.height - 104;
+    this.highestY = this.startY;
+    this.spawnWasps(this.level, 0);
     this.remaining = this.level.total;
-    this.time = this.level.seconds;
+    this.time = 0;
     this.respawn();
     this.reviveTime = 0;
   }
@@ -146,10 +137,10 @@ export class Game {
   start() {
     this.run++;
     this.score = 0;
-    this.distance = 0;
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
     this.stage = 1;
+    this.distance = 0;
     this.loadLevel();
     this.mode = 'playing';
     this.resumeMode = 'playing';
@@ -169,12 +160,39 @@ export class Game {
     if (this.mode === 'paused') this.mode = this.resumeMode || 'playing';
   }
 
-  next() {
-    this.stage++;
-    this.loadLevel();
-    this.mode = 'playing';
-    this.events.push({ type: 'start' });
+  // Each additional segment is attached above the previous one in the same world.
+  // There is no level-complete menu or camera reset.
+  extendWorld() {
+    const nextStage = this.stage + 1;
+    const piece = makeLevel(nextStage, (this.seed + this.run * 741103) >>> 0);
+    const offset = this.topGenerated - piece.height + 140;
+    for (const platform of piece.platforms.slice(1)) this.level.platforms.push({ ...platform, y: platform.y + offset });
+    for (const flower of piece.flowers) this.level.flowers.push({ ...flower, y: flower.y + offset });
+    for (const thorn of piece.thorns) this.level.thorns.push({ ...thorn, y: thorn.y + offset, endY: thorn.endY + offset });
+    this.spawnWasps(piece, offset);
+    this.topGenerated = offset;
+    this.stage = nextStage;
+    this.remaining += piece.flowers.length;
+    this.events.push({ type: 'distanceMilestone', stage: nextStage });
+    // Drop passed geometry, but retain a safe area below the bee for revives.
+    const cutoff = this.bee.y + 1800;
+    this.level.platforms = this.level.platforms.filter(p => p.y < cutoff || p.launch);
+    this.level.flowers = this.level.flowers.filter(f => f.y < cutoff);
+    this.level.thorns = this.level.thorns.filter(t => t.y < cutoff);
+    this.level.wasps = this.level.wasps.filter(w => w.y < cutoff);
   }
+
+  spawnWasps(piece, offset) {
+    const rng = random(this.seed + this.run * 53719 + piece.stage * 9137);
+    const count = Math.min(3 + piece.stage, 15);
+    for (let i = 0; i < count; i++) {
+      const y = offset + 190 + (piece.height - 380) * (i + .5) / count;
+      const x = 70 + rng() * (WIDTH - 140);
+      this.level.wasps.push({ x, y, homeX: x, phase: rng() * Math.PI * 2, amplitude: 85 + rng() * 125, speed: .8 + rng() * .6 + Math.min(piece.stage, 18) * .09 });
+    }
+  }
+
+  next() {} // Kept for compatibility with older UI consumers.
 
   loseLife(reason) {
     if (this.mode !== 'playing') return;
@@ -193,7 +211,6 @@ export class Game {
 
   revive() {
     if (this.mode !== 'reviving') return;
-    if (this.reason === 'time') this.time = this.level.seconds;
     const point = this.checkpoint;
     this.bee = { x: point.x, y: point.y, vx: 0, vy: -90, face: 1 };
     this.invulnerable = 2;
@@ -212,35 +229,28 @@ export class Game {
       return;
     }
     if (this.mode !== 'playing') return;
-
-    this.time = Math.max(0, this.time - dt);
-    if (this.time <= 0) { this.loseLife('time'); return; }
+    this.time += dt;
+    for (const wasp of this.level.wasps) {
+      wasp.phase += dt * wasp.speed;
+      wasp.x = Math.max(28, Math.min(WIDTH - 28, wasp.homeX + Math.sin(wasp.phase) * wasp.amplitude));
+    }
     this.invulnerable = Math.max(0, this.invulnerable - dt);
-
     const b = this.bee;
     const oldBottom = b.y + RADIUS;
-    const horizontal = Number.isFinite(input.horizontal) ? clamp(input.horizontal, -1, 1) : Number(!!input.right) - Number(!!input.left);
-    b.vx += horizontal * 1250 * dt;
-    if (Math.abs(horizontal) < .06) b.vx *= Math.exp(-7.5 * dt);
-    else b.vx *= Math.exp(-1.8 * dt);
-    b.vx = clamp(b.vx, -280, 280);
-    if (horizontal) b.face = horizontal > 0 ? 1 : -1;
-
+    const direction = Number(!!input.right) - Number(!!input.left);
+    b.vx += direction * 1100 * dt;
+    if (!direction) b.vx *= Math.exp(-7 * dt);
+    b.vx = Math.max(-245, Math.min(245, b.vx));
+    if (direction) b.face = direction;
     b.vy += (input.fly ? -760 : 660) * dt;
-    b.vy = clamp(b.vy, -295, 340);
+    b.vy = Math.max(-295, Math.min(340, b.vy));
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     if (b.x < 25) { b.x = 25; b.vx = 0; }
     if (b.x > WIDTH - 25) { b.x = WIDTH - 25; b.vx = 0; }
-    if (b.y < 30) { b.y = 30; b.vy = Math.max(0, b.vy); }
-
-    for (const beetle of this.level.beetles) {
-      beetle.x += beetle.speed * beetle.dir * dt;
-      if (beetle.x <= beetle.left) { beetle.x = beetle.left; beetle.dir = 1; }
-      if (beetle.x >= beetle.right) { beetle.x = beetle.right; beetle.dir = -1; }
-      beetle.bob += dt * beetle.bobSpeed;
-      beetle.renderY = beetle.y + Math.sin(beetle.bob) * 6;
-    }
+    this.highestY = Math.min(this.highestY, b.y);
+    this.distance = Math.max(this.distance, Math.floor((this.startY - this.highestY) / 10));
+    if (b.y < this.topGenerated + 800) this.extendWorld();
 
     for (const p of this.level.platforms) {
       const top = p.y - 3;
@@ -264,26 +274,13 @@ export class Game {
       }
     }
 
-    this.distance = Math.max(this.distance, Math.floor((this.stage - 1) * 1000 + Math.max(0, this.level.height - b.y - 70)));
-
-    if (this.remaining === 0) {
-      this.bonus = 70 + this.stage * 8;
-      this.score += this.bonus;
-      this.record();
-      this.earnedLife = this.lives < MAX_LIVES;
-      this.lives = Math.min(MAX_LIVES, this.lives + 1);
-      this.distance = Math.max(this.distance, this.stage * 1000);
-      this.stage++;
-      this.loadLevel();
-      this.mode = 'playing';
-      this.events.push({ type: 'section', stage: this.stage, bonus: this.bonus, earnedLife: this.earnedLife, lives: this.lives });
-      return;
-    }
-
     if (!this.invulnerable) {
-      for (const beetle of this.level.beetles) {
-        if (beetleHit({ x: b.x, y: b.y }, { ...beetle, y: beetle.renderY ?? beetle.y })) {
-          this.loseLife('beetle');
+      for (const w of this.level.wasps) {
+        if (Math.hypot(b.x - w.x, b.y - w.y) < RADIUS + 15) { this.loseLife('wasp'); return; }
+      }
+      for (const t of this.level.thorns) {
+        if (thornDistance(b.x, b.y, t) < t.h + RADIUS - 3) {
+          this.loseLife('thorn');
           return;
         }
       }
