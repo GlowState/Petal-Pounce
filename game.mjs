@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=24';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=25';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -28,20 +28,24 @@ const controls = new HoldControls({
   }
 });
 
-// True 360-degree joystick with analog steering and subtle glide trim.
-// Pointer capture keeps tracking the same thumb well outside the circular base,
-// even while the other thumb is holding Fly. A radial dead zone prevents drift, and the top/bottom bands mute horizontal steering for easier thumb rollovers.
+
+// Precise 360-degree analog thumbstick. The thumb always stays captured,
+// even when it drifts off the visible plate while Fly is held separately.
+// Horizontal steering has a broad vertical neutral cone for direction changes.
 const stickPlate = $('steering-joystick');
 const stickKnob = $('joystick-stick');
 let joystickPointer = null;
 let joystickActive = false;
 let joystickX = 0;
 let joystickY = 0;
-const JOYSTICK_DEAD_ZONE = .16;
-const JOYSTICK_X_FADE_Y = .38;
-const JOYSTICK_X_DEAD_Y = .52;
-const JOYSTICK_X_DEAD_HALF_WIDTH = .42;
-const JOYSTICK_X_FADE_HALF_WIDTH = .62;
+let stickVisualX = 0;
+let stickVisualY = 0;
+const JOYSTICK_DEAD_ZONE = .14;
+// From vertical: 0-30 degrees stays neutral; steering fades in until ~48 degrees.
+const JOYSTICK_NEUTRAL_RATIO = .58;
+const JOYSTICK_FULL_RATIO = 1.12;
+const clampUnit = value => Math.max(-1, Math.min(1, value));
+const smoothstep = value => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
 function steeringAxisFromKeys() { return Number(input.right) - Number(input.left); }
 function updateSteeringInput() {
   input.steer = joystickActive ? joystickX : steeringAxisFromKeys();
@@ -49,12 +53,18 @@ function updateSteeringInput() {
 }
 function joystickRadius() {
   const box = stickPlate.getBoundingClientRect();
-  return Math.max(1, Math.min(box.width, box.height) * .2);
+  // Large input radius makes thumb movements less twitchy.
+  return Math.max(1, Math.min(box.width, box.height) * .34);
+}
+function joystickTravel() {
+  const box = stickPlate.getBoundingClientRect();
+  // Keep the full large knob inside the decorative plate at maximum tilt.
+  return Math.max(4, Math.min(box.width, box.height) / 2 - 41);
 }
 function drawJoystick(x, y = 0) {
-  const radius = joystickRadius();
-  stickPlate.style.setProperty('--stick-x', `${(x * radius).toFixed(1)}px`);
-  stickPlate.style.setProperty('--stick-y', `${(y * radius).toFixed(1)}px`);
+  const distance = joystickTravel();
+  stickPlate.style.setProperty('--stick-x', `${(x * distance).toFixed(1)}px`);
+  stickPlate.style.setProperty('--stick-y', `${(y * distance).toFixed(1)}px`);
   stickPlate.dataset.direction = Math.hypot(x, y) < .01 ? 'center' : 'tilted';
 }
 function joystickPosition(clientX, clientY) {
@@ -63,25 +73,29 @@ function joystickPosition(clientX, clientY) {
   const dx = (clientX - box.left - box.width / 2) / radius;
   const dy = (clientY - box.top - box.height / 2) / radius;
   const magnitude = Math.hypot(dx, dy);
-  if (magnitude <= JOYSTICK_DEAD_ZONE) return { x: 0, y: 0 };
-  // Radial, rather than per-axis, dead zone so diagonal steering stays smooth.
-  const strength = Math.min(1, (magnitude - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE));
-  let x = dx / magnitude * strength;
-  const y = dy / magnitude * strength;
-  // At the top and bottom of the stick, mute horizontal input so the thumb can
-  // roll through those zones to reverse direction without accidental steering.
-  const absDx = Math.abs(dx), absDy = Math.abs(dy);
-  if (absDy >= JOYSTICK_X_DEAD_Y && absDx <= JOYSTICK_X_DEAD_HALF_WIDTH) x = 0;
-  else if (absDy > JOYSTICK_X_FADE_Y && absDx <= JOYSTICK_X_FADE_HALF_WIDTH) {
-    const fade = 1 - Math.min(1, (absDy - JOYSTICK_X_FADE_Y) / (JOYSTICK_X_DEAD_Y - JOYSTICK_X_FADE_Y));
-    x *= fade;
-  }
-  return { x, y };
+  if (magnitude <= JOYSTICK_DEAD_ZONE) return { x: 0, y: 0, visualX: 0, visualY: 0 };
+  const radialStrength = Math.min(1, (magnitude - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE));
+  const visualX = dx / magnitude * radialStrength;
+  const visualY = dy / magnitude * radialStrength;
+  // Use the thumb's angle, NOT just its position along a horizontal strip.
+  // Straight up/down and nearby angles are completely neutral for steering.
+  // A soft transition prevents sudden left/right input at the edge of that cone.
+  const ratioFromVertical = Math.abs(dx) / Math.max(.001, Math.abs(dy));
+  const horizontalIntent = smoothstep((ratioFromVertical - JOYSTICK_NEUTRAL_RATIO) / (JOYSTICK_FULL_RATIO - JOYSTICK_NEUTRAL_RATIO));
+  const horizontalTravel = Math.max(0, (Math.min(1, Math.abs(dx)) - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE));
+  // Progressive speed: small thumb tilts yield low speeds; full horizontal reaches max.
+  const progressiveSteer = Math.pow(horizontalTravel, 1.30);
+  // Diagonal movement deliberately has slightly less lateral authority.
+  const diagonalReduction = 1 - .20 * Math.min(1, Math.abs(dy));
+  const x = Math.sign(dx) * progressiveSteer * horizontalIntent * diagonalReduction;
+  return { x: clampUnit(x), y: clampUnit(visualY), visualX, visualY };
 }
-function setJoystick(x, y) {
-  joystickX = Math.max(-1, Math.min(1, x));
-  joystickY = Math.max(-1, Math.min(1, y));
-  drawJoystick(joystickX, joystickY);
+function setJoystick(x, y, visualX = x, visualY = y) {
+  joystickX = clampUnit(x);
+  joystickY = clampUnit(y);
+  stickVisualX = clampUnit(visualX);
+  stickVisualY = clampUnit(visualY);
+  drawJoystick(stickVisualX, stickVisualY);
   updateSteeringInput();
 }
 function releaseJoystick(pointerId = null) {
@@ -100,6 +114,8 @@ function clearJoystick() {
   joystickActive = false;
   joystickX = 0;
   joystickY = 0;
+  stickVisualX = 0;
+  stickVisualY = 0;
   stickPlate.classList.remove('engaged');
   drawJoystick(0, 0);
   updateSteeringInput();
@@ -107,7 +123,7 @@ function clearJoystick() {
 stickPlate.addEventListener('pointerdown', event => {
   if (event.pointerType === 'mouse' && event.button !== 0) return;
   if (!['playing', 'reviving'].includes(game.mode) || $('help-dialog').open || $('shop-dialog').open) return;
-  if (joystickPointer !== null) return; // Ignore second fingers on the same joystick.
+  if (joystickPointer !== null) return;
   event.preventDefault();
   ensureAudio();
   joystickPointer = event.pointerId;
@@ -115,23 +131,22 @@ stickPlate.addEventListener('pointerdown', event => {
   stickPlate.classList.add('engaged');
   try { stickPlate.setPointerCapture(event.pointerId); } catch {}
   const pos = joystickPosition(event.clientX, event.clientY);
-  setJoystick(pos.x, pos.y);
+  setJoystick(pos.x, pos.y, pos.visualX, pos.visualY);
 });
 stickPlate.addEventListener('pointermove', event => {
   if (event.pointerId !== joystickPointer) return;
   if (event.pointerType === 'mouse' && !(event.buttons & 1)) { releaseJoystick(event.pointerId); return; }
   event.preventDefault();
   const pos = joystickPosition(event.clientX, event.clientY);
-  setJoystick(pos.x, pos.y);
+  setJoystick(pos.x, pos.y, pos.visualX, pos.visualY);
 });
-// Do not release on a second finger's up/cancel or on a touch sliding off-base.
 for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   stickPlate.addEventListener(name, event => releaseJoystick(event.pointerId));
   window.addEventListener(name, event => releaseJoystick(event.pointerId), true);
 }
 for (const name of ['touchstart', 'touchmove']) stickPlate.addEventListener(name, event => event.preventDefault(), { passive: false });
 for (const name of ['contextmenu', 'selectstart', 'dragstart']) stickPlate.addEventListener(name, event => event.preventDefault());
-window.addEventListener('resize', () => { if (!joystickActive) drawJoystick(steeringAxisFromKeys(), 0); else drawJoystick(joystickX, joystickY); });
+window.addEventListener('resize', () => { if (!joystickActive) drawJoystick(steeringAxisFromKeys(), 0); else drawJoystick(stickVisualX, stickVisualY); });
 // Existing HoldControls continues to handle Fly and desktop keyboard arrows.
 
 let viewH = 480;

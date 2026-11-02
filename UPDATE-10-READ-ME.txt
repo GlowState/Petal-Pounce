@@ -1,0 +1,24 @@
+PETAL POUNCE — UPDATE 10: SMOOTH ANALOG STEERING + CABINET TRIM
+
+Install:
+• Back up your current repository.
+• Copy the included files to the matching paths in your existing project.
+• Keep your other existing files; this ZIP is an update, not a standalone game.
+• If your site uses root paths, copy the root files. If it uses dist/, copy dist/ files.
+• Do not erase other assets (style.css, scenery.mjs, profile.mjs, etc.).
+
+Included improvements:
+• Knob face mathematically centered in the joystick ring.
+• Slower proportional steering; slow on small tilt, fast on full left/right tilt.
+• More forgiving top/bottom neutral cones; diagonal steering intentionally slower.
+• Smooth acceleration/reversals instead of constant acceleration to full speed.
+• Narrow, decorative arcade-machine trim on left/right edge of game screen.
+• Existing mixed thorns, Fly control, and arcade text retained.
+
+Rollback:
+Use the accompanying Update 10 rollback ZIP (Update 9 files).
+Both bundles are patches, not full standalone game archives.
+
+Test on your phone: hold Fly and move the stick slowly; reverse over the top or
+bottom; check screen-edge trim doesn't block gameplay. Cached versions may
+require closing/reopening the game after GitHub Pages publishes.
