@@ -1,13 +1,24 @@
-/* Update 10 - refined 360-degree arcade thumbstick with a larger knob and neutral top/bottom bands. */
+/* Update 11 - full-angle analog steering and a larger invisible thumb target. */
+/* The invisible hit area is 20–26px larger than the visible housing.
+   Captured pointers keep tracking after the finger leaves either circle. */
+.joystick-touch-zone {
+  position:relative; width:154px; height:154px; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:none; user-select:none; -webkit-user-select:none;
+  -webkit-touch-callout:none; overscroll-behavior:contain;
+  cursor:crosshair; border-radius:50%; outline-offset:2px;
+}
+.joystick-touch-zone:focus-visible {outline:3px solid #ffd579;}
 .joystick-control {
   position:relative; display:block; width:132px; height:132px; flex:none;
+  pointer-events:none;
   border-radius:50%; border:2px solid #839173;
   background:radial-gradient(circle at 32% 20%, #6a7a5b, #344538 45%, #1b2822 78%, #111b16 100%);
   box-shadow:inset 0 2px 1px #e0e2ae77,inset 0 -7px 11px #07120da8,0 6px 0 #101b14,0 9px 14px #0008;
   cursor:crosshair; touch-action:none; user-select:none; -webkit-user-select:none;
   -webkit-touch-callout:none; outline-offset:5px; overscroll-behavior:contain;
 }
-.joystick-control:focus-visible { outline:3px solid #ffd579; }
+
 .joystick-panel { position:absolute; inset:6px; border:1px solid #1a291e; border-radius:50%;
   background:radial-gradient(circle at 50% 45%, #3b5141 0%,#23352b 58%,#18271f 100%);
   box-shadow:inset 0 2px 8px #080f0caa,inset 0 -1px 1px #89937a44; pointer-events:none;
@@ -21,18 +32,19 @@
   transform:translate3d(var(--stick-x,0px),var(--stick-y,0px),0);
   filter:drop-shadow(1px 7px 4px #03090699); will-change:transform;
   transition:transform .075s ease-out; }
-.joystick-control:not(.engaged) .joystick-stick { transition:transform .17s cubic-bezier(.2,.85,.2,1.07); }
+.joystick-touch-zone:not(.engaged) .joystick-stick { transition:transform .17s cubic-bezier(.2,.85,.2,1.07); }
 .joystick-stem {position:absolute; width:15px; height:27px; left:34px; top:50px; border-radius:6px;
   background:linear-gradient(90deg,#586558,#c9d3ba 44%,#516558 80%);box-shadow:1px 1px 3px #051009;}
 .joystick-ball {position:absolute; top:0; left:5px; width:74px;height:74px;border-radius:50%;
   background:radial-gradient(circle at 30% 23%,#fff9d6 0%,#ffdfa1 10%,#efba54 36%,#bf782a 75%,#773e1b 100%);
   border:2px solid #94652d; box-shadow:inset 4px 4px 4px #fff5aa96,inset -5px -5px 7px #6f3613aa,0 3px 0 #13241b; }
 .joystick-ball:after { content:'';position:absolute;width:18px;height:8px;left:14px;top:11px;border-radius:50%;background:#fff6dad9;transform:rotate(-25deg);filter:blur(2px);}
-.joystick-control.engaged {border-color:#c6ba7c;box-shadow:inset 0 2px 1px #e2e9b48a,inset 0 -7px 11px #07120da8,0 6px 0 #101b14,0 9px 15px #0009;}
+.joystick-touch-zone.engaged .joystick-control {border-color:#c6ba7c;box-shadow:inset 0 2px 1px #e2e9b48a,inset 0 -7px 11px #07120da8,0 6px 0 #101b14,0 9px 15px #0009;}
 .move-controls { min-width:0; flex:0 0 auto; }
 .control-deck {gap:14px;}
 @media(max-width:560px){
   .control-deck { height:calc(157px + env(safe-area-inset-bottom)); gap:12px; }
+  .joystick-touch-zone {width:148px;height:148px;}
   .joystick-control {width:122px; height:122px;}
   .joystick-panel {inset:5px;}
   .joystick-well {inset:19px;}
@@ -40,6 +52,7 @@
 }
 @media(max-width:365px){
   .control-deck {height:calc(151px + env(safe-area-inset-bottom));gap:10px;}
+  .joystick-touch-zone {width:140px;height:140px;}
   .joystick-control {width:112px;height:112px;}
   .joystick-panel {inset:5px;}
   .joystick-well {inset:17px;}

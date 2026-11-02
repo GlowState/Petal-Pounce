@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=25';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=26';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -29,10 +29,10 @@ const controls = new HoldControls({
 });
 
 
-// Precise 360-degree analog thumbstick. The thumb always stays captured,
-// even when it drifts off the visible plate while Fly is held separately.
-// Horizontal steering has a broad vertical neutral cone for direction changes.
+// Responsive 360-degree thumbstick: any horizontal deflection steers, even
+// at the top/bottom of the circle. Pointer capture preserves two-thumb play.
 const stickPlate = $('steering-joystick');
+const stickBase = stickPlate.querySelector('.joystick-control');
 const stickKnob = $('joystick-stick');
 let joystickPointer = null;
 let joystickActive = false;
@@ -40,25 +40,26 @@ let joystickX = 0;
 let joystickY = 0;
 let stickVisualX = 0;
 let stickVisualY = 0;
-const JOYSTICK_DEAD_ZONE = .14;
-// From vertical: 0-30 degrees stays neutral; steering fades in until ~48 degrees.
-const JOYSTICK_NEUTRAL_RATIO = .58;
-const JOYSTICK_FULL_RATIO = 1.12;
 const clampUnit = value => Math.max(-1, Math.min(1, value));
-const smoothstep = value => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
+const JOYSTICK_DIAGONAL_REDUCTION = .14;
+// No horizontal dead zone: only an exactly centered X gives zero steering.
+// Speed still varies continuously with the amount of horizontal travel.
 function steeringAxisFromKeys() { return Number(input.right) - Number(input.left); }
 function updateSteeringInput() {
   input.steer = joystickActive ? joystickX : steeringAxisFromKeys();
   input.glide = joystickActive ? -joystickY : 0;
 }
+function stickBounds() {
+  // The hit target is larger than the visible arcade ring. Use the ring's center
+  // for analog input, so an enlarged hit target never changes steering feel.
+  return stickBase.getBoundingClientRect();
+}
 function joystickRadius() {
-  const box = stickPlate.getBoundingClientRect();
-  // Large input radius makes thumb movements less twitchy.
+  const box = stickBounds();
   return Math.max(1, Math.min(box.width, box.height) * .34);
 }
 function joystickTravel() {
-  const box = stickPlate.getBoundingClientRect();
-  // Keep the full large knob inside the decorative plate at maximum tilt.
+  const box = stickBounds();
   return Math.max(4, Math.min(box.width, box.height) / 2 - 41);
 }
 function drawJoystick(x, y = 0) {
@@ -68,27 +69,24 @@ function drawJoystick(x, y = 0) {
   stickPlate.dataset.direction = Math.hypot(x, y) < .01 ? 'center' : 'tilted';
 }
 function joystickPosition(clientX, clientY) {
-  const box = stickPlate.getBoundingClientRect();
+  const box = stickBounds();
   const radius = joystickRadius();
   const dx = (clientX - box.left - box.width / 2) / radius;
   const dy = (clientY - box.top - box.height / 2) / radius;
   const magnitude = Math.hypot(dx, dy);
-  if (magnitude <= JOYSTICK_DEAD_ZONE) return { x: 0, y: 0, visualX: 0, visualY: 0 };
-  const radialStrength = Math.min(1, (magnitude - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE));
-  const visualX = dx / magnitude * radialStrength;
-  const visualY = dy / magnitude * radialStrength;
-  // Use the thumb's angle, NOT just its position along a horizontal strip.
-  // Straight up/down and nearby angles are completely neutral for steering.
-  // A soft transition prevents sudden left/right input at the edge of that cone.
-  const ratioFromVertical = Math.abs(dx) / Math.max(.001, Math.abs(dy));
-  const horizontalIntent = smoothstep((ratioFromVertical - JOYSTICK_NEUTRAL_RATIO) / (JOYSTICK_FULL_RATIO - JOYSTICK_NEUTRAL_RATIO));
-  const horizontalTravel = Math.max(0, (Math.min(1, Math.abs(dx)) - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE));
-  // Progressive speed: small thumb tilts yield low speeds; full horizontal reaches max.
-  const progressiveSteer = Math.pow(horizontalTravel, 1.30);
-  // Diagonal movement deliberately has slightly less lateral authority.
-  const diagonalReduction = 1 - .20 * Math.min(1, Math.abs(dy));
-  const x = Math.sign(dx) * progressiveSteer * horizontalIntent * diagonalReduction;
-  return { x: clampUnit(x), y: clampUnit(visualY), visualX, visualY };
+  // Keep the knob inside the circular well. Its movement does not restrict
+  // the larger area that can capture and track the player's thumb.
+  const visualX = magnitude > 1 ? dx / magnitude : dx;
+  const visualY = magnitude > 1 ? dy / magnitude : dy;
+  // Crucial: do not gate steering on angle or overall thumb distance.
+  // Any dx > 0 steers right; any dx < 0 steers left, even near vertical.
+  const horizontal = clampUnit(dx);
+  // Diagonals are slightly slower than a straight horizontal tilt.
+  const diagonalFactor = 1 - JOYSTICK_DIAGONAL_REDUCTION * Math.min(1, Math.abs(dy));
+  const x = horizontal * diagonalFactor;
+  // Preserve the separate Fly control and the subtle glide trimming.
+  const y = clampUnit(dy);
+  return { x, y, visualX, visualY };
 }
 function setJoystick(x, y, visualX = x, visualY = y) {
   joystickX = clampUnit(x);
