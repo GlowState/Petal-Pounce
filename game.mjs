@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=23';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=24';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -30,7 +30,7 @@ const controls = new HoldControls({
 
 // True 360-degree joystick with analog steering and subtle glide trim.
 // Pointer capture keeps tracking the same thumb well outside the circular base,
-// even while the other thumb is holding Fly. A radial dead zone prevents drift.
+// even while the other thumb is holding Fly. A radial dead zone prevents drift, and the top/bottom bands mute horizontal steering for easier thumb rollovers.
 const stickPlate = $('steering-joystick');
 const stickKnob = $('joystick-stick');
 let joystickPointer = null;
@@ -38,6 +38,10 @@ let joystickActive = false;
 let joystickX = 0;
 let joystickY = 0;
 const JOYSTICK_DEAD_ZONE = .16;
+const JOYSTICK_X_FADE_Y = .38;
+const JOYSTICK_X_DEAD_Y = .52;
+const JOYSTICK_X_DEAD_HALF_WIDTH = .42;
+const JOYSTICK_X_FADE_HALF_WIDTH = .62;
 function steeringAxisFromKeys() { return Number(input.right) - Number(input.left); }
 function updateSteeringInput() {
   input.steer = joystickActive ? joystickX : steeringAxisFromKeys();
@@ -45,7 +49,7 @@ function updateSteeringInput() {
 }
 function joystickRadius() {
   const box = stickPlate.getBoundingClientRect();
-  return Math.max(1, Math.min(box.width, box.height) * .26);
+  return Math.max(1, Math.min(box.width, box.height) * .2);
 }
 function drawJoystick(x, y = 0) {
   const radius = joystickRadius();
@@ -62,7 +66,17 @@ function joystickPosition(clientX, clientY) {
   if (magnitude <= JOYSTICK_DEAD_ZONE) return { x: 0, y: 0 };
   // Radial, rather than per-axis, dead zone so diagonal steering stays smooth.
   const strength = Math.min(1, (magnitude - JOYSTICK_DEAD_ZONE) / (1 - JOYSTICK_DEAD_ZONE));
-  return { x: dx / magnitude * strength, y: dy / magnitude * strength };
+  let x = dx / magnitude * strength;
+  const y = dy / magnitude * strength;
+  // At the top and bottom of the stick, mute horizontal input so the thumb can
+  // roll through those zones to reverse direction without accidental steering.
+  const absDx = Math.abs(dx), absDy = Math.abs(dy);
+  if (absDy >= JOYSTICK_X_DEAD_Y && absDx <= JOYSTICK_X_DEAD_HALF_WIDTH) x = 0;
+  else if (absDy > JOYSTICK_X_FADE_Y && absDx <= JOYSTICK_X_FADE_HALF_WIDTH) {
+    const fade = 1 - Math.min(1, (absDy - JOYSTICK_X_FADE_Y) / (JOYSTICK_X_DEAD_Y - JOYSTICK_X_FADE_Y));
+    x *= fade;
+  }
+  return { x, y };
 }
 function setJoystick(x, y) {
   joystickX = Math.max(-1, Math.min(1, x));

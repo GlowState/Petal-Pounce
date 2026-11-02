@@ -1,4 +1,4 @@
-/* Update 8 - true 360-degree arcade thumbstick. Retains Version B's Fly button. */
+/* Update 9 - refined 360-degree arcade thumbstick with a larger knob and neutral top/bottom bands. */
 .joystick-control {
   position:relative; display:block; width:132px; height:132px; flex:none;
   border-radius:50%; border:2px solid #839173;
@@ -17,21 +17,16 @@
   border:2px solid #0c1710; box-shadow:inset 0 4px 8px #010703,0 1px 0 #98a28766; }
 .joystick-ring { position:absolute; inset:7px; border:1px solid #71816a59; border-radius:50%; }
 .joystick-center { position:absolute; width:4px; height:4px; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%;background:#fbd48066; }
-.joystick-direction { position:absolute; font-size:9px; line-height:1; color:#b6c4a8; text-shadow:0 1px #050e09; opacity:.82; }
-.joystick-direction-left { top:50%; left:10px; transform:translateY(-50%); }
-.joystick-direction-right { top:50%; right:10px; transform:translateY(-50%); }
-.joystick-direction-up { top:7px; left:50%; transform:translateX(-50%); }
-.joystick-direction-down { bottom:6px; left:50%; transform:translateX(-50%); }
-.joystick-stick {position:absolute; width:62px; height:74px; top:50%; left:50%; margin:-39px 0 0 -31px;
+.joystick-stick {position:absolute; width:84px; height:94px; top:50%; left:50%; margin:-49px 0 0 -42px;
   transform:translate3d(var(--stick-x,0px),var(--stick-y,0px),0);
   filter:drop-shadow(1px 7px 4px #03090699); will-change:transform; }
 .joystick-control:not(.engaged) .joystick-stick { transition:transform .15s cubic-bezier(.2,.85,.2,1.07); }
-.joystick-stem {position:absolute; width:13px; height:25px; left:25px; top:38px; border-radius:5px;
+.joystick-stem {position:absolute; width:15px; height:27px; left:34px; top:50px; border-radius:6px;
   background:linear-gradient(90deg,#586558,#c9d3ba 44%,#516558 80%);box-shadow:1px 1px 3px #051009;}
-.joystick-ball {position:absolute; top:0; left:5px; width:52px;height:52px;border-radius:50%;
+.joystick-ball {position:absolute; top:0; left:5px; width:74px;height:74px;border-radius:50%;
   background:radial-gradient(circle at 30% 23%,#fff9d6 0%,#ffdfa1 10%,#efba54 36%,#bf782a 75%,#773e1b 100%);
   border:2px solid #94652d; box-shadow:inset 4px 4px 4px #fff5aa96,inset -5px -5px 7px #6f3613aa,0 3px 0 #13241b; }
-.joystick-ball:after { content:'';position:absolute;width:13px;height:6px;left:10px;top:8px;border-radius:50%;background:#fff6dad9;transform:rotate(-25deg);filter:blur(2px);}
+.joystick-ball:after { content:'';position:absolute;width:18px;height:8px;left:14px;top:11px;border-radius:50%;background:#fff6dad9;transform:rotate(-25deg);filter:blur(2px);}
 .joystick-control.engaged {border-color:#c6ba7c;box-shadow:inset 0 2px 1px #e2e9b48a,inset 0 -7px 11px #07120da8,0 6px 0 #101b14,0 9px 15px #0009;}
 .move-controls { min-width:0; flex:0 0 auto; }
 .control-deck {gap:14px;}
