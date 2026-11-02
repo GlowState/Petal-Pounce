@@ -1,0 +1,26 @@
+PETAL POUNCE — UPDATE 11: FULL-ANGLE RESPONSIVE JOYSTICK
+
+INSTALL
+1. Back up your existing GitHub project.
+2. Extract this ZIP and upload the files to the matching repository paths.
+3. Replace files in the root and/or dist folder where your site actually runs.
+4. Keep all unrelated files (style.css, scenery.mjs, profile.mjs, images, etc.).
+5. Refresh the game after Pages publishes; if old controls persist, fully close
+   and reopen the game to clear its cached copy.
+
+WHAT CHANGED
+• Removed all top/bottom neutral steering cones.
+• The slightest horizontal joystick deflection generates horizontal steering,
+  even near the top or bottom. Left/right speed remains proportional to tilt.
+• Snappier acceleration and braking while preserving analog control.
+• Larger invisible thumb-hit area around the same visual arcade joystick.
+• Existing smooth dial, cabinet trim, mixed thorns, Fly button and other
+  styling are unchanged.
+
+ROLLBACK
+Use the accompanying Update 11 rollback ZIP to restore Update 10.
+Both ZIPs are patches and require your existing full project files.
+
+TEST
+Hold Fly while steering around thorns, try gentle horizontal tilts near the
+very top/bottom of the stick, and deliberately slide off the joystick housing.

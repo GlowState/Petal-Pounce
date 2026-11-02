@@ -270,7 +270,7 @@ export class Game {
     // instead of accelerating all the way to the maximum even at a tiny tilt.
     // Exponential easing yields smooth starts, stops and direction reversals.
     const desiredVx = direction * 235;
-    const response = Math.abs(direction) < .0001 ? 15 : 10.8;
+    const response = Math.abs(direction) < .0001 ? 19 : 16;
     b.vx += (desiredVx - b.vx) * (1 - Math.exp(-response * dt));
     if (Math.abs(b.vx) < .08 && Math.abs(desiredVx) < .0001) b.vx = 0;
     if (direction) b.face = direction;
