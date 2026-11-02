@@ -1,0 +1,52 @@
+/* Petal Pounce Update 5 — retro horizontal joystick with generous thumb target.
+   Keeps the Version B zoom, garden and separate Fly control unchanged. */
+.joystick-control{
+  position:relative;
+  display:block;
+  width:clamp(190px,25vw,268px);
+  height:99px;
+  border-radius:23px;
+  background:linear-gradient(160deg,#66755c 0%,#334236 18%,#202b26 70%,#17231d 100%);
+  border:2px solid #697961;
+  box-shadow:inset 0 2px 0 #aab58a66,inset 0 -5px 0 #111a16,0 6px 0 #0d1712,0 10px 14px #0005;
+  cursor:ew-resize;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+  outline-offset:5px;
+  flex:none;
+}
+.joystick-control:focus-visible{outline:3px solid #f7ca68}
+.joystick-panel{position:absolute;inset:6px;border-radius:16px;background:radial-gradient(ellipse at 50% 8%,#5f6e5738,transparent 55%),linear-gradient(#26352c,#26352a);border:1px solid #14221b;box-shadow:inset 0 1px 5px #050c0780;pointer-events:none;}
+.joystick-track{position:absolute;left:25px;right:25px;top:35px;height:25px;border:2px solid #0d1914;border-radius:15px;background:linear-gradient(#060e0b,#1b2b22 55%,#304037);box-shadow:inset 0 3px 7px #000b,0 1px 0 #77876755;}
+.joystick-track-center{position:absolute;top:1px;bottom:1px;left:50%;width:2px;transform:translateX(-50%);background:#d9b87866;}
+.joystick-stick{position:absolute;width:58px;height:73px;top:10px;left:50%;margin-left:-29px;transform:translate3d(var(--stick-x,0px),0,0);filter:drop-shadow(0 5px 3px #050b0888);}
+.joystick-control:not(.engaged) .joystick-stick{transition:transform .16s cubic-bezier(.2,.8,.25,1.1)}
+.joystick-stem{position:absolute;left:23px;top:40px;width:12px;height:24px;border-radius:4px;background:linear-gradient(90deg,#596457 0%,#d8d9b9 40%,#586a5b 82%);box-shadow:1px 0 2px #111;}
+.joystick-ball{position:absolute;left:5px;top:0;width:48px;height:48px;border-radius:50%;background:radial-gradient(circle at 32% 23%,#fff6bc 0%,#f8d57e 14%,#e8ac3e 42%,#ad6722 80%,#6c3818 100%);border:2px solid #7c5326;box-shadow:inset 3px 4px 3px #fff5ad99,inset -4px -6px 6px #713a20aa,0 4px 0 #0e1b16;}
+.joystick-ball::before{content:'';position:absolute;left:10px;top:6px;width:12px;height:7px;border-radius:100%;transform:rotate(-35deg);background:#fff6cebb;filter:blur(2px);}
+.joystick-direction{position:absolute;top:39px;font-size:11px;color:#91a083;text-shadow:0 1px #050b08;}
+.joystick-direction-left{left:8px}.joystick-direction-right{right:8px}
+.joystick-label{position:absolute;bottom:5px;left:auto;right:12px;transform:none;font:700 7px var(--mono,monospace);letter-spacing:1.1px;color:#e1bf7f;text-shadow:0 1px #0f1d16;}
+.joystick-control.engaged{border-color:#a1a982;box-shadow:inset 0 2px 0 #bccc9f77,inset 0 -5px 0 #121b15,0 6px 0 #0d1712,0 10px 16px #0008;}
+@media(max-width:560px){
+  .move-controls{min-width:0;flex:0 1 auto}
+  .joystick-control{width:clamp(166px,52.5vw,238px);height:96px;border-radius:21px}
+  .joystick-panel{inset:5px}
+  .joystick-track{top:35px;height:23px;left:22px;right:22px}
+  .joystick-stick{top:10px}
+  .joystick-direction{top:38px}
+  .joystick-label{bottom:3px;font-size:7px}
+  .control-deck{gap:12px}
+  .fly-controls{flex:none}
+}
+@media(max-width:365px){
+ .joystick-control{width:clamp(160px,51vw,190px);height:91px}
+ .joystick-panel{inset:5px}
+ .joystick-track{top:32px}
+ .joystick-stick{top:7px}
+ .joystick-direction{top:34px}
+ .control-deck{gap:10px}
+}
+@media(prefers-reduced-motion:reduce){.joystick-stick{transition:none!important}}

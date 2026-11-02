@@ -1,0 +1,29 @@
+PETAL POUNCE — UPDATE 5: ARCADE SLIDE JOYSTICK
+
+Based on approved Update 4: Version B, edge-to-edge, medium zoom.
+
+WHAT IS NEW
+* Replaces visible left/right arrow buttons with one horizontal arcade-style joystick.
+* Touch anywhere on the joystick plate and slide your thumb left or right.
+* Let go to spring back to neutral. Works independently of the Fly button.
+* More responsive horizontal bee acceleration and braking, with partial tilt control.
+* Existing keyboard arrows / A-D continue to steer.
+* Preserves the longer, fewer, occasional side-entry thorns and 18% zoom.
+
+HOW TO INSTALL
+1. Keep a copy of your currently working game files.
+2. Unzip this update.
+3. Replace the 4 existing main-folder files: index.html, game.mjs, engine.mjs, sw.js.
+4. ADD the new joystick.css file in the same folder as index.html.
+5. If your deployed site uses dist/, also replace the 4 corresponding files inside dist/
+   and ADD dist/joystick.css.
+6. Leave your other files (zoom-B.css, retro-arcade.css, images, etc.) in place.
+7. After GitHub Pages deploys, close/reopen your phone game to clear the older cached files.
+
+IMPORTANT
+* This is a PATCH, not a standalone copy of the complete game. It assumes the
+  approved Update 4 and the rest of your existing site are already installed.
+* The package contains root/ and dist/ variants so you can match your hosting layout.
+* The rollback ZIP restores Update 4 if you want the previous arrow controls back.
+* Tested with desktop Chromium simulation at common phone widths and touch/pointer
+  input including simultaneous Fly; physical iPhone behavior must be confirmed on-device.

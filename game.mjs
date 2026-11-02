@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=19';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=20';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=16';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -16,13 +16,99 @@ try { savedProfile = JSON.parse(safeGet(PROFILE_KEY, 'null')); } catch {}
 const profile = new FlowerProfile({ raw: savedProfile, save: value => safeSet(PROFILE_KEY,value) });
 const loadedBest = Number(safeGet('nectar-tangle-best-v1', safeGet('bumble-best-v1', '0')));
 const game = new Game({ best: Number.isFinite(loadedBest) ? Math.max(0, loadedBest) : 0 });
-const input = { left: false, right: false, fly: false };
+const input = { left: false, right: false, fly: false, steer: 0 };
 const controls = new HoldControls({
   buttons: { left:$('left'), right:$('right'), fly:$('fly') },
   canPress: () => ['playing','reviving'].includes(game.mode) && !$('help-dialog').open && !$('shop-dialog').open,
   onPress: key => { ensureAudio(); if(game.mode === 'title' && key === 'fly') primaryAction(); },
-  onChange: state => Object.assign(input,state)
+  onChange: state => {
+    Object.assign(input,state);
+    updateSteeringInput();
+    if (!joystickActive) drawJoystick(steeringAxisFromKeys());
+  }
 });
+
+// A thumb-friendly horizontal arcade joystick. The knob is visual; the whole
+// plate is a generous touch target. Pointer capture lets players slide beyond
+// the track without unexpectedly dropping steering.
+const stickPlate = $('steering-joystick');
+const stickKnob = $('joystick-stick');
+let joystickPointer = null;
+let joystickActive = false;
+let joystickAxis = 0;
+function steeringAxisFromKeys() { return Number(input.right) - Number(input.left); }
+function updateSteeringInput() {
+  input.steer = joystickActive ? joystickAxis : steeringAxisFromKeys();
+}
+function drawJoystick(axis) {
+  const plate = stickPlate.getBoundingClientRect();
+  const knob = stickKnob.getBoundingClientRect();
+  const maxTravel = Math.max(1, (plate.width - knob.width) / 2 - 13);
+  stickPlate.style.setProperty('--stick-x', `${(axis * maxTravel).toFixed(1)}px`);
+  const value = Math.round(axis * 100);
+  stickPlate.setAttribute('aria-valuenow', String(value));
+  stickPlate.setAttribute('aria-valuetext', Math.abs(value) < 1 ? 'Centered' : `${Math.abs(value)} percent ${value < 0 ? 'left' : 'right'}`);
+}
+function joystickPositionFromClientX(clientX) {
+  const plate = stickPlate.getBoundingClientRect();
+  const knob = stickKnob.getBoundingClientRect();
+  const maxTravel = Math.max(1, (plate.width - knob.width) / 2 - 13);
+  const raw = Math.max(-1, Math.min(1, (clientX - plate.left - plate.width / 2) / maxTravel));
+  // Gentle center dead zone avoids accidental drift when the thumb is centered.
+  return Math.abs(raw) < .12 ? 0 : Math.sign(raw) * (Math.abs(raw) - .12) / .88;
+}
+function setJoystick(axis) {
+  joystickAxis = Math.max(-1, Math.min(1, axis));
+  drawJoystick(joystickAxis);
+  updateSteeringInput();
+}
+function releaseJoystick(pointerId = null) {
+  if (joystickPointer === null || (pointerId !== null && pointerId !== joystickPointer)) return;
+  const oldId = joystickPointer;
+  joystickPointer = null;
+  joystickActive = false;
+  stickPlate.classList.remove('engaged');
+  setJoystick(0);
+  try { if (stickPlate.hasPointerCapture(oldId)) stickPlate.releasePointerCapture(oldId); } catch {}
+  drawJoystick(steeringAxisFromKeys());
+}
+function clearJoystick() {
+  if (joystickPointer !== null) releaseJoystick();
+  joystickActive = false;
+  joystickAxis = 0;
+  stickPlate.classList.remove('engaged');
+  stickPlate.style.setProperty('--stick-x', '0px');
+  stickPlate.setAttribute('aria-valuenow', '0');
+  stickPlate.setAttribute('aria-valuetext', 'Centered');
+  updateSteeringInput();
+}
+stickPlate.addEventListener('pointerdown', event => {
+  if (event.button !== 0 || !['playing', 'reviving'].includes(game.mode) || $('help-dialog').open || $('shop-dialog').open) return;
+  if (joystickPointer !== null) return;
+  event.preventDefault();
+  ensureAudio();
+  joystickPointer = event.pointerId;
+  joystickActive = true;
+  stickPlate.classList.add('engaged');
+  try { stickPlate.setPointerCapture(event.pointerId); } catch {}
+  setJoystick(joystickPositionFromClientX(event.clientX));
+});
+stickPlate.addEventListener('pointermove', event => {
+  if (event.pointerId !== joystickPointer) return;
+  if (event.pointerType === 'mouse' && !(event.buttons & 1)) { releaseJoystick(event.pointerId); return; }
+  event.preventDefault();
+  setJoystick(joystickPositionFromClientX(event.clientX));
+});
+for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+  stickPlate.addEventListener(eventName, event => releaseJoystick(event.pointerId));
+  window.addEventListener(eventName, event => releaseJoystick(event.pointerId), true);
+}
+for (const eventName of ['touchstart', 'touchmove']) stickPlate.addEventListener(eventName, event => event.preventDefault(), { passive: false });
+for (const eventName of ['contextmenu', 'selectstart', 'dragstart']) stickPlate.addEventListener(eventName, event => event.preventDefault());
+window.addEventListener('resize', () => { if (joystickPointer === null) drawJoystick(steeringAxisFromKeys()); });
+// Keep the on-screen stick centered while not playing. HoldControls still
+// supports desktop keyboard movement via the invisible left/right targets.
+
 let viewH = 480;
 let camera = 0;
 let clock = 0;
@@ -103,7 +189,7 @@ function notify(message, duration = 3500) {
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), duration);
 }
 
-function clearInput() { controls.clear(); }
+function clearInput() { controls.clear(); clearJoystick(); }
 
 function primaryAction() {
   ensureAudio();
