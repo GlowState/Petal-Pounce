@@ -82,31 +82,45 @@ export function makeLevel(stage, seed = 6819) {
   const thorns = [];
   const target = Math.min(15 + (stage - 1) * 2, 52);
   const maxLength = 285 + Math.min(stage, 8) * 12;
-  // Every thorn vine now grows in from beyond the left or right edge.
-  // We vary the visible reach and keep route / flower clearances so the game stays fair.
+  // Mixed thorn layout: some vines grow in from the edges, while others float inside the garden.
+  // This preserves the overgrown look without leaving the center too open.
+  const edgeTarget = Math.max(3, Math.min(Math.round(target * .34), target - 5));
+  let edgePlaced = 0;
   let lastSide = rng() < .5 ? 'left' : 'right';
   for (let attempt = 0; attempt < target * 220 && thorns.length < target; attempt++) {
     const angle = 0;
-    const side = attempt % 3 === 0 ? (lastSide === 'left' ? 'right' : 'left') : (rng() < .5 ? 'left' : 'right');
-    lastSide = side;
-    const longReach = attempt % 7 === 0;
-    const visibleReach = longReach
-      ? 210 + rng() * (Math.min(maxLength, WIDTH * .8) - 210)
-      : 105 + rng() * (Math.min(maxLength - 30, WIDTH * .62) - 105);
-    const offscreenBleed = 24 + rng() * 18;
-    const w = visibleReach + offscreenBleed;
+    const makeEdge = edgePlaced < edgeTarget && (thorns.length + (edgeTarget - edgePlaced) >= target || rng() < .42);
     const h = 9 + rng() * 10 + Math.min(stage - 1, 10) * .5;
     const cy = 90 + rng() * (height - 310);
-    const t = side === 'left'
-      ? { x: -offscreenBleed, y: cy, endX: visibleReach, endY: cy, w, h, angle, spacing: 14 + rng() * 9, edge: 'left' }
-      : { x: WIDTH - visibleReach, y: cy, endX: WIDTH + offscreenBleed, endY: cy, w, h, angle, spacing: 14 + rng() * 9, edge: 'right' };
+    let t;
+    if (makeEdge) {
+      const side = attempt % 3 === 0 ? (lastSide === 'left' ? 'right' : 'left') : (rng() < .5 ? 'left' : 'right');
+      lastSide = side;
+      const longReach = attempt % 7 === 0;
+      const visibleReach = longReach
+        ? 190 + rng() * (Math.min(maxLength, WIDTH * .76) - 190)
+        : 95 + rng() * (Math.min(maxLength - 36, WIDTH * .55) - 95);
+      const offscreenBleed = 22 + rng() * 16;
+      const w = visibleReach + offscreenBleed;
+      t = side === 'left'
+        ? { x: -offscreenBleed, y: cy, endX: visibleReach, endY: cy, w, h, angle, spacing: 14 + rng() * 9, edge: 'left' }
+        : { x: WIDTH - visibleReach, y: cy, endX: WIDTH + offscreenBleed, endY: cy, w, h, angle, spacing: 14 + rng() * 9, edge: 'right' };
+    } else {
+      const w = attempt % 7 === 0 ? 225 + rng() * (maxLength - 225) : 95 + rng() * (maxLength - 95);
+      const centerBias = .18 + rng() * .64;
+      const cx = WIDTH * centerBias;
+      const dx = w / 2;
+      t = { x: cx - dx, y: cy, endX: cx + dx, endY: cy, w, h, angle, spacing: 14 + rng() * 9 };
+      if (Math.min(t.x, t.endX) < 24 + h || Math.max(t.x, t.endX) > WIDTH - 24 - h) continue;
+    }
     if (t.y < 45 + h || t.y > height - 165) continue;
     if (thornDistance(spawn.x, spawn.y, t) < 120 + h) continue;
     if (flowers.some(f => thornDistance(f.x, f.y, t) < h + 43)) continue;
     if (platforms.some(p => segmentDistance(t.x, t.y, t.endX, t.endY, p.x, p.y - 12, p.x + p.w, p.y - 12) < h + 38)) continue;
     if (route.slice(1).some((p, i) => segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, p.x, p.y) < h + RADIUS + 9)) continue;
-    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 46)) continue;
+    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 45)) continue;
     thorns.push(t);
+    if (makeEdge) edgePlaced++;
   }
   return { stage, pattern, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
