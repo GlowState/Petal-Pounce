@@ -254,9 +254,12 @@ export class Game {
     this.invulnerable = Math.max(0, this.invulnerable - dt);
     const b = this.bee;
     const oldBottom = b.y + RADIUS;
-    const direction = Number(!!input.right) - Number(!!input.left);
-    b.vx += direction * 1100 * dt;
-    if (!direction) b.vx *= Math.exp(-7 * dt);
+    const digitalDirection = Number(!!input.right) - Number(!!input.left);
+    const direction = Number.isFinite(input.steer) ? Math.max(-1, Math.min(1, input.steer)) : digitalDirection;
+    // Sharper reversals and faster neutral braking reduce control frustration.
+    // The analog joystick supports partial tilt for precise positioning.
+    b.vx += direction * 1650 * dt;
+    if (!direction) b.vx *= Math.exp(-12 * dt);
     b.vx = Math.max(-245, Math.min(245, b.vx));
     if (direction) b.face = direction;
     b.vy += (input.fly ? -760 : 660) * dt;
