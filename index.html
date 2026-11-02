@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="./shop.css?v=16">
   <link rel="stylesheet" href="./retro-arcade.css?v=17">
   <link rel="stylesheet" href="./zoom-B.css?v=19">
-  <link rel="stylesheet" href="./joystick.css?v=20">
+  <link rel="stylesheet" href="./joystick.css?v=23">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -43,7 +43,7 @@
       <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
         <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
-          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Slide the joystick to steer, and hold Fly to rise. Collect all flowers and avoid purple thorns."></canvas>
+          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. Collect all flowers and avoid purple thorns."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
             <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
@@ -65,13 +65,14 @@
         </div></div>
         <div class="control-deck">
           <div class="move-controls">
-            <div class="joystick-control" id="steering-joystick" role="slider" tabindex="0" aria-label="Arcade steering joystick" aria-orientation="horizontal" aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Centered" title="Slide left or right to steer">
+            <div class="joystick-control" id="steering-joystick" role="group" tabindex="0" aria-label="360 degree arcade joystick. Move in any direction to steer and adjust glide. Hold Fly to climb." title="Tilt any direction; keep holding as your thumb moves">
               <div class="joystick-panel" aria-hidden="true">
                 <span class="joystick-direction joystick-direction-left">◀</span>
                 <span class="joystick-direction joystick-direction-right">▶</span>
-                <div class="joystick-track"><span class="joystick-track-center"></span></div>
+                <span class="joystick-direction joystick-direction-up">▲</span>
+                <span class="joystick-direction joystick-direction-down">▼</span>
+                <div class="joystick-well"><span class="joystick-ring"></span><span class="joystick-center"></span></div>
                 <div class="joystick-stick" id="joystick-stick"><span class="joystick-stem"></span><span class="joystick-ball"></span></div>
-                <span class="joystick-label">STEER</span>
               </div>
             </div>
             <!-- Invisible key targets preserve existing desktop arrow/A-D keyboard support. -->
@@ -90,7 +91,7 @@
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
     <p>Fly upward through an endless garden with no level-clear screens. Dodge wasps flying sideways as the difficulty increases with distance. Your chosen background stays equipped.</p>
-    <div class="help-row"><span>JOYSTICK</span><p><strong>Slide left or right to steer</strong>Move the joystick ball along its track. Release to center it. Hold Fly with your other thumb. Keyboard: ← → or A / D.</p></div>
+    <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for all your levels. Unlocks and flowers are saved on this device.</p></div>
@@ -107,7 +108,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every level.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=22"></script>
+  <script type="module" src="./game.mjs?v=23"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){

@@ -272,7 +272,11 @@ export class Game {
     if (!direction) b.vx *= Math.exp(-12 * dt);
     b.vx = Math.max(-245, Math.min(245, b.vx));
     if (direction) b.face = direction;
-    b.vy += (input.fly ? -760 : 660) * dt;
+    // Joystick up/down trims lift without replacing the dedicated Fly button.
+    // Up slows a glide / helps takeoff; down increases descent / eases thrust.
+    // Top flight and fall speeds remain capped exactly as before.
+    const glide = Number.isFinite(input.glide) ? Math.max(-1, Math.min(1, input.glide)) : 0;
+    b.vy += (input.fly ? -760 - glide * 145 : 660 - glide * 200) * dt;
     b.vy = Math.max(-295, Math.min(340, b.vy));
     b.x += b.vx * dt;
     b.y += b.vy * dt;

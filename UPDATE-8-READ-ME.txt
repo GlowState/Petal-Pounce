@@ -1,0 +1,29 @@
+PETAL POUNCE - UPDATE 8 - 360-DEGREE ARCADE JOYSTICK
+====================================================
+INSTALL:
+- Upload and replace the matching files in your existing GitHub Pages repo.
+- Keep all unrelated files already in the repo (including scenery.mjs, profile.mjs,
+  flowers.mjs, shop.css, icons and garden assets).
+- If your deployment uses dist/, update the corresponding dist/ files too.
+- Allow GitHub Pages to deploy, then fully close/reopen the game if cached.
+
+CONTROLS:
+- Touch/tilt the round joystick in any direction.
+- Left/right = analog steering. Diagonals steer and adjust glide simultaneously.
+- Tilt UP = gentler falling without Fly, a little stronger takeoff with Fly.
+- Tilt DOWN = quicker descent without Fly, less acceleration with Fly.
+- Hold Fly with the other thumb to climb; the Fly button still controls rising.
+- Your joystick touch keeps steering outside the circular base until released.
+- Fly also stays held if your thumb drifts outside the button, until released.
+- Release the joystick to return it to center.
+- Keyboard A/D or arrow keys and Space/Up still work as before.
+
+UNCHANGED:
+- Version B zoom, edge-to-edge layout, mixed thorn vines, game artwork,
+  80s arcade fonts, score and progression.
+
+ROLLBACK:
+- The separate Petal-Pounce-Rollback-Update-8.zip restores your Update 7
+  control/game files (including the original HoldControls helper).
+
+NOTE: This ZIP is an update patch, not a standalone complete game package.
