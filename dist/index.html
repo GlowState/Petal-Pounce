@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="./shop.css?v=16">
   <link rel="stylesheet" href="./retro-arcade.css?v=17">
   <link rel="stylesheet" href="./zoom-B.css?v=19">
-  <link rel="stylesheet" href="./joystick.css?v=23">
+  <link rel="stylesheet" href="./joystick.css?v=24">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -65,12 +65,8 @@
         </div></div>
         <div class="control-deck">
           <div class="move-controls">
-            <div class="joystick-control" id="steering-joystick" role="group" tabindex="0" aria-label="360 degree arcade joystick. Move in any direction to steer and adjust glide. Hold Fly to climb." title="Tilt any direction; keep holding as your thumb moves">
+            <div class="joystick-control" id="steering-joystick" role="group" tabindex="0" aria-label="360 degree arcade joystick. Move in any direction to steer and adjust glide. The top and bottom zones mute left-right steering. Hold Fly to climb." title="Tilt any direction; top and bottom zones are neutral for left-right steering">
               <div class="joystick-panel" aria-hidden="true">
-                <span class="joystick-direction joystick-direction-left">◀</span>
-                <span class="joystick-direction joystick-direction-right">▶</span>
-                <span class="joystick-direction joystick-direction-up">▲</span>
-                <span class="joystick-direction joystick-direction-down">▼</span>
                 <div class="joystick-well"><span class="joystick-ring"></span><span class="joystick-center"></span></div>
                 <div class="joystick-stick" id="joystick-stick"><span class="joystick-stem"></span><span class="joystick-ball"></span></div>
               </div>
@@ -91,7 +87,7 @@
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
     <p>Fly upward through an endless garden with no level-clear screens. Dodge wasps flying sideways as the difficulty increases with distance. Your chosen background stays equipped.</p>
-    <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Release to center. Keyboard: ← → or A / D.</p></div>
+    <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. The top and bottom of the stick mute left-right steering to make reversals easier. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for all your levels. Unlocks and flowers are saved on this device.</p></div>
@@ -108,7 +104,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every level.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=23"></script>
+  <script type="module" src="./game.mjs?v=24"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
