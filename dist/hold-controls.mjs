@@ -27,7 +27,11 @@ export class HoldControls {
     root.addEventListener('pointermove',event=>{
       const hold=this.pointers.get(event.pointerId);if(!hold)return;
       const r=hold.button.getBoundingClientRect(),margin=8;
-      if((event.pointerType==='mouse'&&!(event.buttons&1))||event.clientX<r.left-margin||event.clientX>r.right+margin||event.clientY<r.top-margin||event.clientY>r.bottom+margin)this.release(event.pointerId);
+      // Touch holds are captured until lift/cancel, not released when a thumb
+      // slides past the visual button. This is especially important for Fly
+      // while the other hand steers the joystick.
+      if(event.pointerType==='touch')return;
+      if(!(event.buttons&1)||event.clientX<r.left-margin||event.clientX>r.right+margin||event.clientY<r.top-margin||event.clientY>r.bottom+margin)this.release(event.pointerId);
     },true);
     root.addEventListener('touchend',event=>this.reconcileTouches(event.touches),{capture:true,passive:true});
     root.addEventListener('touchcancel',()=>this.clearPointers(),{capture:true,passive:true});
@@ -59,11 +63,10 @@ export class HoldControls {
 
   reconcileTouches(touches) {
     const remaining=Array.from(touches??[]);
-    for(const [id,hold] of this.pointers){
-      if(hold.type!=='touch')continue;
-      const r=hold.button.getBoundingClientRect();
-      if(!remaining.some(t=>t.clientX>=r.left-8&&t.clientX<=r.right+8&&t.clientY>=r.top-8&&t.clientY<=r.bottom+8))this.release(id);
-    }
+    // A simultaneous joystick touch can end while Fly is still held. Do not
+    // infer the held pointer's identity from its coordinates. Pointer capture
+    // handles individual releases; zero remaining touches safely clears all.
+    if(!remaining.length)this.clearPointers();
   }
 
   clearPointers() { for(const id of [...this.pointers.keys()])this.release(id); }
