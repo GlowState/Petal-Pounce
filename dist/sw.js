@@ -1,5 +1,5 @@
-const CACHE='petal-pounce-fontonly-v19';
-const SHELL=['./','./index.html','./privacy.html','./style.css?v=19','./shop.css?v=16','./game.mjs?v=16','./engine.mjs?v=16','./scenery.mjs?v=16','./flowers.mjs?v=16','./hold-controls.mjs?v=16','./profile.mjs?v=16','./bee.svg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const CACHE='petal-pounce-v17-retro-type';
+const SHELL=['./','./index.html','./privacy.html','./style.css?v=16','./retro-arcade.css?v=17','./petal-arcade.woff2','./shop.css?v=16','./game.mjs?v=16','./engine.mjs?v=16','./scenery.mjs?v=16','./flowers.mjs?v=16','./hold-controls.mjs?v=16','./profile.mjs?v=16','./bee.svg','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));

@@ -483,7 +483,7 @@ function drawScene(dt) {
     if (game.mode === 'playing') {
       const above = game.level.flowers.filter(f=>!f.taken && f.y<camera+70).length;
       const below = game.level.flowers.filter(f=>!f.taken && f.y>camera+viewH-45).length;
-      ctx.font = '11px "Press Start 2P", monospace';ctx.textAlign='right';ctx.fillStyle=currentGarden().hint;
+      ctx.font = '11px monospace';ctx.textAlign='right';ctx.fillStyle=currentGarden().hint;
       if (above) ctx.fillText(`${above} ABOVE ↑`,WIDTH-24,90);
       if (below) ctx.fillText(`${below} BELOW ↓`,WIDTH-24,viewH-12);
     }
@@ -493,7 +493,7 @@ function drawScene(dt) {
     p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
     if(p.life<=0){particles.splice(i,1);continue;}
     ctx.globalAlpha=Math.min(1,p.life/p.max*2);
-    if(p.text){ctx.font='bold 17px "Press Start 2P", monospace';ctx.textAlign='center';ctx.fillStyle='#456039';ctx.fillText(p.text,p.x+1,p.y-camera+2);ctx.fillStyle='#fff4b9';ctx.fillText(p.text,p.x,p.y-camera);}
+    if(p.text){ctx.font='bold 17px monospace';ctx.textAlign='center';ctx.fillStyle='#456039';ctx.fillText(p.text,p.x+1,p.y-camera+2);ctx.fillStyle='#fff4b9';ctx.fillText(p.text,p.x,p.y-camera);}
     else {ctx.fillStyle=p.color;ctx.fillRect(Math.round(p.x),Math.round(p.y-camera),4,4);}
   }
   ctx.globalAlpha=1;

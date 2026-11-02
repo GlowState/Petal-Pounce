@@ -1,0 +1,179 @@
+/* Petal Pounce · 1980s arcade lettering layer
+   Intentionally isolated from the game, controls, and mobile-screen layout.
+   Original bitmap-style Petal Arcade font is bundled locally for offline play. */
+@font-face{
+  font-family:'Petal Arcade';
+  src:url('./petal-arcade.woff2') format('woff2');
+  font-style:normal;
+  font-weight:400 900;
+  font-display:swap;
+}
+:root{
+  --arcade:'Petal Arcade',ui-monospace,monospace;
+  --arcade-copy:ui-monospace,'SFMono-Regular',Consolas,'Liberation Mono',monospace;
+}
+/* Keep paragraphs and instructional copy easy to read on a phone. */
+.menu-panel>p:not(.start-hint),
+.intro-note,.field-guide p,.fan-note,dialog>p,.help-row p,.help-note,
+.shop-intro,.shop-status,.shop-footer,.shop-card p{
+  font-family:var(--arcade-copy);
+}
+/* Attract screen: two blocky, stacked arcade marquees. */
+.title-overlay .game-title{
+  font-family:var(--arcade);
+  font-weight:400;
+  font-size:clamp(52px,7.2vw,86px);
+  line-height:1.2;
+  letter-spacing:.035em;
+  color:#ffe58b;
+  transform:none;
+  -webkit-text-stroke:0;
+  margin-bottom:22px;
+  text-shadow:0 3px 0 #8b5b2c,3px 6px 0 #244a42,0 0 18px #ffe37b5a;
+}
+.title-overlay .game-title>.title-word{
+  display:block;
+  font-family:var(--arcade);
+  font-weight:400;
+  line-height:1.2;
+  letter-spacing:.035em;
+}
+.title-overlay .game-title>.title-word:first-child{
+  font-size:.64em;
+  letter-spacing:.18em;
+  line-height:1.5;
+  color:#ffdf8c;
+  text-shadow:0 2px 0 #85522e,2px 4px 0 #244a42;
+}
+.title-overlay .game-title>.title-word-last{
+  font-size:1em;
+  margin-top:0;
+  color:#f5f4ca;
+  letter-spacing:.045em;
+  text-shadow:0 3px 0 #63866a,3px 6px 0 #244a42,0 0 14px #e4f5b94d;
+}
+/* Game over and pause are dynamically inserted as simple heading text. */
+.state-overlay .game-title{
+  font-family:var(--arcade);
+  font-weight:400;
+  font-size:clamp(34px,5.4vw,61px);
+  line-height:1.32;
+  letter-spacing:.015em;
+  margin-bottom:20px;
+  -webkit-text-stroke:0;
+  color:#ffe39b;
+  text-shadow:3px 4px 0 #31534a,0 0 18px #ffdf8140;
+}
+.menu-tag,.menu-panel>p.start-hint,.garden-label,
+.eyebrow,.brand,.brand-sub,.desktop-copy,.header-right,.guide-number,footer,
+.best-label,.best-label strong,.shop-trigger,.shop-trigger strong,
+.hud-caption,.hud strong,.lives>span,.lives .lives-count,.toast,
+.play-button,.secondary-button,.garden-action,.shop-wallet,
+.shop-wallet strong,.equipped-badge,.shop-card h3,.shop-footer button,
+.help-row>span,dialog h2,.shop-heading h2{
+  font-family:var(--arcade);
+  font-weight:400;
+}
+.menu-tag{
+  font-size:clamp(6px,.68vw,8px);
+  letter-spacing:.03em;
+  line-height:1.8;
+  text-shadow:0 1px #1c3b3260;
+}
+.menu-tag>span{width:18px;flex-shrink:0}
+.menu-panel>p:not(.start-hint){
+  font-size:clamp(11px,1.15vw,13px);
+  font-weight:600;
+  line-height:1.8;
+  letter-spacing:.015em;
+}
+.menu-panel>p.start-hint{
+  font-size:7px;
+  letter-spacing:.025em;
+  line-height:1.7;
+}
+/* Readable neon-like score and labels without shifting any HUD containers. */
+.hud-caption{
+  font-size:7px;
+  line-height:1.7;
+  letter-spacing:0;
+  text-shadow:1px 2px #173d34;
+}
+.hud strong,.hud-center strong{
+  font-size:clamp(16px,2vw,23px);
+  line-height:1.25;
+  letter-spacing:0;
+  text-shadow:2px 2px 0 #25493c,0 0 8px #fff1b451;
+}
+.best-label{font-size:7px;letter-spacing:0;line-height:1.7}
+.best-label strong{font-size:13px;letter-spacing:0;color:#ffe48a;text-shadow:0 0 8px #fcd26745}
+.shop-trigger,.shop-trigger strong{letter-spacing:0}
+.lives>span{font-size:7px;letter-spacing:0;line-height:1.5}
+.lives .lives-count{font-size:19px;line-height:1.1}
+.toast{
+  font-size:8px;
+  line-height:1.8;
+  letter-spacing:0;
+  text-shadow:0 1px #101e19;
+}
+.garden-label{
+  font-size:7px;
+  letter-spacing:0;
+  text-shadow:1px 2px #112a2150;
+}
+.play-button,.garden-action{
+  font-size:9px;
+  letter-spacing:.03em;
+  line-height:1.7;
+  text-shadow:0 1px #fff5b155;
+}
+.secondary-button{font-size:8px;letter-spacing:0;line-height:1.5}
+/* Other text-bearing screens get the same visual identity. */
+.brand{font-size:17px;letter-spacing:0;line-height:1.4}
+.brand-sub{font-size:7px;letter-spacing:.08em}
+.eyebrow,.desktop-copy,.guide-number{font-size:8px;letter-spacing:.04em}
+.intro h1{font-family:var(--arcade-copy);font-weight:700;letter-spacing:-.02em}
+.text-button{font-family:var(--arcade-copy)}
+dialog h2,.shop-heading h2{
+  font-size:clamp(19px,3vw,26px);
+  line-height:1.5;
+  letter-spacing:0;
+  text-shadow:2px 3px #0d221a;
+}
+.help-row>span{font-size:8px;line-height:1.7;letter-spacing:0}
+.shop-wallet strong{letter-spacing:0}
+.shop-card h3{font-size:clamp(9px,1.1vw,12px);line-height:1.65;letter-spacing:0}
+.equipped-badge{font-size:7px;letter-spacing:0}
+@media(max-width:560px){
+  .title-overlay .game-title{
+    font-size:clamp(37px,12.5vw,56px);
+    line-height:1.2;
+    margin-bottom:18px;
+  }
+  .title-overlay .game-title>.title-word:first-child{font-size:.67em}
+  .title-overlay .menu-tag{font-size:6px;gap:6px;margin-bottom:20px}
+  .title-overlay .menu-tag>span{width:8px}
+  .state-overlay .game-title{font-size:clamp(22px,6.5vw,36px);margin-bottom:17px;line-height:1.35}
+  .menu-panel>p:not(.start-hint){font-size:clamp(10px,2.8vw,12px);line-height:1.8}
+  .play-button{font-size:9px;min-width:190px;line-height:1.6}
+  .best-label{font-size:5px;line-height:1.8}
+  .best-label strong{font-size:11px;line-height:1.6}
+  .shop-trigger,.shop-trigger strong{font-size:8px}
+  .hud-caption{font-size:6px;line-height:1.7}
+  .hud strong,.hud-center strong{font-size:clamp(14px,4.2vw,20px)}
+  .lives .lives-count{font-size:16px}
+  .lives>span{font-size:6px}
+  .garden-label{font-size:6px;line-height:1.6}
+  .toast{font-size:7px;line-height:1.7}
+  dialog h2,.shop-heading h2{font-size:clamp(15px,4.4vw,21px)}
+  .shop-card h3{font-size:10px}
+  .shop-wallet strong{font-size:15px}
+  .help-row>span{font-size:7px}
+}
+@media(max-width:365px){
+  .title-overlay .game-title{font-size:clamp(35px,12vw,43px)}
+  .state-overlay .game-title{font-size:22px}
+  .best-label strong{font-size:10px}
+  .hud strong,.hud-center strong{font-size:13px}
+  .hud-caption{font-size:5px}
+}
