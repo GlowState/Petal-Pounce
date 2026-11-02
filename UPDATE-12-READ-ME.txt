@@ -1,0 +1,35 @@
+PETAL POUNCE — UPDATE 12: GROWING THRUST + UNPREDICTABLE GARDENS
+
+WHAT CHANGED
+• Fly starts with gentler thrust and a slower maximum climb speed.
+• As your best distance in the run grows, thrust and climb speed increase smoothly.
+  The ramp reaches full strength around 1,100 meters and does not reset on a life lost.
+• Thorn/leaf formations now shift within each generated stage, with a varying
+  edge/interior thorn mix. Each new run has its own generated sequence.
+• A few later sections become thorn tangles with slightly denser branches.
+• Occasional faster wasps appear only from zone 3 onward. They have an
+  orange-red body, a light marking and a brief on-screen warning.
+• Flower, leaf, and route clearances are unchanged. No forced wind effects.
+• Joystick, steering response, Fly touch input, visual zoom, fonts and cabinet
+  remain exactly as in Update 11.
+
+INSTALL
+1. Make a backup of the existing repository before replacing files.
+2. Extract the ZIP. Replace the matching files in your GitHub repository.
+3. Include root and dist replacements if your site uses both directories.
+4. Do not delete other files (style.css, scenery.mjs, profile.mjs,
+   joystick.css, flowers.mjs, images, etc.). This is an incremental patch,
+   NOT a stand-alone game build.
+5. Let GitHub Pages publish, then reload or close/reopen the installed game
+   if you still see the previous cached version.
+
+ROLLBACK
+Use the included separate Update 12 rollback ZIP to return these eight
+files to their exact Update 11 versions.
+
+WHAT TO TEST ON YOUR PHONE
+• First takeoff should feel gentler without becoming unresponsive.
+• Thrust should strengthen noticeably as your distance increases.
+• Left/right analog joystick steering and two-thumb Fly should feel unchanged.
+• Mixed thorn vines should remain, and orange/red fast wasps should be
+  occasional and recognizable rather than instant surprise collisions.
