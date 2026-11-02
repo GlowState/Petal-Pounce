@@ -1,0 +1,66 @@
+/* Petal Pounce Version B: 18% game scale + full-bleed mobile presentation.
+   Load after retro-arcade.css so the enlarged HUD and buttons win. */
+/* v19 — Medium zoom: safe full-bleed mobile garden with modestly larger arcade controls. */
+@media (max-width:560px){
+  .cabinet{
+    padding:0;
+  }
+  .screen-frame{
+    margin:0;
+    padding:0;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    background:transparent;
+    width:100%;
+  }
+  .screen{
+    width:100%;
+    height:100%;
+    border-radius:0;
+  }
+  .screen-vignette{border-radius:0}
+  /* The interactive controls, unlike the art, stay inside the phone's safe area. */
+  .cabinet-bar{
+    left:max(10px,env(safe-area-inset-left));
+    right:max(10px,env(safe-area-inset-right));
+  }
+  .hud{
+    padding:19px max(12px,env(safe-area-inset-left)) 15px;
+    padding-right:max(12px,env(safe-area-inset-right));
+    top:calc(54px + env(safe-area-inset-top));
+  }
+  .control-deck{
+    margin:0;
+    width:100%;
+    height:calc(142px + env(safe-area-inset-bottom));
+    padding:0 max(14px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(14px,env(safe-area-inset-left));
+  }
+  .direction-buttons{gap:clamp(8px,2.5vw,12px)}
+  .control-key{
+    width:clamp(72px,21vw,88px);
+    height:clamp(74px,20vw,86px);
+  }
+  .control-key svg{width:44px;height:44px}
+  .fly-button{
+    width:clamp(88px,25vw,102px);
+    height:clamp(88px,25vw,102px);
+  }
+  .fly-button .wing-icon{width:67%;height:67%}
+  .best-label{font-size:6px}
+  .best-label strong{font-size:12px}
+  .shop-trigger,.shop-trigger strong{font-size:9px}
+  .icon-button svg{width:18px;height:18px}
+  .garden-label{font-size:7px}
+  .hud-caption{font-size:7px}
+  .hud strong,.hud-center strong{font-size:clamp(15px,4.55vw,22px)}
+  .hud-right svg{width:22px;height:22px}
+  .lives .lives-count{font-size:18px}
+  .play-button{min-width:200px;min-height:51px}
+  .title-overlay .game-title{font-size:clamp(39px,13vw,60px)}
+}
+@media (max-width:365px){
+  .control-key svg{width:39px;height:39px}
+  .hud-caption{font-size:6px}
+  .hud strong,.hud-center strong{font-size:clamp(13px,4.35vw,16px)}
+}

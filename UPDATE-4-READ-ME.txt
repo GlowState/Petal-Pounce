@@ -1,0 +1,15 @@
+PETAL POUNCE — UPDATE 4 / VERSION B
+
+Install on top of your currently working retro-text + longer/fewer thorn version.
+1. Extract this ZIP.
+2. On GitHub, replace the matching index.html, game.mjs, engine.mjs and sw.js in the repo root.
+3. Add zoom-B.css in the repo root.
+4. If you deploy from dist, do the same for dist/* using the dist versions included.
+5. Keep ALL OTHER existing files (the retro arcade font, retro-arcade.css, scenery, shop, graphics, profile, etc.). Do not delete or replace the entire repo with these 10 files.
+6. After GitHub Pages deploys, close/reopen the app to update its offline cache.
+
+Changes: approx. 18% larger game objects using a 610-unit playfield, full-bleed mobile edges, 2–3 rare edge-entering thorn branches per section, modestly larger HUD and controls. Long/fewer thorn artwork settings remain.
+
+ROLLBACK: The separately provided rollback ZIP restores these changed script/HTML/service-worker files to Update 3. Delete zoom-B.css from the root and dist if you want to clean up unused files.
+
+NOTE: These are patch files intended for the existing GitHub game. The previously supplied base ZIP omitted some app assets. Do not assume that either patch ZIP contains the entire app.
