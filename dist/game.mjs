@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=16';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=19';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=16';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';

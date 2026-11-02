@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="./style.css?v=16">
   <link rel="stylesheet" href="./shop.css?v=16">
   <link rel="stylesheet" href="./retro-arcade.css?v=17">
+  <link rel="stylesheet" href="./zoom-B.css?v=19">
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -41,7 +42,7 @@
       <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
         <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
-          <canvas id="game" width="720" height="480" aria-label="Bee arcade playfield. Use left and right to move, and hold Space to fly. Collect all flowers and avoid purple thorns."></canvas>
+          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Use left and right to move, and hold Space to fly. Collect all flowers and avoid purple thorns."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
             <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
@@ -98,7 +99,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every level.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=16"></script>
+  <script type="module" src="./game.mjs?v=19"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){

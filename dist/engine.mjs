@@ -1,4 +1,6 @@
-export const WIDTH = 720;
+// 18% larger sprites and scenery without clipping the player at the screen edges.
+// The canvas and physics use the same narrower world, rather than CSS cropping.
+export const WIDTH = 610;
 export const RADIUS = 13;
 export const FIXED_STEP = 1 / 120;
 export const REVIVE_DELAY = .75;
@@ -44,9 +46,9 @@ export function makeLevel(stage, seed = 6819) {
   const drafts = [];
   const clampCenter = x => Math.max(82, Math.min(WIDTH - 82, x));
   let climb = 215;
-  let stepX = 95 + rng() * 530;
+  let stepX = 95 + rng() * (WIDTH - 190);
   let stepDirection = rng() > .5 ? 1 : -1;
-  let pocketX = 180 + rng() * 360;
+  let pocketX = 150 + rng() * (WIDTH - 300);
   for (let i = 0; i < count; i++) {
     if (i) climb += rng() < .3 ? 62 + rng() * 30 : 105 + rng() * 65;
     const w = 70 + rng() * Math.max(35, 60 - stage * 1.2);
@@ -57,10 +59,10 @@ export function makeLevel(stage, seed = 6819) {
       stepX = clampCenter(stepX);
       center = clampCenter(stepX + (rng() - .5) * 75);
     } else if (pattern === 'pockets') {
-      if (i % 3 === 0) pocketX = 150 + rng() * 420;
+      if (i % 3 === 0) pocketX = 150 + rng() * (WIDTH - 300);
       center = clampCenter(pocketX + (rng() - .5) * 310);
     } else if (pattern === 'weave') {
-      center = clampCenter(360 + Math.sin(i * 1.65 + seed) * (160 + rng() * 100) + (rng() - .5) * 110);
+      center = clampCenter(WIDTH / 2 + Math.sin(i * 1.65 + seed) * (160 + rng() * 100) + (rng() - .5) * 110);
     }
     if (rng() < .2) center = 82 + rng() * (WIDTH - 164);
     const p = { x: center - w / 2, y: -climb, w, flip: rng() > .5 };
@@ -72,28 +74,43 @@ export function makeLevel(stage, seed = 6819) {
     drafts.push(p);
   }
   const height = Math.ceil(climb + 220);
-  const platforms = [{ x: 310, y: height - 70, w: 110, launch: true }, ...drafts.map(p => ({ ...p, y: p.y + height }))];
+  const platforms = [{ x: WIDTH / 2 - 55, y: height - 70, w: 110, launch: true }, ...drafts.map(p => ({ ...p, y: p.y + height }))];
   const flowers = platforms.slice(1).map(p => ({ x: p.flip ? p.x + 16 : p.x + p.w - 16, y: p.y - 31, taken: false, phase: rng() * 7 }));
-  const spawn = { x: 365, y: height - 104 };
+  const spawn = { x: WIDTH / 2, y: height - 104 };
   // Keep a winding route through all flowers, rather than a straight safe lane.
   const route = [spawn, ...flowers.map(f => ({ x: f.x, y: f.y }))];
   const thorns = [];
-  const target = Math.min(18 + (stage - 1) * 3, 72);
-  const maxLength = 230 + Math.min(stage, 8) * 9;
-  for (let attempt = 0; attempt < target * 150 && thorns.length < target; attempt++) {
+  const target = Math.min(15 + (stage - 1) * 2, 52);
+  const maxLength = 285 + Math.min(stage, 8) * 12;
+  // A few branches grow into view from off-screen on either side.
+  // The game still checks the full visible portion for collisions and safe flower routes.
+  const edgeQuota = Math.min(3, Math.max(2, Math.round(target * .13)));
+  let edgePlaced = 0;
+  for (let attempt = 0; attempt < target * 200 && thorns.length < target; attempt++) {
     const angle = 0;
-    const w = attempt % 9 === 0 ? 195 + rng() * (maxLength - 195) : 55 + rng() * (maxLength - 55);
+    const side = edgePlaced < edgeQuota;
+    const w = side ? 105 + rng() * 78
+      : attempt % 7 === 0 ? 235 + rng() * (maxLength - 235) : 90 + rng() * (maxLength - 90);
     const h = 9 + rng() * 10 + Math.min(stage - 1, 10) * .5;
-    const cx = 45 + rng() * (WIDTH - 90), cy = 90 + rng() * (height - 310);
-    const dx = Math.cos(angle) * w / 2, dy = Math.sin(angle) * w / 2;
-    const t = { x: cx - dx, y: cy - dy, endX: cx + dx, endY: cy + dy, w, h, angle, spacing: 14 + rng() * 9 };
-    if (Math.min(t.x, t.endX) < 24 + h || Math.max(t.x, t.endX) > WIDTH - 24 - h || Math.min(t.y, t.endY) < 45 + h || Math.max(t.y, t.endY) > height - 165) continue;
+    const cy = 90 + rng() * (height - 310);
+    const leftEdge = side && rng() < .5;
+    const cx = side ? (leftEdge ? -14 + w / 2 : WIDTH + 14 - w / 2) : 45 + rng() * (WIDTH - 90);
+    const dx = w / 2;
+    const t = {
+      x: cx - dx, y: cy, endX: cx + dx, endY: cy,
+      w, h, angle, spacing: 14 + rng() * 9,
+      ...(side ? { edge: leftEdge ? 'left' : 'right' } : {})
+    };
+    // Edge branches may begin outside the viewport. All other branches must fit inside.
+    if ((!side && (t.x < 24 + h || t.endX > WIDTH - 24 - h)) ||
+        t.y < 45 + h || t.y > height - 165) continue;
     if (thornDistance(spawn.x, spawn.y, t) < 120 + h) continue;
     if (flowers.some(f => thornDistance(f.x, f.y, t) < h + 43)) continue;
     if (platforms.some(p => segmentDistance(t.x, t.y, t.endX, t.endY, p.x, p.y - 12, p.x + p.w, p.y - 12) < h + 38)) continue;
     if (route.slice(1).some((p, i) => segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, p.x, p.y) < h + RADIUS + 9)) continue;
-    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 30)) continue;
+    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 44)) continue;
     thorns.push(t);
+    if (side) edgePlaced++;
   }
   return { stage, pattern, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
@@ -128,7 +145,7 @@ export class Game {
   }
 
   respawn() {
-    this.bee = { x: 365, y: this.level.height - 104, vx: 0, vy: 0, face: 1 };
+    this.bee = { x: WIDTH / 2, y: this.level.height - 104, vx: 0, vy: 0, face: 1 };
     this.checkpoint = { x: this.bee.x, y: this.bee.y };
     this.invulnerable = 2;
     this.flash = 0;
