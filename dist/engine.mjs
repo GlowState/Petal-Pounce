@@ -6,6 +6,14 @@ export const FIXED_STEP = 1 / 120;
 export const REVIVE_DELAY = .75;
 export const MAX_LIVES = 3;
 
+// Flight power grows with the player's best distance during this run.
+// Stage/elapsed time do not determine the upgrade: progress has to be earned.
+export function flightPower(distance = 0) {
+  const progress = Math.max(0, Math.min(1, distance / 1100));
+  const eased = progress * progress * (3 - 2 * progress);
+  return { climbCap: 230 + 100 * eased, thrust: 660 + 180 * eased, progress };
+}
+
 export function random(seed) {
   let n = seed >>> 0;
   return () => {
@@ -42,7 +50,12 @@ export const thornDistance = (x, y, thorn) => pointSegmentDistance(x, y, thorn.x
 export function makeLevel(stage, seed = 6819) {
   const rng = random(seed + stage * 1171);
   const count = Math.min(16 + (stage - 1) * 3, 64);
-  const pattern = ['scatter', 'steps', 'pockets', 'weave'][Math.floor(rng() * 4)];
+  const patterns = ['scatter', 'steps', 'pockets', 'weave'];
+  const pattern = patterns[Math.floor(rng() * patterns.length)];
+  // A section can change its formation partway through a stage. This keeps an
+  // endless climb from feeling like a repeating, memorized obstacle template.
+  let sectionPattern = pattern;
+  let nextPatternChange = 4 + Math.floor(rng() * 4);
   const drafts = [];
   const clampCenter = x => Math.max(82, Math.min(WIDTH - 82, x));
   let climb = 215;
@@ -50,18 +63,23 @@ export function makeLevel(stage, seed = 6819) {
   let stepDirection = rng() > .5 ? 1 : -1;
   let pocketX = 150 + rng() * (WIDTH - 300);
   for (let i = 0; i < count; i++) {
+    if (stage >= 2 && i >= nextPatternChange) {
+      const alternatives = patterns.filter(value => value !== sectionPattern);
+      sectionPattern = alternatives[Math.floor(rng() * alternatives.length)];
+      nextPatternChange += 4 + Math.floor(rng() * 5);
+    }
     if (i) climb += rng() < .3 ? 62 + rng() * 30 : 105 + rng() * 65;
     const w = 70 + rng() * Math.max(35, 60 - stage * 1.2);
     let center = 82 + rng() * (WIDTH - 164);
-    if (pattern === 'steps') {
+    if (sectionPattern === 'steps') {
       stepX += stepDirection * (105 + rng() * 90);
       if (stepX < 100 || stepX > WIDTH - 100) stepDirection *= -1;
       stepX = clampCenter(stepX);
       center = clampCenter(stepX + (rng() - .5) * 75);
-    } else if (pattern === 'pockets') {
+    } else if (sectionPattern === 'pockets') {
       if (i % 3 === 0) pocketX = 150 + rng() * (WIDTH - 300);
       center = clampCenter(pocketX + (rng() - .5) * 310);
-    } else if (pattern === 'weave') {
+    } else if (sectionPattern === 'weave') {
       center = clampCenter(WIDTH / 2 + Math.sin(i * 1.65 + seed) * (160 + rng() * 100) + (rng() - .5) * 110);
     }
     if (rng() < .2) center = 82 + rng() * (WIDTH - 164);
@@ -80,11 +98,15 @@ export function makeLevel(stage, seed = 6819) {
   // Keep a winding route through all flowers, rather than a straight safe lane.
   const route = [spawn, ...flowers.map(f => ({ x: f.x, y: f.y }))];
   const thorns = [];
-  const target = Math.min(15 + (stage - 1) * 2, 52);
+  // A rare thorn tangle packs a couple of extra branches into an otherwise
+  // normal section. The same flower-route clearance tests still apply.
+  const tangle = stage >= 3 && rng() < .22;
+  const target = Math.min(15 + (stage - 1) * 2 + (tangle ? 2 : 0), 52);
   const maxLength = 285 + Math.min(stage, 8) * 12;
   // Mixed thorn layout: some vines grow in from the edges, while others float inside the garden.
   // This preserves the overgrown look without leaving the center too open.
-  const edgeTarget = Math.max(3, Math.min(Math.round(target * .34), target - 5));
+  // Vary the edge/interior balance by run, while always keeping both types.
+  const edgeTarget = Math.max(3, Math.min(Math.round(target * (.27 + rng() * .16)), target - 5));
   let edgePlaced = 0;
   let lastSide = rng() < .5 ? 'left' : 'right';
   for (let attempt = 0; attempt < target * 220 && thorns.length < target; attempt++) {
@@ -118,11 +140,11 @@ export function makeLevel(stage, seed = 6819) {
     if (flowers.some(f => thornDistance(f.x, f.y, t) < h + 43)) continue;
     if (platforms.some(p => segmentDistance(t.x, t.y, t.endX, t.endY, p.x, p.y - 12, p.x + p.w, p.y - 12) < h + 38)) continue;
     if (route.slice(1).some((p, i) => segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, p.x, p.y) < h + RADIUS + 9)) continue;
-    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + 45)) continue;
+    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + (tangle ? 36 : 45))) continue;
     thorns.push(t);
     if (makeEdge) edgePlaced++;
   }
-  return { stage, pattern, height, platforms, flowers, thorns, route, seconds: 0, total: count };
+  return { stage, pattern, tangle, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
 
 export class Game {
@@ -200,7 +222,7 @@ export class Game {
     this.topGenerated = offset;
     this.stage = nextStage;
     this.remaining += piece.flowers.length;
-    this.events.push({ type: 'distanceMilestone', stage: nextStage });
+    this.events.push({ type: 'distanceMilestone', stage: nextStage, tangle: piece.tangle });
     // Drop passed geometry, but retain a safe area below the bee for revives.
     const cutoff = this.bee.y + 1800;
     this.level.platforms = this.level.platforms.filter(p => p.y < cutoff || p.launch);
@@ -212,10 +234,17 @@ export class Game {
   spawnWasps(piece, offset) {
     const rng = random(this.seed + this.run * 53719 + piece.stage * 9137);
     const count = Math.min(3 + piece.stage, 15);
+    // Occasionally one clearly marked wasp patrols faster than the rest.
+    // No surprise wasps in the opening two zones.
+    const rushSlot = piece.stage >= 3 && rng() < .28 ? Math.floor(rng() * count) : -1;
     for (let i = 0; i < count; i++) {
       const y = offset + 190 + (piece.height - 380) * (i + .5) / count;
       const x = 70 + rng() * (WIDTH - 140);
-      this.level.wasps.push({ x, y, homeX: x, phase: rng() * Math.PI * 2, amplitude: 85 + rng() * 125, speed: .8 + rng() * .6 + Math.min(piece.stage, 18) * .09 });
+      const rush = i === rushSlot;
+      const baseSpeed = .8 + rng() * .6 + Math.min(piece.stage, 18) * .09;
+      this.level.wasps.push({ x, y, homeX: x, phase: rng() * Math.PI * 2,
+        amplitude: rush ? 130 + rng() * 80 : 85 + rng() * 125,
+        speed: baseSpeed * (rush ? 1.43 : 1), rush, warned: false });
     }
   }
 
@@ -263,6 +292,13 @@ export class Game {
     }
     this.invulnerable = Math.max(0, this.invulnerable - dt);
     const b = this.bee;
+    // Warn before the special wasp reaches the bee's part of the screen.
+    for (const w of this.level.wasps) {
+      if (w.rush && !w.warned && w.y < b.y + 40 && w.y > b.y - 470) {
+        w.warned = true;
+        this.events.push({ type: 'surprise', kind: 'waspRush' });
+      }
+    }
     const oldBottom = b.y + RADIUS;
     const digitalDirection = Number(!!input.right) - Number(!!input.left);
     const direction = Number.isFinite(input.steer) ? Math.max(-1, Math.min(1, input.steer)) : digitalDirection;
@@ -276,10 +312,12 @@ export class Game {
     if (direction) b.face = direction;
     // Joystick up/down trims lift without replacing the dedicated Fly button.
     // Up slows a glide / helps takeoff; down increases descent / eases thrust.
-    // Top flight and fall speeds remain capped exactly as before.
+    // The first meters are calmer. Both thrust and sustained climb speed
+    // increase smoothly with distance, while steering mechanics stay untouched.
     const glide = Number.isFinite(input.glide) ? Math.max(-1, Math.min(1, input.glide)) : 0;
-    b.vy += (input.fly ? -760 - glide * 145 : 660 - glide * 200) * dt;
-    b.vy = Math.max(-295, Math.min(340, b.vy));
+    const flight = flightPower(this.distance);
+    b.vy += (input.fly ? -flight.thrust - glide * 145 : 660 - glide * 200) * dt;
+    b.vy = Math.max(-flight.climbCap, Math.min(340, b.vy));
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     if (b.x < 25) { b.x = 25; b.vx = 0; }
@@ -292,7 +330,7 @@ export class Game {
       const top = p.y - 3;
       if (b.vy > 0 && oldBottom <= top + 2 && b.y + RADIUS >= top && b.x > p.x + 7 && b.x < p.x + p.w - 7) {
         b.y = top - RADIUS;
-        b.vy = input.fly ? -295 : -220;
+        b.vy = input.fly ? -flight.climbCap : -Math.min(220, flight.climbCap * .93);
         this.checkpoint = { x: p.x + p.w / 2, y: p.y - 28 };
         this.events.push({ type: 'bounce', x: b.x, y: p.y });
         break;

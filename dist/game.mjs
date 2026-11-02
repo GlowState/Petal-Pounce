@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=26';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=27';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -504,9 +504,10 @@ function drawWasp(w) {
   const flap = Math.sin(clock*28 + w.phase)*5;
   ctx.fillStyle='rgba(230,245,255,.68)';
   ctx.beginPath();ctx.ellipse(-9,-12-flap,10,7,-.3,0,Math.PI*2);ctx.ellipse(9,-12+flap,10,7,.3,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#eab840';ctx.beginPath();ctx.ellipse(0,0,17,11,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=w.rush?'#ef806b':'#eab840';ctx.beginPath();ctx.ellipse(0,0,17,11,0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle='#3b273d';ctx.fillRect(-9,-9,5,18);ctx.fillRect(2,-10,5,20);
   ctx.beginPath();ctx.moveTo(13,1);ctx.lineTo(24,5);ctx.lineTo(12,8);ctx.fill();
+  if (w.rush) { ctx.fillStyle='#fff2b8';ctx.fillRect(-2,-8,4,5);ctx.fillRect(9,-3,4,4); }
   ctx.fillStyle='#fff';ctx.fillRect(-13,-6,4,4);ctx.restore();
 }
 
@@ -571,7 +572,11 @@ function events() {
       clearInput();
       $('toast').classList.remove('show');
     } else if (event.type === 'distanceMilestone') {
-      notify(`ZONE ${String(event.stage).padStart(2,'0')} · WASPS GET FASTER`, 1800);
+      const note = event.tangle ? 'THORN TANGLE AHEAD' : game.distance < 1100 ? 'THRUST POWER INCREASING' : 'WASPS GET FASTER';
+      notify(`ZONE ${String(event.stage).padStart(2,'0')} · ${note}`, 1800);
+    } else if (event.type === 'surprise' && event.kind === 'waspRush') {
+      notify('WATCH OUT · FAST WASP', 1600);
+      tone(740,.09,'triangle',0,.022);
     } else if (event.type === 'complete') {
       [523,659,784,1047].forEach((note,i) => tone(note,.18,'triangle',i*.1));
       safeSet('nectar-tangle-best-v1', String(game.best));
