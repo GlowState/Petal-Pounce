@@ -266,11 +266,13 @@ export class Game {
     const oldBottom = b.y + RADIUS;
     const digitalDirection = Number(!!input.right) - Number(!!input.left);
     const direction = Number.isFinite(input.steer) ? Math.max(-1, Math.min(1, input.steer)) : digitalDirection;
-    // Sharper reversals and faster neutral braking reduce control frustration.
-    // The analog joystick supports partial tilt for precise positioning.
-    b.vx += direction * 1650 * dt;
-    if (!direction) b.vx *= Math.exp(-12 * dt);
-    b.vx = Math.max(-245, Math.min(245, b.vx));
+    // True analog speed control: partial tilt yields a sustainable partial speed,
+    // instead of accelerating all the way to the maximum even at a tiny tilt.
+    // Exponential easing yields smooth starts, stops and direction reversals.
+    const desiredVx = direction * 235;
+    const response = Math.abs(direction) < .0001 ? 15 : 10.8;
+    b.vx += (desiredVx - b.vx) * (1 - Math.exp(-response * dt));
+    if (Math.abs(b.vx) < .08 && Math.abs(desiredVx) < .0001) b.vx = 0;
     if (direction) b.face = direction;
     // Joystick up/down trims lift without replacing the dedicated Fly button.
     // Up slows a glide / helps takeoff; down increases descent / eases thrust.
