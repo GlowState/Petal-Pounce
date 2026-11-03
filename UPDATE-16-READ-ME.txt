@@ -1,0 +1,39 @@
+PETAL POUNCE — UPDATE 16: PRECISION THICKETS
+============================================
+Base: Update 15 — Lively Garden Balance
+
+CHANGES
+- Increases thorn density across the run instead of leaving long empty stretches.
+- Mixes thick, substantial thorn branches among existing normal ones.
+- Adds paired edge-rooted thorn passages with a clear, reachable opening.
+- Openings gradually tighten as the player advances; more appear later.
+- Retains random calm stretches and hectic thickets, with random placements per run.
+- Keeps wasps away from the immediate narrow-gate passage in new sections.
+- Does NOT change joystick steering, Fly/thrust physics, leaf counts, artwork,
+  saved high scores, or progression data.
+
+INSTALLATION
+1. Make a backup of your GitHub files first.
+2. Extract this ZIP.
+3. Upload/replace matching files in the repository's main directory.
+4. If your published site uses dist/, replace those matching files there too.
+5. Keep all other existing files; this is NOT a standalone game build.
+6. After deployment, close and reopen the game if a cached version persists.
+
+FILES REPLACED
+index.html, game.mjs, engine.mjs, sw.js,
+dist/index.html, dist/game.mjs, dist/engine.mjs, dist/sw.js
+
+ROLLBACK
+Use Petal-Pounce-Rollback-Update-16.zip to restore the exact corresponding
+Update 15 versions of these files. Do not delete other game assets.
+
+TESTING
+- Generator: 490 sampled sections across stages 1, 2, 3, 4, 6, 8 and 12.
+- Verified no intersection between vines and protected flower routes,
+  and that all pinch gates preserve a bee-width safe corridor.
+- Collision: 70 passes through gate centers and 70 intentional contacts.
+- 50 early/mid/late sections checked for wasps near new gates.
+- Browser engine QA at 320, 390 and 430 px, with 3,600 simulation steps each.
+- 30 game-flow runs checking scoring, pause, revive, game over and restart.
+- Complete GitHub Pages + physical iPhone gameplay is not verified here.

@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=30';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=31';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -485,9 +485,12 @@ function drawThorn(t) {
   ctx.translate(Math.round(t.x), Math.round(t.y - camera));
   ctx.rotate(t.angle);
   const night = currentGarden().night;
-  const stem = Math.max(6, Math.round(h * .55));
-  ctx.fillStyle = night ? '#a57aab' : '#443a43';ctx.fillRect(0,-stem/2,w,stem);
-  ctx.fillStyle = night ? '#dfb1dc' : '#876071';ctx.fillRect(3,-stem/2,w-6,2);
+  // Heavy vines use the same pixel-thorn art, but with a visibly stronger
+  // trunk and closely spaced spikes; collision uses the actual larger h.
+  const stem = Math.max(6, Math.round(h * (t.heavy ? .77 : .55)));
+  ctx.fillStyle = night ? (t.heavy ? '#86618b' : '#a57aab') : (t.heavy ? '#503444' : '#443a43');
+  ctx.fillRect(0,-stem/2,w,stem);
+  ctx.fillStyle = night ? '#dfb1dc' : '#876071';ctx.fillRect(3,-stem/2,w-6,t.heavy ? 3 : 2);
   for (let i = 5; i < w - 3; i += t.spacing) {
     poly([[i-4,-2],[i+2,-h],[i+7,-2]], night ? '#bc83bb' : '#6b435a');
     poly([[i-4,2],[i+4,h],[i+8,2]], night ? '#966b9b' : '#644254');
