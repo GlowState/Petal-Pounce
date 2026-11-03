@@ -5,13 +5,34 @@ export const RADIUS = 13;
 export const FIXED_STEP = 1 / 120;
 export const REVIVE_DELAY = .75;
 export const MAX_LIVES = 3;
+export const LANE_COUNT = 3;
+export const BASE_WAVE_SPACING_PX = 160;
+export const MIN_HAZARD_BUFFER_PX = RADIUS * 3;
+export const CHUNK_WAVE_COUNT = 25;
+
+export const DIFFICULTY_BANDS = Object.freeze([
+  { min: 0, max: 200, label: 'EARLY', itemRatio: .75, obstacleRatio: .25, speedMultiplier: 1, maxConsecutiveHazards: 1 },
+  { min: 201, max: 600, label: 'GROWING', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1.25, maxConsecutiveHazards: 2 },
+  { min: 601, max: 1200, label: 'MID', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1.5, maxConsecutiveHazards: 3 },
+  { min: 1201, max: 2000, label: 'LATE', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1.8, maxConsecutiveHazards: 4 },
+  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .40, obstacleRatio: .60, speedMultiplier: 2, maxConsecutiveHazards: 5 }
+]);
+
+export function difficultyAt(altitudeM = 0) {
+  const altitude = Math.max(0, Number(altitudeM) || 0);
+  const found = DIFFICULTY_BANDS.findIndex(band => altitude <= band.max);
+  const bandIndex = found < 0 ? DIFFICULTY_BANDS.length - 1 : found;
+  return { ...DIFFICULTY_BANDS[bandIndex], bandIndex, altitudeM: altitude };
+}
 
 // Flight power grows with the player's best distance during this run.
 // Stage/elapsed time do not determine the upgrade: progress has to be earned.
 export function flightPower(distance = 0) {
-  const progress = Math.max(0, Math.min(1, distance / 1100));
-  const eased = progress * progress * (3 - 2 * progress);
-  return { climbCap: 230 + 100 * eased, thrust: 660 + 180 * eased, progress };
+  const difficulty = difficultyAt(distance);
+  return { climbCap: 230 * difficulty.speedMultiplier,
+    thrust: 660 * difficulty.speedMultiplier,
+    progress: difficulty.bandIndex / (DIFFICULTY_BANDS.length - 1),
+    speedMultiplier: difficulty.speedMultiplier };
 }
 
 export function random(seed) {
@@ -47,7 +68,7 @@ export function segmentDistance(ax, ay, bx, by, cx, cy, dx, dy) {
 
 export const thornDistance = (x, y, thorn) => pointSegmentDistance(x, y, thorn.x, thorn.y, thorn.endX, thorn.endY);
 
-export function makeLevel(stage, seed = 6819) {
+function legacyMakeLevel(stage, seed = 6819) {
   const rng = random(seed + stage * 1171);
   // A lively but readable garden: more flowers than Update 14, without
   // recreating the old wall of leaves or a repetitive zigzag staircase.
@@ -245,6 +266,157 @@ export function makeLevel(stage, seed = 6819) {
   return { stage, pattern, tangle, beats, pinchGates, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
 
+const clamp = (value, lo, hi) => Math.max(lo, Math.min(hi, value));
+const LANES = Object.freeze([0, 1, 2]);
+const laneWidth = WIDTH / LANE_COUNT;
+export const laneCenter = lane => laneWidth * (clamp(Math.round(lane), 0, LANE_COUNT - 1) + .5);
+
+// Plan abstract rows before making hitboxes, so every safety rule is testable.
+export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, waveCount = CHUNK_WAVE_COUNT } = {}) {
+  const rng = random(seed + chunkIndex * 1171 + Math.floor(startAltitudeM * 31));
+  const rows = [];
+  let cursorPx = 40, hazardDebt = 0, hazardRun = 0, lastRouteLane = 1;
+  let pendingWall = false, baitPlaced = false, chainCreated = false, chainId = 0;
+
+  const advance = hazard => {
+    let difficulty = difficultyAt(startAltitudeM + cursorPx / 10);
+    let waveSpacingPx = BASE_WAVE_SPACING_PX * difficulty.speedMultiplier;
+    let bufferPx = hazard ? MIN_HAZARD_BUFFER_PX * difficulty.speedMultiplier : 0;
+    let altitudeM = startAltitudeM + (cursorPx + waveSpacingPx + bufferPx) / 10;
+    const destination = difficultyAt(altitudeM);
+    if (destination.speedMultiplier !== difficulty.speedMultiplier) {
+      difficulty = destination;
+      waveSpacingPx = BASE_WAVE_SPACING_PX * difficulty.speedMultiplier;
+      bufferPx = hazard ? MIN_HAZARD_BUFFER_PX * difficulty.speedMultiplier : 0;
+      altitudeM = startAltitudeM + (cursorPx + waveSpacingPx + bufferPx) / 10;
+    }
+    cursorPx += waveSpacingPx + bufferPx;
+    return { altitudeM, difficulty, waveSpacingPx, bufferPx, distancePx: cursorPx };
+  };
+
+  const pushSafe = (kind = 'leaf', lane = lastRouteLane, extra = {}) => {
+    const position = advance(false);
+    const safeLane = clamp(Math.round(lane), 0, LANE_COUNT - 1);
+    rows.push({ rowIndex: rows.length, kind, hazard: false, lane: safeLane, routeLane: safeLane,
+      obstacleLanes: [], openLanes: [...LANES], ...position, ...extra });
+    lastRouteLane = safeLane;
+    hazardRun = 0;
+    hazardDebt += position.difficulty.obstacleRatio;
+  };
+
+  const pushHazard = (kind = 'hazard') => {
+    const position = advance(true);
+    let openLane = lastRouteLane;
+    if (kind === 'hazardWall') openLane = lastRouteLane === 1 ? (rng() < .5 ? 0 : 2) : 1;
+    openLane = clamp(openLane, Math.max(0, lastRouteLane - 1), Math.min(2, lastRouteLane + 1));
+    const pairChance = .18 + position.difficulty.bandIndex * .13;
+    const obstacleCount = kind === 'hazardWall' || kind === 'baitTrap' || rng() < pairChance ? 2 : 1;
+    let obstacleLanes;
+    if (obstacleCount === 2) obstacleLanes = LANES.filter(lane => lane !== openLane);
+    else {
+      const candidates = LANES.filter(lane => lane !== lastRouteLane);
+      obstacleLanes = [candidates[Math.floor(rng() * candidates.length)]];
+    }
+    const openLanes = LANES.filter(lane => !obstacleLanes.includes(lane));
+    if (!openLanes.includes(openLane)) openLane = openLanes.reduce((best, lane) =>
+      Math.abs(lane - lastRouteLane) < Math.abs(best - lastRouteLane) ? lane : best, openLanes[0]);
+    const bait = kind === 'baitTrap';
+    rows.push({ rowIndex: rows.length, kind, hazard: true, routeLane: openLane,
+      obstacleLanes, openLanes, baitValue: bait ? 3 : 0,
+      baitOffsetPx: bait ? Math.min(position.waveSpacingPx * .48, 92 * position.difficulty.speedMultiplier) : 0,
+      ...position });
+    lastRouteLane = openLane;
+    hazardRun++;
+    hazardDebt += position.difficulty.obstacleRatio - 1;
+    baitPlaced ||= bait;
+  };
+
+  while (rows.length < waveCount) {
+    const remaining = waveCount - rows.length;
+    const preview = difficultyAt(startAltitudeM + cursorPx / 10);
+    const canHazard = hazardRun < preview.maxConsecutiveHazards;
+    if (!chainCreated && hazardRun === 0 && remaining >= 4) {
+      const maxLength = preview.obstacleRatio >= .45 ? 3 : 5;
+      const length = Math.min(3 + Math.floor(rng() * (maxLength - 2)), remaining - 1);
+      const direction = rng() < .5 ? -1 : 1;
+      const currentChain = chainId++;
+      for (let i = 0; i < length; i++) {
+        const progress = i / (length - 1);
+        const lane = Math.round(1 + direction * Math.sin(-Math.PI / 2 + progress * Math.PI));
+        pushSafe('flowerChain', lane, { chainId: currentChain, chainStep: i, chainLength: length });
+      }
+      pendingWall = true;
+      chainCreated = true;
+      continue;
+    }
+    if (pendingWall && canHazard) { pushHazard('hazardWall'); pendingWall = false; continue; }
+    const wantsHazard = hazardDebt >= .5 - preview.obstacleRatio;
+    if (wantsHazard && canHazard) { pushHazard(!baitPlaced || rng() < .22 ? 'baitTrap' : 'hazard'); continue; }
+    const options = LANES.filter(lane => Math.abs(lane - lastRouteLane) <= 1);
+    pushSafe('leaf', options[Math.floor(rng() * options.length)]);
+  }
+  return rows;
+}
+
+// Convert the validated plan to leaves, flowers, and horizontal lane-contained thorns.
+export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, waveCount = CHUNK_WAVE_COUNT } = {}) {
+  const rng = random(seed + chunkIndex * 1741 + Math.floor(startAltitudeM * 53));
+  const rows = planChunkRows({ startAltitudeM, seed, chunkIndex, waveCount });
+  const farthestPx = Math.max(...rows.map(row => row.distancePx + (row.baitOffsetPx || 0)));
+  const height = Math.ceil(farthestPx + 230);
+  const spawn = { x: WIDTH / 2, y: height - 104 };
+  const platforms = [{ x: WIDTH / 2 - 55, y: height - 70, w: 110, launch: true }];
+  const flowers = [], thorns = [], route = [spawn], pinchGates = [];
+  const toY = distancePx => spawn.y - distancePx;
+
+  const addLeaf = (row, distancePx = row.distancePx, bait = false) => {
+    const lane = row.routeLane;
+    const w = bait ? 76 + rng() * 18 : 88 + rng() * 42;
+    const jitter = bait ? 0 : (rng() - .5) * 18;
+    const x = clamp(laneCenter(lane) - w / 2 + jitter, lane * laneWidth + 14, (lane + 1) * laneWidth - w - 14);
+    const y = toY(distancePx);
+    const flip = lane === 0 ? true : lane === 2 ? false : rng() > .5;
+    platforms.push({ x, y, w, flip, lane, rowIndex: row.rowIndex, bait });
+    const flower = { x: bait ? laneCenter(lane) : (flip ? x + 16 : x + w - 16),
+      y: y - 31, taken: false, phase: rng() * 7, value: bait ? row.baitValue : 1,
+      bait, lane, rowIndex: row.rowIndex };
+    flowers.push(flower);
+    route.push({ x: flower.x, y: flower.y, lane });
+  };
+
+  for (const row of rows) {
+    if (!row.hazard) addLeaf(row);
+    if (row.hazard) {
+      const y = toY(row.distancePx);
+      for (const lane of row.obstacleLanes) {
+        const heavy = row.difficulty.bandIndex >= 2 && rng() < .35 + row.difficulty.bandIndex * .06;
+        const h = (heavy ? 18 : 11) + row.difficulty.bandIndex * 1.6 + rng() * (heavy ? 5 : 7);
+        const inset = h + RADIUS + 8;
+        const x = lane * laneWidth + inset;
+        const endX = (lane + 1) * laneWidth - inset;
+        thorns.push({ x, y, endX, endY: y, w: endX - x, h, angle: 0,
+          spacing: heavy ? 12 + rng() * 5 : 15 + rng() * 7,
+          heavy, lane, rowIndex: row.rowIndex, cluster: row.kind });
+      }
+      if (row.obstacleLanes.length === 2) pinchGates.push({ y, openLane: row.routeLane, rowIndex: row.rowIndex });
+      if (row.baitValue) addLeaf(row, row.distancePx + row.baitOffsetPx, true);
+    }
+  }
+  const endAltitudeM = startAltitudeM + (height - 140) / 10;
+  const safeRows = rows.filter(row => !row.hazard).length;
+  return { chunkIndex, stage: difficultyAt(startAltitudeM).bandIndex + 1,
+    pattern: 'three-lane-rhythm', tangle: difficultyAt(endAltitudeM).obstacleRatio >= .55,
+    beats: rows.map(row => row.kind), rows, pinchGates, startAltitudeM, endAltitudeM,
+    height, platforms, flowers, thorns, route, seconds: 0, total: flowers.length,
+    safeRows, hazardRows: rows.length - safeRows };
+}
+
+// Compatibility only. Runtime generation uses makeChunk and absolute altitude.
+export function makeLevel(stage = 1, seed = 6819) {
+  const chunkIndex = Math.max(0, Math.floor(stage) - 1);
+  return makeChunk({ startAltitudeM: chunkIndex * 250, seed, chunkIndex });
+}
+
 export class Game {
   constructor({ seed = Math.floor(Math.random() * 100000), best = 0 } = {}) {
     this.seed = seed;
@@ -254,6 +426,9 @@ export class Game {
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
     this.stage = 1;
+    this.chunkIndex = 0;
+    this.generatedAltitudeM = 0;
+    this.difficultyBandIndex = 0;
     this.distance = 0;
     this.mode = 'title';
     this.events = [];
@@ -262,9 +437,15 @@ export class Game {
 
   loadLevel() {
     this.earnedLife = false;
-    this.level = makeLevel(this.stage, (this.seed + this.run * 741103) >>> 0);
+    this.chunkIndex = 0;
+    this.generatedAltitudeM = 0;
+    this.difficultyBandIndex = 0;
+    this.level = makeChunk({ startAltitudeM: 0,
+      seed: (this.seed + this.run * 741103) >>> 0, chunkIndex: this.chunkIndex });
     this.level.wasps = [];
+    this.level.rows = this.level.rows.map(row => ({ ...row, worldY: this.level.height - 104 - row.distancePx }));
     this.topGenerated = 0;
+    this.generatedAltitudeM = this.level.endAltitudeM;
     this.startY = this.level.height - 104;
     this.highestY = this.startY;
     this.spawnWasps(this.level, 0);
@@ -310,37 +491,41 @@ export class Game {
   // Each additional segment is attached above the previous one in the same world.
   // There is no level-complete menu or camera reset.
   extendWorld() {
-    const nextStage = this.stage + 1;
-    const piece = makeLevel(nextStage, (this.seed + this.run * 741103) >>> 0);
+    this.chunkIndex++;
+    const piece = makeChunk({ startAltitudeM: this.generatedAltitudeM,
+      seed: (this.seed + this.run * 741103) >>> 0, chunkIndex: this.chunkIndex });
     const offset = this.topGenerated - piece.height + 140;
     for (const platform of piece.platforms.slice(1)) this.level.platforms.push({ ...platform, y: platform.y + offset });
     for (const flower of piece.flowers) this.level.flowers.push({ ...flower, y: flower.y + offset });
     for (const thorn of piece.thorns) this.level.thorns.push({ ...thorn, y: thorn.y + offset, endY: thorn.endY + offset });
+    this.level.rows.push(...piece.rows.map(row => ({ ...row, worldY: piece.height - 104 - row.distancePx + offset })));
     this.spawnWasps(piece, offset);
     this.topGenerated = offset;
-    this.stage = nextStage;
+    this.generatedAltitudeM = piece.endAltitudeM;
     this.remaining += piece.flowers.length;
-    this.events.push({ type: 'distanceMilestone', stage: nextStage, tangle: piece.tangle });
     // Drop passed geometry, but retain a safe area below the bee for revives.
     const cutoff = this.bee.y + 1800;
     this.level.platforms = this.level.platforms.filter(p => p.y < cutoff || p.launch);
     this.level.flowers = this.level.flowers.filter(f => f.y < cutoff);
     this.level.thorns = this.level.thorns.filter(t => t.y < cutoff);
     this.level.wasps = this.level.wasps.filter(w => w.y < cutoff);
+    this.level.rows = this.level.rows.filter(row => row.worldY < cutoff);
   }
 
   spawnWasps(piece, offset) {
-    const rng = random(this.seed + this.run * 53719 + piece.stage * 9137);
-    const count = Math.min(3 + piece.stage, 15);
+    const difficulty = difficultyAt(piece.startAltitudeM);
+    const rng = random(this.seed + this.run * 53719 + piece.chunkIndex * 9137);
+    const count = Math.min(5 + Math.floor(piece.rows.length * difficulty.obstacleRatio * .55), 14);
     // Occasionally one clearly marked wasp patrols faster than the rest.
     // No surprise wasps in the opening two zones.
-    const rushSlot = piece.stage >= 3 && rng() < .28 ? Math.floor(rng() * count) : -1;
+    const rushSlot = difficulty.bandIndex >= 2 && rng() < .28 ? Math.floor(rng() * count) : -1;
     for (let i = 0; i < count; i++) {
       // Vary patrol heights so even familiar sections have different timing.
       let y = 190 + (piece.height - 380) * (i + .28 + rng() * .44) / count;
       // A wasp never blocks the narrow opening at the instant it is introduced.
       // Keep the two challenges independent instead of manufacturing unfair hits.
-      if (piece.pinchGates?.some(g => Math.abs(g.y - y) < 120)) {
+      const hazardHeights = piece.rows.filter(row => row.hazard).map(row => piece.height - 104 - row.distancePx);
+      if (hazardHeights.some(hazardY => Math.abs(hazardY - y) < 120)) {
         // Prefer a nearby height to retain patrol distribution; fall back to
         // another open stretch only if every close candidate is occupied.
         const variants = [135, -135, 195, -195, 255, -255];
@@ -348,13 +533,13 @@ export class Game {
           const proposed = j < variants.length ? y + variants[j]
             : 170 + rng() * (piece.height - 325);
           if (proposed > 170 && proposed < piece.height - 155 &&
-              piece.pinchGates.every(g => Math.abs(g.y - proposed) >= 120)) { y = proposed; break; }
+              hazardHeights.every(hazardY => Math.abs(hazardY - proposed) >= 120)) { y = proposed; break; }
         }
       }
       y += offset;
       const x = 70 + rng() * (WIDTH - 140);
       const rush = i === rushSlot;
-      const baseSpeed = .8 + rng() * .6 + Math.min(piece.stage, 18) * .09;
+      const baseSpeed = (.8 + rng() * .6 + difficulty.bandIndex * .12) * difficulty.speedMultiplier;
       this.level.wasps.push({ x, y, homeX: x, phase: rng() * Math.PI * 2,
         amplitude: rush ? 130 + rng() * 80 : 85 + rng() * 125,
         speed: baseSpeed * (rush ? 1.43 : 1), rush, warned: false });
@@ -437,6 +622,16 @@ export class Game {
     if (b.x > WIDTH - 25) { b.x = WIDTH - 25; b.vx = 0; }
     this.highestY = Math.min(this.highestY, b.y);
     this.distance = Math.max(this.distance, Math.floor((this.startY - this.highestY) / 10));
+    const activeDifficulty = difficultyAt(this.distance);
+    if (activeDifficulty.bandIndex > this.difficultyBandIndex) {
+      for (let band = this.difficultyBandIndex + 1; band <= activeDifficulty.bandIndex; band++) {
+        const reached = DIFFICULTY_BANDS[band];
+        this.events.push({ type: 'difficultyBand', bandIndex: band, label: reached.label,
+          obstacleRatio: reached.obstacleRatio, speedMultiplier: reached.speedMultiplier });
+      }
+      this.difficultyBandIndex = activeDifficulty.bandIndex;
+      this.stage = activeDifficulty.bandIndex + 1; // Compatibility alias; there are no levels.
+    }
     if (b.y < this.topGenerated + 800) this.extendWorld();
 
     for (const p of this.level.platforms) {
@@ -454,10 +649,11 @@ export class Game {
       if (!f.taken && Math.hypot(b.x - f.x, b.y - f.y) < 29) {
         f.taken = true;
         this.remaining--;
-        this.flowersCollected++;
-        this.score += 10;
+        const value = Math.max(1, f.value || 1);
+        this.flowersCollected += value;
+        this.score += 10 * value;
         this.record();
-        this.events.push({ type: 'flower', x: f.x, y: f.y });
+        this.events.push({ type: 'flower', x: f.x, y: f.y, value, bait: !!f.bait });
       }
     }
 

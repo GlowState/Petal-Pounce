@@ -88,11 +88,12 @@
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Fly upward through an endless garden with no level-clear screens. Thrust starts gently and strengthens as you travel farther. Thorn patterns change, and occasional fast wasps or tangled sections keep each run unpredictable. Your chosen background stays equipped.</p>
+    <p>Fly upward through one endless garden with no levels or finish line. Difficulty rises smoothly with altitude: the garden scrolls faster, safe blooms become scarcer, and thorn clusters grow denser. Every row always keeps at least one open lane.</p>
     <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Steering responds to left or right tilt at any angle, including near the top or bottom. Tilt farther for more speed; diagonal steering is slightly gentler. The enlarged touch area makes thumb repositioning easier. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
-    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for all your levels. Unlocks and flowers are saved on this device.</p></div>
+    <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Follow flower chains, watch for paired thorn walls, and decide whether glowing risky blooms are worth the tight route. Risky blooms are worth three flowers.</p></div>
+    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
     <p class="help-note">Each flower also earns 10 honey for your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
@@ -103,10 +104,10 @@
     <div class="shop-heading"><div><p class="eyebrow">YOUR LITTLE GREENHOUSE</p><h2 id="shop-title">Garden shop.</h2></div><div class="shop-wallet"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="shop-balance">0</strong><span>FLOWERS</span></div></div>
     <p class="shop-intro">Collect flowers. Unlock a new view. Keep the garden you love.</p>
     <div id="shop-grid" class="shop-grid"></div>
-    <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every level.</p>
+    <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=31"></script>
+  <script type="module" src="./game.mjs?v=32"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
