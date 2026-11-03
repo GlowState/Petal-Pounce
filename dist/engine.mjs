@@ -49,86 +49,70 @@ export const thornDistance = (x, y, thorn) => pointSegmentDistance(x, y, thorn.x
 
 export function makeLevel(stage, seed = 6819) {
   const rng = random(seed + stage * 1171);
-  const count = Math.min(16 + (stage - 1) * 3, 64);
-  // An individual run keeps its seeded layout, but a new run gets a different
-  // seed. Rotate through small, mixed leaf behaviors inside *every* section.
-  const patterns = ['scatter', 'drift', 'switchbacks', 'pockets', 'weave', 'clusters'];
-  const pattern = patterns[Math.floor(rng() * patterns.length)];
-  let sectionPattern = pattern;
-  let nextPatternChange = 3 + Math.floor(rng() * 5);
-  let switchDirection = rng() < .5 ? -1 : 1;
-  let wavePhase = rng() * Math.PI * 2;
-  let pocketX = 105 + rng() * (WIDTH - 210);
-  let pocketLeft = 0;
-  let clusterCooldown = 0;
-  let climb = 195 + rng() * 45;
-  let lastCenter = 112 + rng() * (WIDTH - 224);
+  // Fewer flower-bearing leaves. The garden should feel open, not like a staircase.
+  // Reduce the previous 16/19/22/... to 12/14/16/... while retaining an endless climb.
+  const count = Math.min(12 + Math.floor((stage - 1) * 2.2), 46);
+  const pattern = 'free-scatter';
   const drafts = [];
+  let climb = 205 + rng() * 35;
+  let lastCenter = WIDTH / 2;
+  let lastWasCrossing = false;
   const clamp = (value, lo, hi) => Math.max(lo, Math.min(hi, value));
+  const leftSide = center => center < WIDTH * .29;
+  const rightSide = center => center > WIDTH * .71;
   for (let i = 0; i < count; i++) {
-    if (i >= nextPatternChange) {
-      const alternatives = patterns.filter(value => value !== sectionPattern);
-      sectionPattern = alternatives[Math.floor(rng() * alternatives.length)];
-      nextPatternChange += 3 + Math.floor(rng() * 6);
-      // Fresh phase and pocket location prevent repeatable, synchronized lanes.
-      wavePhase = rng() * Math.PI * 2;
-      pocketLeft = 0;
-      if (rng() < .5) switchDirection *= -1;
-    }
-    // Sometimes place two leaves in a loose vertical cluster; avoid back-to-back
-    // clusters and keep enough space to pass comfortably around each leaf.
-    const paired = i > 0 && clusterCooldown === 0 && rng() < .17;
-    if (i) {
-      const roll = rng();
-      const gap = paired ? 86 + rng() * 26
-        : roll < .25 ? 91 + rng() * 31
-        : roll < .80 ? 122 + rng() * 47
-        : 169 + rng() * 37;
-      climb += gap;
-    }
-    clusterCooldown = paired ? 2 : Math.max(0, clusterCooldown - 1);
-    // A few broad landing leaves, some smaller ones, and many medium ones.
-    const widthRoll = rng();
-    const w = widthRoll < .17 ? 67 + rng() * 21
-      : widthRoll < .85 ? 88 + rng() * 46
-      : 135 + rng() * 23;
-    let center;
-    if (paired) {
-      center = lastCenter + (rng() - .5) * 166;
-    } else if (sectionPattern === 'drift') {
-      center = lastCenter + (rng() - .5) * 290;
-    } else if (sectionPattern === 'switchbacks') {
-      center = lastCenter + switchDirection * (90 + rng() * 106);
-      if (center < 100 || center > WIDTH - 100) switchDirection *= -1;
-    } else if (sectionPattern === 'pockets' || sectionPattern === 'clusters') {
-      if (pocketLeft <= 0) {
-        pocketX = 108 + rng() * (WIDTH - 216);
-        pocketLeft = sectionPattern === 'clusters' ? 2 + Math.floor(rng() * 3) : 3 + Math.floor(rng() * 3);
+    // Small/medium/broad leaves without the former forced zigzags, waves or steps.
+    const sizeRoll = rng();
+    const w = sizeRoll < .18 ? 70 + rng() * 20
+      : sizeRoll < .88 ? 90 + rng() * 43
+      : 134 + rng() * 24;
+    // Try opposite-side jumps occasionally when a flower was already near one edge.
+    // Never force one immediately after another: the course is not a zigzag ladder.
+    const crossing = i > 0 && !lastWasCrossing && (leftSide(lastCenter) || rightSide(lastCenter)) && rng() < .30;
+    let x;
+    let gap = 148 + rng() * 115;
+    if (rng() < .13) gap += 48 + rng() * 56;
+    if (crossing) {
+      // A flower at the *outer* tip of the opposite leaf emphasizes the full-width challenge.
+      x = leftSide(lastCenter) ? WIDTH - 22 - w - rng() * 12 : 22 + rng() * 12;
+      const center = x + w / 2;
+      const sideways = Math.abs(center - lastCenter);
+      // Time to cross the playfield at sustainable lateral speed while flying up;
+      // later stages allow for the earned faster climb speed from Update 12.
+      const expectedClimb = flightPower(Math.min(1100, (stage - 1) * 250)).climbCap;
+      gap = Math.max(gap, (sideways / 215) * expectedClimb + 95 + rng() * 38);
+    } else {
+      // Each new position is independently sampled. We accept nearby repeats,
+      // center leaves, and jumps toward an edge instead of alternate-side rules.
+      const choosePosition = () => {
+        const roll = rng();
+        if (roll < .26) return 22 + rng() * 42;
+        if (roll < .52) return WIDTH - w - 22 - rng() * 42;
+        if (roll < .81) return WIDTH * (.34 + rng() * .32) - w / 2;
+        return 22 + rng() * (WIDTH - w - 44);
+      };
+      x = choosePosition();
+      if (i) {
+        // Avoid surprise near-impossible hops without smoothing every leaf into
+        // another recognizable pattern. Resample rather than pull toward center.
+        let tries = 0;
+        while (Math.abs(x + w / 2 - lastCenter) > 210 && tries++ < 10) x = choosePosition();
+        // On a rare sequence of unhelpful draws, create extra vertical space
+        // instead of forcing a leaf to be in a particular direction.
+        const sideways = Math.abs(x + w / 2 - lastCenter);
+        if (sideways > 210) gap = Math.max(gap, sideways * 1.65 + 80);
       }
-      pocketLeft--;
-      center = pocketX + (rng() - .5) * (sectionPattern === 'clusters' ? 125 : 215);
-    } else if (sectionPattern === 'weave') {
-      center = WIDTH / 2 + Math.sin(i * (1.02 + stage * .005) + wavePhase) * (135 + rng() * 57) + (rng() - .5) * 65;
-    } else { // scatter: wide choice, but avoid a physically excessive lateral jump.
-      center = 80 + rng() * (WIDTH - 160);
     }
-    // Break up long streaks even within a named pattern.
-    if (!paired && rng() < .20) center = lastCenter + (rng() - .5) * 350;
-    const previousGap = i ? climb - (-drafts[i-1].y) : 120;
-    const maxReach = Math.min(225, 105 + previousGap * .64);
-    if (i) center = clamp(center, lastCenter - maxReach, lastCenter + maxReach);
-    const x = clamp(center - w / 2, 22, WIDTH - w - 22);
-    const p = { x, y: -climb, w, flip: rng() > .5 };
-    // The minimum vertical interval keeps nearby leaves from intersecting.
-    // This guard also protects us if generation constants change later.
-    if (i && Math.abs(drafts[i-1].y - p.y) < 82 &&
-        p.x < drafts[i-1].x + drafts[i-1].w + 24 &&
-        p.x + p.w + 24 > drafts[i-1].x) {
-      climb += 82 - Math.abs(drafts[i-1].y - p.y);
-      p.y = -climb;
-    }
+    x = clamp(x, 22, WIDTH - w - 22);
+    if (i) climb += gap;
+    // Put flowers on the outward side for leaves near the screen edges.
+    // Other flowers remain randomized in position as before.
+    const center = x + w / 2;
+    const flip = leftSide(center) ? true : rightSide(center) ? false : rng() > .5;
+    const p = { x, y: -climb, w, flip };
     drafts.push(p);
-    lastCenter = p.x + p.w / 2;
+    lastCenter = center;
+    lastWasCrossing = crossing;
   }
   const height = Math.ceil(climb + 220);
   const platforms = [{ x: WIDTH / 2 - 55, y: height - 70, w: 110, launch: true }, ...drafts.map(p => ({ ...p, y: p.y + height }))];
