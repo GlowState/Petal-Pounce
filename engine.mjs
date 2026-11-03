@@ -49,9 +49,9 @@ export const thornDistance = (x, y, thorn) => pointSegmentDistance(x, y, thorn.x
 
 export function makeLevel(stage, seed = 6819) {
   const rng = random(seed + stage * 1171);
-  // Fewer flower-bearing leaves. The garden should feel open, not like a staircase.
-  // Reduce the previous 16/19/22/... to 12/14/16/... while retaining an endless climb.
-  const count = Math.min(12 + Math.floor((stage - 1) * 2.2), 46);
+  // A lively but readable garden: more flowers than Update 14, without
+  // recreating the old wall of leaves or a repetitive zigzag staircase.
+  const count = Math.min(14 + Math.floor((stage - 1) * 2.2), 52);
   const pattern = 'free-scatter';
   const drafts = [];
   let climb = 205 + rng() * 35;
@@ -70,7 +70,8 @@ export function makeLevel(stage, seed = 6819) {
     // Never force one immediately after another: the course is not a zigzag ladder.
     const crossing = i > 0 && !lastWasCrossing && (leftSide(lastCenter) || rightSide(lastCenter)) && rng() < .30;
     let x;
-    let gap = 148 + rng() * 115;
+    // Slightly closer everyday leaves; distant crossings get extra flight room.
+    let gap = 138 + rng() * 102;
     if (rng() < .13) gap += 48 + rng() * 56;
     if (crossing) {
       // A flower at the *outer* tip of the opposite leaf emphasizes the full-width challenge.
@@ -124,8 +125,34 @@ export function makeLevel(stage, seed = 6819) {
   // A rare thorn tangle packs a couple of extra branches into an otherwise
   // normal section. The same flower-route clearance tests still apply.
   const tangle = stage >= 3 && rng() < .22;
-  const target = Math.min(15 + (stage - 1) * 2 + (tangle ? 2 : 0), 52);
+  // Base thorn count on garden HEIGHT, not just stage: long sections should
+  // never become empty. Increase density gradually, with a small tangle bonus.
+  const hazardRate = Math.min(7.65, 6.25 + (stage - 1) * .14);
+  const target = Math.min(130, Math.round(height / 1000 * hazardRate) + (tangle ? 3 : 0));
   const maxLength = 285 + Math.min(stage, 8) * 12;
+  // Procedural pacing: one quieter pocket, one hectic thicket, and normal
+  // garden in between. Slots vary across runs, so no memorized rhythm.
+  const bandCount = Math.min(7, Math.max(4, Math.ceil(height / 1550)));
+  const beats = Array(bandCount).fill('normal');
+  const quietSlot = Math.floor(rng() * bandCount);
+  beats[quietSlot] = 'breather';
+  const busyOptions = beats.map((beat, i) => beat === 'normal' && i > 0 ? i : -1).filter(i => i > 0);
+  beats[busyOptions[Math.floor(rng() * busyOptions.length)]] = 'thicket';
+  if (stage >= 5 && bandCount >= 5 && rng() < .5) {
+    const alternatives = beats.map((v, i) => v === 'normal' && i > 0 ? i : -1).filter(i => i >= 0);
+    if (alternatives.length) beats[alternatives[Math.floor(rng() * alternatives.length)]] = 'thicket';
+  }
+  const weights = beats.map(beat => beat === 'breather' ? .38 : beat === 'thicket' ? (stage <= 2 ? 1.85 : 2.65) : 1);
+  const weightTotal = weights.reduce((sum, n) => sum + n, 0);
+  const pickHeight = () => {
+    let roll = rng() * weightTotal;
+    let band = 0;
+    for (; band < weights.length - 1; band++) {
+      if (roll < weights[band]) break;
+      roll -= weights[band];
+    }
+    return 90 + (band + rng()) * (height - 310) / bandCount;
+  };
   // Mixed thorn layout: some vines grow in from the edges, while others float inside the garden.
   // This preserves the overgrown look without leaving the center too open.
   // Vary the edge/interior balance by run, while always keeping both types.
@@ -136,7 +163,7 @@ export function makeLevel(stage, seed = 6819) {
     const angle = 0;
     const makeEdge = edgePlaced < edgeTarget && (thorns.length + (edgeTarget - edgePlaced) >= target || rng() < .42);
     const h = 9 + rng() * 10 + Math.min(stage - 1, 10) * .5;
-    const cy = 90 + rng() * (height - 310);
+    const cy = pickHeight();
     let t;
     if (makeEdge) {
       const side = attempt % 3 === 0 ? (lastSide === 'left' ? 'right' : 'left') : (rng() < .5 ? 'left' : 'right');
@@ -167,7 +194,7 @@ export function makeLevel(stage, seed = 6819) {
     thorns.push(t);
     if (makeEdge) edgePlaced++;
   }
-  return { stage, pattern, tangle, height, platforms, flowers, thorns, route, seconds: 0, total: count };
+  return { stage, pattern, tangle, beats, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
 
 export class Game {
@@ -261,7 +288,8 @@ export class Game {
     // No surprise wasps in the opening two zones.
     const rushSlot = piece.stage >= 3 && rng() < .28 ? Math.floor(rng() * count) : -1;
     for (let i = 0; i < count; i++) {
-      const y = offset + 190 + (piece.height - 380) * (i + .5) / count;
+      // Vary patrol heights so even familiar sections have different timing.
+      const y = offset + 190 + (piece.height - 380) * (i + .28 + rng() * .44) / count;
       const x = 70 + rng() * (WIDTH - 140);
       const rush = i === rushSlot;
       const baseSpeed = .8 + rng() * .6 + Math.min(piece.stage, 18) * .09;

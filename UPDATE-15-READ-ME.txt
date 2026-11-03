@@ -1,0 +1,35 @@
+PETAL POUNCE — UPDATE 15: LIVELIER, BALANCED GARDEN
+
+BUILT FROM
+Update 14 — Fewer Leaves & Wide Crossings.
+
+WHAT CHANGED
+• Flower-bearing leaves: opening section increased from 12 to 14; later sections each gain two more compared with Update 14 (maximum 52 rather than 46).
+• Routine vertical gaps are slightly tighter, while wide side-to-side crossings retain their special extra space. No forced zigzag pattern.
+• Thorn count is now tied to section height so later, taller sections do not feel sparse. In typical opening sections, the average rises from ~15 to ~23 thorns; the total scales gradually with progress.
+• Thorn placements use randomized pacing bands: ordinary garden, quieter breathing spaces, and more intense thickets. The very first band is never a thicket.
+• Both edge-grown and freestanding thorn vines stay in every section; collision and flower-route safety clearances are unchanged.
+• Wasp patrol heights get a little randomized for less predictable timing. Wasp speed and special surprise behavior are unchanged.
+
+UNTOUCHED
+Joystick controls, Fly and progressive thrust physics, collision math, three lives, shop, saves, graphics, retro styling, full-screen layout and decorative side trim.
+
+INSTALL (on top of a working Update 14)
+1. Make a backup of your current GitHub repository or keep the rollback ZIP.
+2. Extract this ZIP. Copy the files to the SAME corresponding paths in your repo, replacing matching files.
+3. If Pages serves from repository root, the root files are used. If Pages serves from /dist, use the dist copies. Both paths are included to keep your repository consistent.
+4. DO NOT delete any other existing files (scenery.mjs, profile.mjs, hold-controls.mjs, flowers.mjs, CSS, images, fonts, etc.). These are required parts of the game and intentionally not included here.
+5. Publish GitHub Pages and reload/reopen after deployment if an older cached version appears.
+
+MODIFIED FILES
+engine.mjs, game.mjs, index.html, sw.js; plus their dist copies.
+The only gameplay changes are in engine.mjs. game.mjs and index.html only update the module cache reference; sw.js rotates its offline cache key.
+
+ROLLBACK
+Petal-Pounce-Rollback-Update-15.zip restores the exact Update 14 files modified here.
+
+QUALITY CHECKS
+• 2,000 randomized sections tested across 20 stages and 100 seeds each: mixed thorn styles, reachability route clearance, flower/leaf clearance, uniqueness, wide crossings and same-side variety.
+• 120 game-flow cases tested: flower collecting, scoring, life loss, revival, game over, fresh run.
+• Physics simulation climbed 2,300 meters across generated sections; browser gameplay engine checks ran through 879 meters at three phone widths with no JavaScript errors.
+• This is an update package, NOT a standalone complete game. Supporting source/assets are absent from the provided update archive. The production GitHub Pages deployment and physical iPhone gameplay have not been end-to-end verified.
