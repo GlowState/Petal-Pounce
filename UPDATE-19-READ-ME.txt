@@ -1,0 +1,45 @@
+PETAL POUNCE — UPDATE 19: CENTER THORN PRESSURE
+================================================
+
+THIS IS A CUMULATIVE UPDATE
+Install this directly over Update 18. Earlier updates are not required.
+
+INSTALL
+1. Replace index.html, engine.mjs, game.mjs, and sw.js in the repository root.
+2. Replace the same four files inside the dist folder.
+3. Commit and push to GitHub.
+4. Close and reopen the game on iPhone so the v34 cache can activate.
+
+WHAT CHANGED
+- The center lane is no longer a reliable straight path upward.
+- Center-lane hazard pressure now increases with altitude:
+    0–200m:     65% center pressure
+    201–600m:   70% center pressure
+    601–1200m:  75% center pressure
+    1201–2000m: 80% center pressure
+    2001m+:     85% center pressure target
+- The generator uses an accumulator instead of a random coin flip, preventing
+  long stretches where the center accidentally remains clear.
+- More hazard rows use two thorn vines, increasing visible vine density.
+- Center vines are approximately 12% thicker and can become heavy sooner.
+- Center blocks deliberately open a reachable left or right escape.
+- Side openings alternate when the player can physically reach the other side.
+- The safe route still moves no more than one lane per row.
+- No row ever seals all three lanes.
+- Existing hazard density and slower Update 18 speed curve are preserved.
+- Random leaf positions, flower chains, hazard walls, and risky bait traps are
+  preserved.
+- Help text now explains that the middle lane is actively pressured.
+- Cache version increased to v34.
+
+VALIDATION
+- 8/8 automated generator tests passed.
+- Hundreds of seeds verified for ratios, reaction buffers, lane coverage,
+  random leaf placement, center pressure, and deterministic generation.
+- Ten-chunk runtime smoke test produced 333 thorn vines across 174 hazard rows.
+- The middle lane was blocked on 81% of those runtime hazard rows.
+- Zero sealed rows and zero diagonal thorn vines were detected.
+
+ROLLBACK
+Use Petal-Pounce-Rollback-Update-18-Hazard-Density.zip to return to the exact
+pre-Update-19 release.
