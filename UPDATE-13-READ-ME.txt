@@ -1,0 +1,29 @@
+PETAL POUNCE — UPDATE 13: MORE RANDOM LEAVES
+
+WHAT CHANGED
+• Every new round uses a fresh leaf arrangement (the existing per-run seed is preserved).
+• New within-section leaf behaviors mix scatter, drift, switchbacks, pockets, weaving and clusters.
+• Leaf widths vary from small to broad landing surfaces.
+• Vertical leaf gaps now include short pairs, medium hops and occasional longer hops.
+• Horizontal movement is constrained between successive leaves so placement feels varied without absurd jumps.
+• Every flower stays attached to a leaf and the existing thorn-to-flower, platform and route clearance checks remain active.
+• No changes to steering, growing thrust, wasps, visuals or touch controls.
+
+INSTALL
+1. Back up your current GitHub repository.
+2. Extract this ZIP and upload/replace the included files in their matching paths.
+3. If your deployment uses the root folder and/or dist, update the corresponding folder(s) used by the live site.
+4. Keep all unrelated existing files such as joystick.css, style.css, scenery.mjs, profile.mjs, images and fonts.
+5. GitHub Pages may take a moment to publish. Close/reopen or refresh if a service worker is still showing the old build.
+
+INCLUDED CHANGED FILES
+index.html, game.mjs, engine.mjs, sw.js, and matching dist copies.
+The gameplay generator change is in engine.mjs; the other changes update the loading/cache versions.
+
+ROLLBACK
+Use the separate Petal-Pounce-Rollback-Update-13.zip to restore the exact Update 12 versions of these eight files.
+
+TESTS
+Generated and validated 770 sections across 14 stages. Checked random variation, leaf bounds and spacing,
+flower counts, safety clearances, mixed thorns, surprises, progressive thrust and a simulated 1,700m climb.
+This is automated validation, not a guarantee of all possible gameplay routes or on-device iPhone behavior.
