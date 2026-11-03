@@ -122,27 +122,24 @@ export function makeLevel(stage, seed = 6819) {
   // Keep a winding route through all flowers, rather than a straight safe lane.
   const route = [spawn, ...flowers.map(f => ({ x: f.x, y: f.y }))];
   const thorns = [];
-  // A rare thorn tangle packs a couple of extra branches into an otherwise
-  // normal section. The same flower-route clearance tests still apply.
-  const tangle = stage >= 3 && rng() < .22;
-  // Base thorn count on garden HEIGHT, not just stage: long sections should
-  // never become empty. Increase density gradually, with a small tangle bonus.
-  const hazardRate = Math.min(7.65, 6.25 + (stage - 1) * .14);
-  const target = Math.min(130, Math.round(height / 1000 * hazardRate) + (tangle ? 3 : 0));
-  const maxLength = 285 + Math.min(stage, 8) * 12;
-  // Procedural pacing: one quieter pocket, one hectic thicket, and normal
-  // garden in between. Slots vary across runs, so no memorized rhythm.
-  const bandCount = Math.min(7, Math.max(4, Math.ceil(height / 1550)));
+  const pinchGates = [];
+  // Ramp obstacle *density* with progress. Some sections are intentionally
+  // quieter; thickets and precision gates create memorable close calls.
+  const tangle = stage >= 3 && rng() < .27;
+  const hazardRate = Math.min(10.5, 7.55 + (stage - 1) * .22);
+  const target = Math.min(150, Math.round(height / 1000 * hazardRate) + (tangle ? 4 : 0));
+  const maxLength = 295 + Math.min(stage, 10) * 11;
+  const bandCount = Math.min(9, Math.max(4, Math.ceil(height / 1400)));
   const beats = Array(bandCount).fill('normal');
   const quietSlot = Math.floor(rng() * bandCount);
   beats[quietSlot] = 'breather';
   const busyOptions = beats.map((beat, i) => beat === 'normal' && i > 0 ? i : -1).filter(i => i > 0);
-  beats[busyOptions[Math.floor(rng() * busyOptions.length)]] = 'thicket';
-  if (stage >= 5 && bandCount >= 5 && rng() < .5) {
-    const alternatives = beats.map((v, i) => v === 'normal' && i > 0 ? i : -1).filter(i => i >= 0);
-    if (alternatives.length) beats[alternatives[Math.floor(rng() * alternatives.length)]] = 'thicket';
+  if (busyOptions.length) beats[busyOptions[Math.floor(rng() * busyOptions.length)]] = 'thicket';
+  if (stage >= 5 && bandCount >= 5 && rng() < .6) {
+    const options = beats.map((beat, i) => beat === 'normal' && i > 0 ? i : -1).filter(i => i > 0);
+    if (options.length) beats[options[Math.floor(rng() * options.length)]] = 'thicket';
   }
-  const weights = beats.map(beat => beat === 'breather' ? .38 : beat === 'thicket' ? (stage <= 2 ? 1.85 : 2.65) : 1);
+  const weights = beats.map(beat => beat === 'breather' ? .5 : beat === 'thicket' ? (stage <= 2 ? 2 : 3) : 1);
   const weightTotal = weights.reduce((sum, n) => sum + n, 0);
   const pickHeight = () => {
     let roll = rng() * weightTotal;
@@ -153,48 +150,99 @@ export function makeLevel(stage, seed = 6819) {
     }
     return 90 + (band + rng()) * (height - 310) / bandCount;
   };
-  // Mixed thorn layout: some vines grow in from the edges, while others float inside the garden.
-  // This preserves the overgrown look without leaving the center too open.
-  // Vary the edge/interior balance by run, while always keeping both types.
-  const edgeTarget = Math.max(3, Math.min(Math.round(target * (.27 + rng() * .16)), target - 5));
-  let edgePlaced = 0;
+  const routeClearance = h => h + RADIUS + 8;
+  const validThorn = (t, neighbors = thorns) => {
+    const h = t.h;
+    if (t.y < 45 + h || t.y > height - 165) return false;
+    if (thornDistance(spawn.x, spawn.y, t) < 118 + h) return false;
+    if (flowers.some(f => thornDistance(f.x, f.y, t) < h + 43)) return false;
+    if (platforms.some(platform =>
+      segmentDistance(t.x, t.y, t.endX, t.endY, platform.x, platform.y - 12, platform.x + platform.w, platform.y - 12) < h + 38)) return false;
+    if (route.slice(1).some((point, i) =>
+      segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, point.x, point.y) < routeClearance(h))) return false;
+    if (neighbors.some(other =>
+      segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + (tangle ? 31 : 38))) return false;
+    return true;
+  };
+
+  // Construct true "thread the needle" passages: paired thorn branches grow
+  // in from opposite edges, leaving one clearly visible opening near a
+  // feasible flower-to-flower route. The opening is always wider than the bee.
+  // There are more passages later, but never a no-win full-width barrier.
+  const gateGoal = Math.min(7, Math.max(1, Math.floor(height / 2400) + Math.floor((stage - 1) / 5)));
+  const candidates = [];
+  for (let i = 1; i < route.length - 1; i++) {
+    const low = route[i - 1], high = route[i];
+    const verticalGap = low.y - high.y;
+    if (verticalGap < 180) continue;
+    const y = (low.y + high.y) / 2 + (rng() - .5) * Math.min(32, verticalGap * .14);
+    const fraction = (low.y - y) / verticalGap;
+    const center = low.x + (high.x - low.x) * fraction;
+    const slope = Math.abs(high.x - low.x) / verticalGap;
+    if (center < 145 || center > WIDTH - 145 || slope > 1.3) continue;
+    candidates.push({ y, center, slope, pick: rng() });
+  }
+  candidates.sort((a, b) => a.pick - b.pick);
+  for (const site of candidates) {
+    if (pinchGates.length >= gateGoal) break;
+    if (pinchGates.some(other => Math.abs(other.y - site.y) < 400)) continue;
+    // Clearances shrink with stage, with more space for steep approaches.
+    const hLeft = 15 + rng() * 6 + Math.min(stage - 1, 10) * .35;
+    const hRight = 15 + rng() * 6 + Math.min(stage - 1, 10) * .35;
+    const opening = Math.max(124, 184 - Math.min(stage - 1, 10) * 6)
+      + Math.min(42, site.slope * 37) + rng() * 12;
+    const center = Math.max(opening / 2 + 16, Math.min(WIDTH - opening / 2 - 16, site.center + (rng() - .5) * 13));
+    const leftEnd = center - opening / 2;
+    const rightStart = center + opening / 2;
+    const bleedLeft = 26 + rng() * 16, bleedRight = 26 + rng() * 16;
+    const left = { x: -bleedLeft, y: site.y, endX: leftEnd, endY: site.y,
+      w: leftEnd + bleedLeft, h: hLeft, angle: 0, spacing: 13 + rng() * 7, edge: 'left', gate: true };
+    const right = { x: rightStart, y: site.y, endX: WIDTH + bleedRight, endY: site.y,
+      w: WIDTH + bleedRight - rightStart, h: hRight, angle: 0, spacing: 13 + rng() * 7, edge: 'right', gate: true };
+    if (!validThorn(left) || !validThorn(right)) continue;
+    if (segmentDistance(left.x, left.y, left.endX, left.endY, right.x, right.y, right.endX, right.endY) < hLeft + hRight + 42) continue;
+    thorns.push(left, right);
+    pinchGates.push({ y: site.y, center, opening });
+  }
+
+  // Keep both floating and edge-rooted obstacles. About a quarter to a third
+  // of solo thorns are larger, heavier-looking branches with true thicker hitboxes.
+  const edgeShare = .27 + rng() * .16;
+  let edgePlaced = 0, soloPlaced = 0;
+  const soloEdgeGoal = Math.max(3, Math.round(target * edgeShare));
   let lastSide = rng() < .5 ? 'left' : 'right';
-  for (let attempt = 0; attempt < target * 220 && thorns.length < target; attempt++) {
-    const angle = 0;
-    const makeEdge = edgePlaced < edgeTarget && (thorns.length + (edgeTarget - edgePlaced) >= target || rng() < .42);
-    const h = 9 + rng() * 10 + Math.min(stage - 1, 10) * .5;
+  for (let attempt = 0; attempt < target * 240 && soloPlaced < target; attempt++) {
+    const makeEdge = edgePlaced < soloEdgeGoal && (soloPlaced + soloEdgeGoal - edgePlaced >= target || rng() < .45);
+    const heavyShare = Math.min(.58, .30 + .028 * (stage - 1));
+    const heavy = rng() < heavyShare;
+    const h = heavy ? 22 + rng() * 6 + Math.min(stage - 1, 10) * .3
+      : 9 + rng() * 10 + Math.min(stage - 1, 10) * .45;
     const cy = pickHeight();
     let t;
     if (makeEdge) {
       const side = attempt % 3 === 0 ? (lastSide === 'left' ? 'right' : 'left') : (rng() < .5 ? 'left' : 'right');
       lastSide = side;
-      const longReach = attempt % 7 === 0;
-      const visibleReach = longReach
-        ? 190 + rng() * (Math.min(maxLength, WIDTH * .76) - 190)
-        : 95 + rng() * (Math.min(maxLength - 36, WIDTH * .55) - 95);
-      const offscreenBleed = 22 + rng() * 16;
-      const w = visibleReach + offscreenBleed;
+      const maxReach = Math.min(maxLength + (heavy ? 20 : 0), WIDTH * .78);
+      const reach = (heavy ? 155 : 105) + rng() * (maxReach - (heavy ? 155 : 105));
+      const bleed = 24 + rng() * 17;
       t = side === 'left'
-        ? { x: -offscreenBleed, y: cy, endX: visibleReach, endY: cy, w, h, angle, spacing: 14 + rng() * 9, edge: 'left' }
-        : { x: WIDTH - visibleReach, y: cy, endX: WIDTH + offscreenBleed, endY: cy, w, h, angle, spacing: 14 + rng() * 9, edge: 'right' };
+        ? { x: -bleed, y: cy, endX: reach, endY: cy, w: reach + bleed, h, angle: 0,
+          spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, edge: 'left', heavy }
+        : { x: WIDTH - reach, y: cy, endX: WIDTH + bleed, endY: cy, w: reach + bleed, h, angle: 0,
+          spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, edge: 'right', heavy };
     } else {
-      const w = attempt % 7 === 0 ? 225 + rng() * (maxLength - 225) : 95 + rng() * (maxLength - 95);
-      const centerBias = .18 + rng() * .64;
-      const cx = WIDTH * centerBias;
-      const dx = w / 2;
-      t = { x: cx - dx, y: cy, endX: cx + dx, endY: cy, w, h, angle, spacing: 14 + rng() * 9 };
-      if (Math.min(t.x, t.endX) < 24 + h || Math.max(t.x, t.endX) > WIDTH - 24 - h) continue;
+      const w = (heavy ? 155 : 95) + rng() * (maxLength + (heavy ? 24 : 0) - (heavy ? 155 : 95));
+      const cx = WIDTH * (.15 + rng() * .7);
+      t = { x: cx - w / 2, y: cy, endX: cx + w / 2, endY: cy, w, h, angle: 0,
+        spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, heavy };
+      if (t.x < 24 + h || t.endX > WIDTH - 24 - h) continue;
     }
-    if (t.y < 45 + h || t.y > height - 165) continue;
-    if (thornDistance(spawn.x, spawn.y, t) < 120 + h) continue;
-    if (flowers.some(f => thornDistance(f.x, f.y, t) < h + 43)) continue;
-    if (platforms.some(p => segmentDistance(t.x, t.y, t.endX, t.endY, p.x, p.y - 12, p.x + p.w, p.y - 12) < h + 38)) continue;
-    if (route.slice(1).some((p, i) => segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, p.x, p.y) < h + RADIUS + 9)) continue;
-    if (thorns.some(other => segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + (tangle ? 36 : 45))) continue;
+    if (!validThorn(t)) continue;
     thorns.push(t);
+    soloPlaced++;
     if (makeEdge) edgePlaced++;
   }
-  return { stage, pattern, tangle, beats, height, platforms, flowers, thorns, route, seconds: 0, total: count };
+  return { stage, pattern, tangle, beats, pinchGates, height, platforms, flowers, thorns, route, seconds: 0, total: count };
 }
 
 export class Game {
@@ -289,7 +337,21 @@ export class Game {
     const rushSlot = piece.stage >= 3 && rng() < .28 ? Math.floor(rng() * count) : -1;
     for (let i = 0; i < count; i++) {
       // Vary patrol heights so even familiar sections have different timing.
-      const y = offset + 190 + (piece.height - 380) * (i + .28 + rng() * .44) / count;
+      let y = 190 + (piece.height - 380) * (i + .28 + rng() * .44) / count;
+      // A wasp never blocks the narrow opening at the instant it is introduced.
+      // Keep the two challenges independent instead of manufacturing unfair hits.
+      if (piece.pinchGates?.some(g => Math.abs(g.y - y) < 120)) {
+        // Prefer a nearby height to retain patrol distribution; fall back to
+        // another open stretch only if every close candidate is occupied.
+        const variants = [135, -135, 195, -195, 255, -255];
+        for (let j = 0; j < 48; j++) {
+          const proposed = j < variants.length ? y + variants[j]
+            : 170 + rng() * (piece.height - 325);
+          if (proposed > 170 && proposed < piece.height - 155 &&
+              piece.pinchGates.every(g => Math.abs(g.y - proposed) >= 120)) { y = proposed; break; }
+        }
+      }
+      y += offset;
       const x = 70 + rng() * (WIDTH - 140);
       const rush = i === rushSlot;
       const baseSpeed = .8 + rng() * .6 + Math.min(piece.stage, 18) * .09;
