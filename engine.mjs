@@ -11,11 +11,11 @@ export const MIN_HAZARD_BUFFER_PX = RADIUS * 3;
 export const CHUNK_WAVE_COUNT = 25;
 
 export const DIFFICULTY_BANDS = Object.freeze([
-  { min: 0, max: 200, label: 'EARLY', itemRatio: .75, obstacleRatio: .25, speedMultiplier: 1, maxConsecutiveHazards: 1 },
-  { min: 201, max: 600, label: 'GROWING', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1.25, maxConsecutiveHazards: 2 },
-  { min: 601, max: 1200, label: 'MID', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1.5, maxConsecutiveHazards: 3 },
-  { min: 1201, max: 2000, label: 'LATE', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1.8, maxConsecutiveHazards: 4 },
-  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .40, obstacleRatio: .60, speedMultiplier: 2, maxConsecutiveHazards: 5 }
+  { min: 0, max: 200, label: 'EARLY', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1, maxConsecutiveHazards: 2 },
+  { min: 201, max: 600, label: 'GROWING', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1.08, maxConsecutiveHazards: 3 },
+  { min: 601, max: 1200, label: 'MID', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1.15, maxConsecutiveHazards: 4 },
+  { min: 1201, max: 2000, label: 'LATE', itemRatio: .35, obstacleRatio: .65, speedMultiplier: 1.22, maxConsecutiveHazards: 5 },
+  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .30, obstacleRatio: .70, speedMultiplier: 1.28, maxConsecutiveHazards: 6 }
 ]);
 
 export function difficultyAt(altitudeM = 0) {
@@ -277,6 +277,8 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
   const rows = [];
   let cursorPx = 40, hazardDebt = 0, hazardRun = 0, lastRouteLane = 1;
   let pendingWall = false, baitPlaced = false, chainCreated = false, chainId = 0;
+  let lastPairOpenLane = null;
+  const hazardLaneCounts = [0, 0, 0];
 
   const advance = hazard => {
     let difficulty = difficultyAt(startAltitudeM + cursorPx / 10);
@@ -296,10 +298,14 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
 
   const pushSafe = (kind = 'leaf', lane = lastRouteLane, extra = {}) => {
     const position = advance(false);
-    const safeLane = clamp(Math.round(lane), 0, LANE_COUNT - 1);
-    rows.push({ rowIndex: rows.length, kind, hazard: false, lane: safeLane, routeLane: safeLane,
+    const itemLane = clamp(Math.round(lane), 0, LANE_COUNT - 1);
+    // Ordinary leaves can appear anywhere. The invisible safe route only moves
+    // one lane at a time, so visual variety never creates an impossible jump.
+    const routeLane = kind === 'flowerChain' ? itemLane
+      : clamp(lastRouteLane + Math.sign(itemLane - lastRouteLane), 0, LANE_COUNT - 1);
+    rows.push({ rowIndex: rows.length, kind, hazard: false, lane: itemLane, itemLane, routeLane,
       obstacleLanes: [], openLanes: [...LANES], ...position, ...extra });
-    lastRouteLane = safeLane;
+    lastRouteLane = routeLane;
     hazardRun = 0;
     hazardDebt += position.difficulty.obstacleRatio;
   };
@@ -308,14 +314,20 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
     const position = advance(true);
     let openLane = lastRouteLane;
     if (kind === 'hazardWall') openLane = lastRouteLane === 1 ? (rng() < .5 ? 0 : 2) : 1;
+    if (kind === 'baitTrap') {
+      const choices = LANES.filter(lane => Math.abs(lane - lastRouteLane) <= 1 && lane !== lastPairOpenLane);
+      if (choices.length) openLane = choices[Math.floor(rng() * choices.length)];
+    }
     openLane = clamp(openLane, Math.max(0, lastRouteLane - 1), Math.min(2, lastRouteLane + 1));
-    const pairChance = .18 + position.difficulty.bandIndex * .13;
+    const pairChance = .38 + position.difficulty.bandIndex * .12;
     const obstacleCount = kind === 'hazardWall' || kind === 'baitTrap' || rng() < pairChance ? 2 : 1;
     let obstacleLanes;
     if (obstacleCount === 2) obstacleLanes = LANES.filter(lane => lane !== openLane);
     else {
-      const candidates = LANES.filter(lane => lane !== lastRouteLane);
-      obstacleLanes = [candidates[Math.floor(rng() * candidates.length)]];
+      const candidates = LANES.filter(lane => lane !== openLane);
+      const leastUsed = Math.min(...candidates.map(lane => hazardLaneCounts[lane]));
+      const priority = candidates.filter(lane => hazardLaneCounts[lane] === leastUsed);
+      obstacleLanes = [priority[Math.floor(rng() * priority.length)]];
     }
     const openLanes = LANES.filter(lane => !obstacleLanes.includes(lane));
     if (!openLanes.includes(openLane)) openLane = openLanes.reduce((best, lane) =>
@@ -325,6 +337,8 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
       obstacleLanes, openLanes, baitValue: bait ? 3 : 0,
       baitOffsetPx: bait ? Math.min(position.waveSpacingPx * .48, 92 * position.difficulty.speedMultiplier) : 0,
       ...position });
+    for (const lane of obstacleLanes) hazardLaneCounts[lane]++;
+    if (obstacleCount === 2) lastPairOpenLane = openLane;
     lastRouteLane = openLane;
     hazardRun++;
     hazardDebt += position.difficulty.obstacleRatio - 1;
@@ -352,8 +366,8 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
     if (pendingWall && canHazard) { pushHazard('hazardWall'); pendingWall = false; continue; }
     const wantsHazard = hazardDebt >= .5 - preview.obstacleRatio;
     if (wantsHazard && canHazard) { pushHazard(!baitPlaced || rng() < .22 ? 'baitTrap' : 'hazard'); continue; }
-    const options = LANES.filter(lane => Math.abs(lane - lastRouteLane) <= 1);
-    pushSafe('leaf', options[Math.floor(rng() * options.length)]);
+    // Random item lane; pushSafe independently preserves a reachable route.
+    pushSafe('leaf', LANES[Math.floor(rng() * LANES.length)]);
   }
   return rows;
 }
@@ -370,14 +384,18 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, wav
   const toY = distancePx => spawn.y - distancePx;
 
   const addLeaf = (row, distancePx = row.distancePx, bait = false) => {
-    const lane = row.routeLane;
-    const w = bait ? 76 + rng() * 18 : 88 + rng() * 42;
-    const jitter = bait ? 0 : (rng() - .5) * 18;
-    const x = clamp(laneCenter(lane) - w / 2 + jitter, lane * laneWidth + 14, (lane + 1) * laneWidth - w - 14);
+    const lane = bait ? row.routeLane : (row.itemLane ?? row.lane ?? row.routeLane);
+    const w = bait ? 76 + rng() * 18 : 72 + rng() * 58;
+    const minX = lane * laneWidth + 14;
+    const maxX = (lane + 1) * laneWidth - w - 14;
+    const chain = row.kind === 'flowerChain';
+    const x = bait || chain ? clamp(laneCenter(lane) - w / 2, minX, maxX)
+      : minX + rng() * Math.max(0, maxX - minX);
     const y = toY(distancePx);
     const flip = lane === 0 ? true : lane === 2 ? false : rng() > .5;
     platforms.push({ x, y, w, flip, lane, rowIndex: row.rowIndex, bait });
-    const flower = { x: bait ? laneCenter(lane) : (flip ? x + 16 : x + w - 16),
+    const flowerInset = 14 + rng() * Math.max(4, w - 28);
+    const flower = { x: bait ? laneCenter(lane) : chain ? laneCenter(lane) : x + flowerInset,
       y: y - 31, taken: false, phase: rng() * 7, value: bait ? row.baitValue : 1,
       bait, lane, rowIndex: row.rowIndex };
     flowers.push(flower);

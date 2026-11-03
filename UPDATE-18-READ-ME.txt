@@ -1,0 +1,62 @@
+PETAL POUNCE — UPDATE 18: HAZARD DENSITY
+========================================
+
+THIS IS A CUMULATIVE UPDATE
+Install this directly over Update 17. You do not need to reinstall earlier
+updates first.
+
+INSTALL
+1. Replace index.html, engine.mjs, game.mjs, and sw.js in the repository root.
+2. Replace those same four files inside the dist folder.
+3. Commit and push to GitHub.
+4. Close and reopen the game on iPhone so the v33 cache can activate.
+
+NEW BALANCE
+Altitude      Items     Hazards    Speed    Max hazard streak
+0–200m        65%       35%        1.00x    2
+201–600m      55%       45%        1.08x    3
+601–1200m     45%       55%        1.15x    4
+1201–2000m    35%       65%        1.22x    5
+2001m+        30%       70%        1.28x    6
+
+WHAT CHANGED
+- Difficulty now comes mainly from more hazards instead of extreme speed.
+- Hazard targets increased by 10 percentage points in every band.
+- Maximum speed was reduced from 2.0x to 1.28x.
+- Every generated chunk deliberately places hazards in all three lanes.
+- An individual row still occupies no more than two lanes, so one escape lane
+  always remains.
+- Paired walls rotate their opening instead of repeatedly favoring one lane.
+- Single hazards prioritize lanes used least recently.
+- Ordinary leaves can spawn in any lane rather than following a staircase.
+- Leaves have wider size variation and random horizontal placement inside
+  their lane.
+- Flower chains remain smooth and readable so the run has a rhythm.
+- Hazard walls and risky 3-flower bait traps remain part of that rhythm.
+- The invisible safe route can move only one lane per row, even when a leaf
+  appears farther away. This keeps random placement from causing impossible
+  jumps.
+- Help text now explains the hazard-first difficulty system.
+- Cache version increased to v33.
+
+IMPORTANT DESIGN RULE
+“Hazards in every lane” means every generated section uses all three lanes.
+The game never fills all three lanes on the same horizontal row, because that
+would cause an unavoidable hit.
+
+PRESERVED
+- Endless run structure
+- Three lives and automatic revival
+- Joystick and Fly control behavior
+- Horizontal-only thorn hazards
+- Wasp enemies
+- Garden shop, saved flowers, backgrounds, art, audio, and mobile layout
+
+VALIDATION
+- 7/7 automated generator tests passed.
+- All five ratios, speeds, and streak limits verified.
+- Hundreds of seeds verified for three-lane hazard coverage.
+- Open-lane, reaction-buffer, pattern, random-leaf, and determinism checks
+  passed.
+- Runtime smoke test passed through ten appended chunks and 6,425 generated
+  meters.
