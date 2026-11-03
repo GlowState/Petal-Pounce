@@ -1,0 +1,65 @@
+PETAL POUNCE — UPDATE 17: ALTITUDE RHYTHM GENERATOR
+==================================================
+
+THIS IS A CUMULATIVE UPDATE
+You only need this ZIP. It includes Update 16 and the new Update 17 files.
+
+INSTALL
+1. Replace the four files in your repository root:
+   index.html, engine.mjs, game.mjs, sw.js
+2. Replace the same four files inside the dist folder.
+3. Commit and push. GitHub Pages may take a few minutes to refresh.
+4. On iPhone, close the old tab and reopen the site. The new v32 service-worker
+   cache is designed to replace the older cached build.
+
+GENERATOR LOOP
+1. Read the total altitude and select the active difficulty band.
+2. Scale climb/scroll speed, wave spacing, item ratio, hazard ratio, and the
+   allowed hazard streak from that band.
+3. Use an error-accumulation “hazard debt” to converge on the requested ratio
+   without producing unstructured coin-flip randomness.
+4. Schedule a readable 3–5 item sine-wave flower chain.
+5. When a hazard is due, insert a speed-scaled reaction buffer equal to at
+   least 1.5 bee lengths, then choose no more than two obstacle lanes.
+6. Preserve a reachable open lane. The safe route may move at most one lane
+   per row, preventing instant impossible zig-zags.
+7. Convert the validated row plan into leaves, flowers, and fully horizontal
+   thorn hitboxes. Append the next chunk above the current world.
+
+DIFFICULTY TABLE
+0–200m:    75% items / 25% hazards, 1.0x speed, max streak 1
+201–600m:  65% items / 35% hazards, 1.25x speed, max streak 2
+601–1200m: 55% items / 45% hazards, 1.5x speed, max streak 3
+1201–2000m:45% items / 55% hazards, 1.8x speed, max streak 4
+2001m+:    40% items / 60% hazards, 2.0x speed, max streak 5
+
+PATTERNS
+- Flower Chain: 3–5 flowers/leaves following a smooth three-lane sine path.
+- Hazard Wall: two thorn lanes immediately after the chain crest/trough.
+- Bait Trap: a glowing flower worth 3 flowers/30 score behind a two-lane wall.
+
+FAIRNESS GUARANTEES
+- Every generated row has at least one obstacle-free lane.
+- A row contains no more than two obstacles.
+- All generated thorns are horizontal.
+- Reaction distance expands in direct proportion to speed, preserving the
+  same reaction time at 1.0x through 2.0x.
+- Wasps avoid newly generated hazard rows and scale with altitude.
+
+USER-FACING CHANGES
+- Removed zone/level wording from the HUD and instructions.
+- Difficulty-band notifications now report hazard percentage and speed.
+- Risky bait flowers glow, award 3 banked flowers, and show +30 score.
+- Garden selections now say they remain equipped for every run.
+
+PRESERVED FROM UPDATE 16
+- Endless play, three lives, automatic revival, joystick + Fly controls,
+  garden shop/backgrounds, mobile layout, fullscreen fitting, art, audio,
+  privacy page, manifest, and Android/GitHub Pages support.
+
+VALIDATION
+- JavaScript syntax checks passed.
+- 5/5 deterministic generator tests passed across hundreds of seeded chunks.
+- Tests cover exact bands, ratios, open lanes, reaction buffers, legal hazard
+  streaks, all three patterns, and deterministic variation.
+- Runtime smoke test passed through eight appended chunks.

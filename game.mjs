@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=31';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=32';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -299,7 +299,7 @@ function renderShop() {
 
 function openShop() {
   shopWasPlaying=game.pause();clearInput();updateUI();
-  $('shop-status').textContent='Your chosen garden stays equipped for every level.';
+  $('shop-status').textContent='Your chosen garden stays equipped for every run.';
   renderShop();$('shop-dialog').showModal();
 }
 $('open-shop').addEventListener('click',openShop);
@@ -374,7 +374,7 @@ function updateUI() {
   $('remaining').textContent = game.flowersCollected;
   $('timer').textContent = `${game.distance}m`;
   $('timer').parentElement.classList.remove('warning');
-  $('level-label').textContent = `DISTANCE · ZONE ${String(game.stage).padStart(2, '0')}`;
+  $('level-label').textContent = 'DISTANCE';
   $('level-label').title = garden.name;
   $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (game.distance % 300) / 3))}%`;
   const inRun = mode !== 'title';
@@ -475,7 +475,11 @@ function drawLeaf(p, offset = camera) {
 function drawFlower(f, offset = camera) {
   const y=f.y-offset;
   if(y < -45 || y > viewH+45)return;
-  paintFlower(ctx,{...f,y},{palette:currentGarden().flower,time:clock,reducedMotion});
+  if (f.bait) {
+    ctx.save();ctx.shadowColor=currentGarden().flower.light;ctx.shadowBlur=13;
+    paintFlower(ctx,{...f,y},{palette:currentGarden().flower,time:clock,reducedMotion,scale:1.28});
+    ctx.restore();
+  } else paintFlower(ctx,{...f,y},{palette:currentGarden().flower,time:clock,reducedMotion});
 }
 
 function drawThorn(t) {
@@ -541,21 +545,23 @@ function drawBee(b, offset = camera, attract = false) {
   ctx.globalAlpha = 1;
 }
 
-function addBurst(x, y) {
+function addBurst(x, y, value = 1) {
   for (let i = 0; i < (reducedMotion ? 4 : 13); i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = 25 + Math.random() * 100;
     particles.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed-20, life: .75, max: .75, color: i % 2 ? currentGarden().flower.light : currentGarden().flower.center });
   }
-  particles.push({ x, y: y-15, vx: 0, vy: -35, life: 1, max: 1, text: '+10' });
+  particles.push({ x, y: y-15, vx: 0, vy: -35, life: 1, max: 1, text: `+${value * 10}` });
 }
 
 function events() {
   for (const event of game.drainEvents()) {
     if (event.type === 'flower') {
-      const credit=profile.collect();
-      if(!credit.saved)notify('FLOWER SAVED FOR THIS SESSION · DEVICE STORAGE UNAVAILABLE',3000);
-      addBurst(event.x, event.y);
+      let credit;
+      for(let i=0;i<(event.value||1);i++)credit=profile.collect();
+      if(!credit?.saved)notify('FLOWER SAVED FOR THIS SESSION · DEVICE STORAGE UNAVAILABLE',3000);
+      if(event.bait)notify('RISKY BLOOM · +3 FLOWERS',1500);
+      addBurst(event.x,event.y,event.value||1);
       tone(784,.08,'sine');tone(1047,.12,'sine',.065);
       safeSet('nectar-tangle-best-v1', String(game.best));
     } else if (event.type === 'bounce') tone(220,.07,'triangle',0,.014);
@@ -574,9 +580,8 @@ function events() {
     } else if (event.type === 'over') {
       clearInput();
       $('toast').classList.remove('show');
-    } else if (event.type === 'distanceMilestone') {
-      const note = event.tangle ? 'THORN TANGLE AHEAD' : game.distance < 1100 ? 'THRUST POWER INCREASING' : 'WASPS GET FASTER';
-      notify(`ZONE ${String(event.stage).padStart(2,'0')} · ${note}`, 1800);
+    } else if (event.type === 'difficultyBand') {
+      notify(`${event.label} · ${Math.round(event.obstacleRatio*100)}% HAZARDS · ${event.speedMultiplier}× SPEED`,2100);
     } else if (event.type === 'surprise' && event.kind === 'waspRush') {
       notify('WATCH OUT · FAST WASP', 1600);
       tone(740,.09,'triangle',0,.022);
