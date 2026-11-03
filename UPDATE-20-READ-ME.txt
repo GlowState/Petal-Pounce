@@ -1,0 +1,54 @@
+PETAL POUNCE — UPDATE 20: LONG THORN WALLS
+==========================================
+
+THIS IS A CUMULATIVE UPDATE
+Install this directly over Update 19. Earlier updates are not required.
+
+INSTALL
+1. Replace index.html, engine.mjs, game.mjs, and sw.js in the repository root.
+2. Replace those same four files inside the dist folder.
+3. Commit and push to GitHub.
+4. Close and reopen the game on iPhone so the v35 cache can activate.
+
+THORN-VINE CHANGES
+- Thorn-vine gameplay is the only major system changed in this update.
+- Two adjoining blocked lanes now create connected, overlapping vine walls.
+- The harmless seam between neighboring thorn segments has been removed.
+- Vines reach to the screen edges and farther across occupied lanes.
+- Paired-wall frequency increased without changing the slower speed curve.
+- Occasional echo vines create a compact second thorn beat along the exact
+  same safe corridor. They add pressure without demanding an impossible swap.
+- Echo-vine frequency rises gradually with altitude.
+- Thorn spike spacing is tighter, making long branches look more dangerous.
+- Center-pressure rules from Update 19 remain active.
+- Random leaves, flower chains, bait traps, wasps, lives, and controls remain
+  unchanged.
+- Chunk identifiers were added to generated rows and vines so runtime fairness
+  checks always associate a thorn with the correct procedural section.
+- Cache version increased to v35.
+
+MEASURED CHANGE — SAME TEN-CHUNK TEST RUN
+- Thorn vines: 331 in Update 19 → 448 in Update 20 (about 35% more)
+- Average reach: 112px → 195px (about 74% longer)
+- Total thorn coverage: 37,227px → 87,215px (more than doubled)
+- Echo vines: 105
+- Sealed rows: 0
+- Speed change: none
+
+FAIRNESS GUARANTEES
+- Every hazard row retains a reachable route lane.
+- Adjacent vine walls stop before entering that safe lane's collision corridor.
+- Echo vines reuse the same opening as their parent wall.
+- No three-lane seals and no diagonal vines.
+- Reaction buffers and maximum hazard streaks are unchanged.
+
+VALIDATION
+- 9/9 automated generator tests passed.
+- Hundreds of seeds checked for ratios, reaction buffers, lane coverage,
+  center pressure, connected-wall overlap, random leaves, deterministic output,
+  and route-corridor clearance.
+- Ten-chunk runtime test passed through approximately 6,415 generated meters.
+
+ROLLBACK
+Use Petal-Pounce-Rollback-Update-19-Center-Thorn-Pressure.zip to return to the
+exact pre-Update-20 release.

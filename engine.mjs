@@ -304,7 +304,7 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
     // one lane at a time, so visual variety never creates an impossible jump.
     const routeLane = kind === 'flowerChain' ? itemLane
       : clamp(lastRouteLane + Math.sign(itemLane - lastRouteLane), 0, LANE_COUNT - 1);
-    rows.push({ rowIndex: rows.length, kind, hazard: false, lane: itemLane, itemLane, routeLane,
+    rows.push({ chunkIndex, rowIndex: rows.length, kind, hazard: false, lane: itemLane, itemLane, routeLane,
       obstacleLanes: [], openLanes: [...LANES], ...position, ...extra });
     lastRouteLane = routeLane;
     hazardRun = 0;
@@ -316,7 +316,9 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
     centerPressureDebt += position.difficulty.centerPressure;
     const blocksCenter = centerPressureDebt >= .5;
     if (blocksCenter) centerPressureDebt -= 1;
-    const pairChance = .55 + position.difficulty.bandIndex * .10;
+    // Favor longer two-lane walls as altitude rises. Difficulty comes from
+    // vine coverage and route reading, not another speed increase.
+    const pairChance = .68 + position.difficulty.bandIndex * .075;
     const obstacleCount = kind === 'hazardWall' || kind === 'baitTrap' || rng() < pairChance ? 2 : 1;
     let openLane = lastRouteLane;
     if (blocksCenter) {
@@ -341,7 +343,7 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
     if (!openLanes.includes(openLane)) openLane = openLanes.reduce((best, lane) =>
       Math.abs(lane - lastRouteLane) < Math.abs(best - lastRouteLane) ? lane : best, openLanes[0]);
     const bait = kind === 'baitTrap';
-    rows.push({ rowIndex: rows.length, kind, hazard: true, routeLane: openLane, blocksCenter,
+    rows.push({ chunkIndex, rowIndex: rows.length, kind, hazard: true, routeLane: openLane, blocksCenter,
       obstacleLanes, openLanes, baitValue: bait ? 3 : 0,
       baitOffsetPx: bait ? Math.min(position.waveSpacingPx * .48, 92 * position.difficulty.speedMultiplier) : 0,
       ...position });
@@ -386,7 +388,7 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, wav
   const farthestPx = Math.max(...rows.map(row => row.distancePx + (row.baitOffsetPx || 0)));
   const height = Math.ceil(farthestPx + 230);
   const spawn = { x: WIDTH / 2, y: height - 104 };
-  const platforms = [{ x: WIDTH / 2 - 55, y: height - 70, w: 110, launch: true }];
+  const platforms = [{ x: WIDTH / 2 - 55, y: height - 70, w: 110, launch: true, chunkIndex }];
   const flowers = [], thorns = [], route = [spawn], pinchGates = [];
   const toY = distancePx => spawn.y - distancePx;
 
@@ -400,11 +402,11 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, wav
       : minX + rng() * Math.max(0, maxX - minX);
     const y = toY(distancePx);
     const flip = lane === 0 ? true : lane === 2 ? false : rng() > .5;
-    platforms.push({ x, y, w, flip, lane, rowIndex: row.rowIndex, bait });
+    platforms.push({ x, y, w, flip, lane, chunkIndex, rowIndex: row.rowIndex, bait });
     const flowerInset = 14 + rng() * Math.max(4, w - 28);
     const flower = { x: bait ? laneCenter(lane) : chain ? laneCenter(lane) : x + flowerInset,
       y: y - 31, taken: false, phase: rng() * 7, value: bait ? row.baitValue : 1,
-      bait, lane, rowIndex: row.rowIndex };
+      bait, lane, chunkIndex, rowIndex: row.rowIndex };
     flowers.push(flower);
     route.push({ x: flower.x, y: flower.y, lane });
   };
@@ -413,19 +415,36 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, wav
     if (!row.hazard) addLeaf(row);
     if (row.hazard) {
       const y = toY(row.distancePx);
+      const occupied = new Set(row.obstacleLanes);
+      const echoCluster = rng() < .04 + row.difficulty.bandIndex * .07;
+      const echoOffset = (64 + rng() * 20) * row.difficulty.speedMultiplier;
       for (const lane of row.obstacleLanes) {
         const heavy = (row.difficulty.bandIndex >= 2 && rng() < .35 + row.difficulty.bandIndex * .06)
           || (lane === 1 && row.difficulty.bandIndex >= 1 && rng() < .30);
         const centerScale = lane === 1 ? 1.12 : 1;
         const h = ((heavy ? 18 : 11) + row.difficulty.bandIndex * 1.6 + rng() * (heavy ? 5 : 7)) * centerScale;
-        const inset = h + RADIUS + 8;
-        const x = lane * laneWidth + inset;
-        const endX = (lane + 1) * laneWidth - inset;
-        thorns.push({ x, y, endX, endY: y, w: endX - x, h, angle: 0,
-          spacing: heavy ? 12 + rng() * 5 : 15 + rng() * 7,
-          heavy, lane, rowIndex: row.rowIndex, cluster: row.kind });
+        const addVine = (vineY, vineH, vineHeavy, echo = false) => {
+          const clearance = vineH + RADIUS + 3 + rng() * 4;
+          const join = 3 + rng() * 3;
+          const bleed = 18 + rng() * 10;
+          const leftJoined = occupied.has(lane - 1);
+          const rightJoined = occupied.has(lane + 1);
+          // Adjacent blocked lanes overlap slightly, eliminating the harmless
+          // seam that previously let the bee slip straight between vines.
+          const x = lane === 0 ? -bleed : lane * laneWidth + (leftJoined ? -join : clearance);
+          const endX = lane === LANE_COUNT - 1 ? WIDTH + bleed
+            : (lane + 1) * laneWidth + (rightJoined ? join : -clearance);
+          thorns.push({ x, y: vineY, endX, endY: vineY, w: endX - x, h: vineH, angle: 0,
+            spacing: vineHeavy ? 9 + rng() * 4 : 11 + rng() * 6,
+            heavy: vineHeavy, lane, chunkIndex, rowIndex: row.rowIndex,
+            cluster: echo ? 'thornEcho' : row.kind, echo });
+        };
+        addVine(y, h, heavy);
+        // Echo vines share the same open lane, adding a compact two-beat thorn
+        // cluster without asking the player to make an impossible lane swap.
+        if (echoCluster) addVine(y - echoOffset, h * .74, false, true);
       }
-      if (row.obstacleLanes.length === 2) pinchGates.push({ y, openLane: row.routeLane, rowIndex: row.rowIndex });
+      if (row.obstacleLanes.length === 2) pinchGates.push({ y, openLane: row.routeLane, chunkIndex, rowIndex: row.rowIndex });
       if (row.baitValue) addLeaf(row, row.distancePx + row.baitOffsetPx, true);
     }
   }
