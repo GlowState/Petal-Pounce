@@ -11,11 +11,11 @@ export const MIN_HAZARD_BUFFER_PX = RADIUS * 3;
 export const CHUNK_WAVE_COUNT = 25;
 
 export const DIFFICULTY_BANDS = Object.freeze([
-  { min: 0, max: 200, label: 'EARLY', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1, maxConsecutiveHazards: 2 },
-  { min: 201, max: 600, label: 'GROWING', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1.08, maxConsecutiveHazards: 3 },
-  { min: 601, max: 1200, label: 'MID', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1.15, maxConsecutiveHazards: 4 },
-  { min: 1201, max: 2000, label: 'LATE', itemRatio: .35, obstacleRatio: .65, speedMultiplier: 1.22, maxConsecutiveHazards: 5 },
-  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .30, obstacleRatio: .70, speedMultiplier: 1.28, maxConsecutiveHazards: 6 }
+  { min: 0, max: 200, label: 'EARLY', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1, maxConsecutiveHazards: 2, centerPressure: .65 },
+  { min: 201, max: 600, label: 'GROWING', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1.08, maxConsecutiveHazards: 3, centerPressure: .70 },
+  { min: 601, max: 1200, label: 'MID', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1.15, maxConsecutiveHazards: 4, centerPressure: .75 },
+  { min: 1201, max: 2000, label: 'LATE', itemRatio: .35, obstacleRatio: .65, speedMultiplier: 1.22, maxConsecutiveHazards: 5, centerPressure: .80 },
+  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .30, obstacleRatio: .70, speedMultiplier: 1.28, maxConsecutiveHazards: 6, centerPressure: .85 }
 ]);
 
 export function difficultyAt(altitudeM = 0) {
@@ -277,7 +277,8 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
   const rows = [];
   let cursorPx = 40, hazardDebt = 0, hazardRun = 0, lastRouteLane = 1;
   let pendingWall = false, baitPlaced = false, chainCreated = false, chainId = 0;
-  let lastPairOpenLane = null;
+  let centerPressureDebt = 0;
+  let lastSideEscape = rng() < .5 ? 0 : 2;
   const hazardLaneCounts = [0, 0, 0];
 
   const advance = hazard => {
@@ -312,19 +313,26 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
 
   const pushHazard = (kind = 'hazard') => {
     const position = advance(true);
+    centerPressureDebt += position.difficulty.centerPressure;
+    const blocksCenter = centerPressureDebt >= .5;
+    if (blocksCenter) centerPressureDebt -= 1;
+    const pairChance = .55 + position.difficulty.bandIndex * .10;
+    const obstacleCount = kind === 'hazardWall' || kind === 'baitTrap' || rng() < pairChance ? 2 : 1;
     let openLane = lastRouteLane;
-    if (kind === 'hazardWall') openLane = lastRouteLane === 1 ? (rng() < .5 ? 0 : 2) : 1;
-    if (kind === 'baitTrap') {
-      const choices = LANES.filter(lane => Math.abs(lane - lastRouteLane) <= 1 && lane !== lastPairOpenLane);
-      if (choices.length) openLane = choices[Math.floor(rng() * choices.length)];
+    if (blocksCenter) {
+      const reachableSides = [0, 2].filter(lane => Math.abs(lane - lastRouteLane) <= 1);
+      const alternate = reachableSides.filter(lane => lane !== lastSideEscape);
+      const choices = alternate.length ? alternate : reachableSides;
+      openLane = choices[Math.floor(rng() * choices.length)];
+      lastSideEscape = openLane;
+    } else if (obstacleCount === 2) {
+      openLane = 1;
     }
     openLane = clamp(openLane, Math.max(0, lastRouteLane - 1), Math.min(2, lastRouteLane + 1));
-    const pairChance = .38 + position.difficulty.bandIndex * .12;
-    const obstacleCount = kind === 'hazardWall' || kind === 'baitTrap' || rng() < pairChance ? 2 : 1;
     let obstacleLanes;
     if (obstacleCount === 2) obstacleLanes = LANES.filter(lane => lane !== openLane);
     else {
-      const candidates = LANES.filter(lane => lane !== openLane);
+      const candidates = blocksCenter ? [1] : [0, 2].filter(lane => lane !== openLane);
       const leastUsed = Math.min(...candidates.map(lane => hazardLaneCounts[lane]));
       const priority = candidates.filter(lane => hazardLaneCounts[lane] === leastUsed);
       obstacleLanes = [priority[Math.floor(rng() * priority.length)]];
@@ -333,12 +341,11 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
     if (!openLanes.includes(openLane)) openLane = openLanes.reduce((best, lane) =>
       Math.abs(lane - lastRouteLane) < Math.abs(best - lastRouteLane) ? lane : best, openLanes[0]);
     const bait = kind === 'baitTrap';
-    rows.push({ rowIndex: rows.length, kind, hazard: true, routeLane: openLane,
+    rows.push({ rowIndex: rows.length, kind, hazard: true, routeLane: openLane, blocksCenter,
       obstacleLanes, openLanes, baitValue: bait ? 3 : 0,
       baitOffsetPx: bait ? Math.min(position.waveSpacingPx * .48, 92 * position.difficulty.speedMultiplier) : 0,
       ...position });
     for (const lane of obstacleLanes) hazardLaneCounts[lane]++;
-    if (obstacleCount === 2) lastPairOpenLane = openLane;
     lastRouteLane = openLane;
     hazardRun++;
     hazardDebt += position.difficulty.obstacleRatio - 1;
@@ -407,8 +414,10 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, wav
     if (row.hazard) {
       const y = toY(row.distancePx);
       for (const lane of row.obstacleLanes) {
-        const heavy = row.difficulty.bandIndex >= 2 && rng() < .35 + row.difficulty.bandIndex * .06;
-        const h = (heavy ? 18 : 11) + row.difficulty.bandIndex * 1.6 + rng() * (heavy ? 5 : 7);
+        const heavy = (row.difficulty.bandIndex >= 2 && rng() < .35 + row.difficulty.bandIndex * .06)
+          || (lane === 1 && row.difficulty.bandIndex >= 1 && rng() < .30);
+        const centerScale = lane === 1 ? 1.12 : 1;
+        const h = ((heavy ? 18 : 11) + row.difficulty.bandIndex * 1.6 + rng() * (heavy ? 5 : 7)) * centerScale;
         const inset = h + RADIUS + 8;
         const x = lane * laneWidth + inset;
         const endX = (lane + 1) * laneWidth - inset;
