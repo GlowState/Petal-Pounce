@@ -1,0 +1,26 @@
+PETAL POUNCE — UPDATE 14: FEWER LEAVES + BIG SCREEN-WIDE FLOWER CROSSINGS
+
+WHAT CHANGED
+• Fewer flower-bearing leaves in each generated course section (12 in the first section instead of 16; later sections also scale down; maximum 46 instead of 64).
+• Removed patterned switchback/weave/drift placement. Positions are independently randomized with the possibility of same-side repeats, central flowers, or far-edge leaves.
+• Occasional far-left-to-far-right (or reverse) flower leaps, without forcing continual zigzags.
+• Cross-screen leaps get extra vertical spacing to accommodate the bee's sideways speed and the progressive climb speed.
+• Flowers on outer leaves appear toward the outside edge; all flowers remain connected to leaves.
+• Leaves stay entirely on-screen. Existing thorn/flower/platform/route clearances, wasp surprises, thrust progression, joystick, zoom and art are retained.
+
+INSTALL
+1. Make a copy or backup of your current GitHub repository.
+2. Extract this ZIP, then upload/replace each file at its matching path in your repository.
+3. If GitHub Pages serves your site from the repo root, update those root files. If it serves from dist, update the dist copies. Updating both is safe if you maintain both.
+4. Do not delete unrelated files: keep joystick.css, style.css, scenery.mjs, profile.mjs, flowers.mjs, images, fonts, and all other existing assets.
+5. If changes do not appear, close and reopen the game or reload when GitHub Pages publishes; a new service-worker cache key is included.
+
+FILES CHANGED
+index.html, game.mjs, engine.mjs, sw.js, and their dist copies.
+The gameplay change is exclusively in engine.mjs; the other files update the game/engine version references and offline cache key.
+
+ROLLBACK
+Use Petal-Pounce-Rollback-Update-14.zip. It contains the exact Update 13 versions of the changed files.
+
+TESTS
+Validated 1,350 generated course sections across 15 stages and 90 seeds each, checked counts, spatial distribution, side-to-side crossing clearances, mixed thorn types, thorn/flower/platform separation and unique layouts. Confirmed new runs differ, plus an endless climb simulation beyond 1,900 meters. These automated checks do not replace play-testing on an actual phone.
