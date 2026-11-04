@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=38';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=39';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -412,7 +412,7 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect the flowers. Dodge the thorns.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
+    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect the flowers. Dodge the thorn islands.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
     over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} honey earned.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
@@ -482,25 +482,103 @@ function drawFlower(f, offset = camera) {
   } else paintFlower(ctx,{...f,y},{palette:currentGarden().flower,time:clock,reducedMotion});
 }
 
-function drawThorn(t) {
-  if (Math.max(t.y, t.endY) < camera - 35 || Math.min(t.y, t.endY) > camera + viewH + 35) return;
-  const w = Math.round(t.w), h = t.h;
-  ctx.save();
-  ctx.translate(Math.round(t.x), Math.round(t.y - camera));
-  ctx.rotate(t.angle);
-  const night = currentGarden().night;
-  // Heavy vines use the same pixel-thorn art, but with a visibly stronger
-  // trunk and closely spaced spikes; collision uses the actual larger h.
-  const stem = Math.max(6, Math.round(h * (t.heavy ? .77 : .55)));
-  ctx.fillStyle = night ? (t.heavy ? '#86618b' : '#a57aab') : (t.heavy ? '#503444' : '#443a43');
-  ctx.fillRect(0,-stem/2,w,stem);
-  ctx.fillStyle = night ? '#dfb1dc' : '#876071';ctx.fillRect(3,-stem/2,w-6,t.heavy ? 3 : 2);
-  for (let i = 5; i < w - 3; i += t.spacing) {
-    poly([[i-4,-2],[i+2,-h],[i+7,-2]], night ? '#bc83bb' : '#6b435a');
-    poly([[i-4,2],[i+4,h],[i+8,2]], night ? '#966b9b' : '#644254');
-    ctx.fillStyle = night ? '#ffe0eb' : '#d39b94';ctx.fillRect(i+1,-h,2,3);
+// Merge touching pieces on the same horizontal line for rendering only. The
+// collision geometry remains untouched, but dense traps read as one natural
+// island instead of several bars laid end-to-end.
+function obstacleVisuals(thorns) {
+  const visible = thorns.filter(t => Math.max(t.y,t.endY) >= camera-45 && Math.min(t.y,t.endY) <= camera+viewH+45)
+    .map(t => ({...t,endX:t.endX ?? t.x+t.w,w:(t.endX ?? t.x+t.w)-t.x}))
+    .sort((a,b) => a.y-b.y || a.x-b.x);
+  const merged=[];
+  for (const thorn of visible) {
+    const last=merged.at(-1);
+    if(last && Math.abs(last.y-thorn.y)<1 && thorn.x<=last.endX+6){
+      last.endX=Math.max(last.endX,thorn.endX);
+      last.x=Math.min(last.x,thorn.x);
+      last.w=last.endX-last.x;
+      last.h=Math.max(last.h,thorn.h);
+      last.heavy ||= thorn.heavy;
+      last.edge ||= thorn.edge;
+      continue;
+    }
+    merged.push(thorn);
   }
-  ctx.fillStyle = '#b78385';ctx.fillRect(0,-stem/2,3,stem);ctx.fillRect(w-3,-stem/2,3,stem);
+  return merged;
+}
+
+function drawThorn(t) {
+  const w=Math.max(10,Math.round(t.endX-t.x||t.w));
+  const h=Math.max(9,t.h);
+  const heavy=!!t.heavy;
+  const night=currentGarden().night;
+  const slab=Math.max(8,Math.round(h*(heavy?.72:.58)));
+  const spacing=Math.max(15,Math.round(t.spacing||19));
+  const palette=night?{
+    shadow:'#25343a',rock:'#48565c',rockLight:'#71817e',soil:'#343f3b',
+    moss:'#587b55',mossLight:'#91aa72',root:'#52684e',tip:'#c8d0ae'
+  }:{
+    shadow:'#28342d',rock:'#55564c',rockLight:'#858274',soil:'#3e4437',
+    moss:'#4f7944',mossLight:'#8fa95e',root:'#516843',tip:'#d1d59d'
+  };
+  ctx.save();
+  ctx.translate(Math.round(t.x),Math.round(t.y-camera));
+
+  // Deep shadow makes adjoining pieces feel like one floating landform.
+  ctx.fillStyle=palette.shadow;
+  ctx.fillRect(1,-slab/2+3,w,slab+2);
+
+  // Irregular stone-and-soil body. The deterministic notches keep the pixel
+  // silhouette lively without flickering from frame to frame.
+  const top=[],bottom=[];
+  top.push([0,-slab/2]);
+  for(let x=12;x<w;x+=18){const notch=((x*7+Math.round(t.y))%5)-2;top.push([x,-slab/2+notch]);}
+  top.push([w,-slab/2]);
+  bottom.push([w,slab/2]);
+  for(let x=w-13;x>0;x-=19){const notch=((x*5+Math.round(t.y))%7)-2;bottom.push([x,slab/2+notch]);}
+  bottom.push([0,slab/2]);
+  poly([...top,...bottom],palette.rock);
+
+  // Mossy plant cap visually connects long rows and matches the leaf art.
+  ctx.fillStyle=palette.moss;
+  ctx.fillRect(2,-slab/2-3,Math.max(0,w-4),5);
+  ctx.fillStyle=palette.mossLight;
+  ctx.fillRect(6,-slab/2-4,Math.max(0,w-12),2);
+  for(let x=8;x<w-5;x+=spacing){
+    const rise=Math.min(h-3,heavy?9:7);
+    poly([[x-5,-slab/2-2],[x,-slab/2-rise],[x+5,-slab/2-2]],palette.mossLight);
+  }
+
+  // Layered rock faces and hanging roots keep repeated hazards from looking
+  // like separate mechanical bars.
+  for(let x=11;x<w-8;x+=24){
+    ctx.fillStyle=palette.rockLight;
+    ctx.fillRect(x,-1,Math.min(11,w-x-3),2);
+    ctx.fillStyle=palette.soil;
+    ctx.fillRect(x+4,2,Math.min(7,w-x-4),2);
+  }
+  ctx.strokeStyle=palette.root;
+  ctx.lineWidth=2;
+  for(let x=17;x<w-8;x+=43){
+    const length=Math.min(h-slab/2-2,5+((x+Math.round(t.y))%7));
+    if(length<3)continue;
+    ctx.beginPath();ctx.moveTo(x,slab/2-1);ctx.lineTo(x+2,slab/2+length);ctx.stroke();
+  }
+
+  // Stone teeth occupy the same visual boundary as the existing hitbox.
+  for(let x=6;x<w-4;x+=spacing){
+    const tooth=Math.min(h,heavy?h:Math.max(8,h*.84));
+    poly([[x-5,slab/2-1],[x+1,tooth],[x+8,slab/2-1]],palette.rockLight);
+    ctx.fillStyle=palette.tip;ctx.fillRect(x,tooth-2,2,2);
+  }
+
+  // Sharp, natural end caps. Edge-rooted pieces continue beyond the screen;
+  // only their inward end remains visible as a pointed rock face.
+  const cap=Math.min(h,heavy?18:14);
+  if(t.edge!=='left')poly([[1,-slab/2],[-cap,0],[1,slab/2]],palette.rockLight);
+  if(t.edge!=='right')poly([[w-1,-slab/2],[w+cap,0],[w-1,slab/2]],palette.rockLight);
+  ctx.fillStyle=palette.tip;
+  if(t.edge!=='left')ctx.fillRect(-cap, -1, 3, 2);
+  if(t.edge!=='right')ctx.fillRect(w+cap-3, -1, 3, 2);
   ctx.restore();
 }
 
@@ -654,7 +732,7 @@ function drawScene(dt) {
     drawBee({x:WIDTH*.85+Math.sin(clock*.8)*20,y:viewH*.37+Math.sin(clock*1.5)*12,vx:0},0,true);
   } else {
     for (const p of game.level.platforms) drawLeaf(p);
-    for (const t of game.level.thorns) drawThorn(t);
+    for (const t of obstacleVisuals(game.level.thorns)) drawThorn(t);
     for (const f of game.level.flowers) drawFlower(f);
     for (const w of game.level.wasps) drawWasp(w);
     drawBee(game.bee);

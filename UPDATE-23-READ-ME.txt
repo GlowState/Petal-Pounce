@@ -1,0 +1,43 @@
+PETAL POUNCE — UPDATE 23: FLOATING GARDEN ISLANDS
+
+This is a cumulative update. You do not need to install Updates 17–22 first.
+
+UPLOAD / REPLACE THESE FOUR FILES IN BOTH LOCATIONS:
+
+Repository root:
+  index.html
+  engine.mjs
+  game.mjs
+  sw.js
+
+dist folder:
+  dist/index.html
+  dist/engine.mjs
+  dist/game.mjs
+  dist/sw.js
+
+WHAT CHANGED
+
+• Replaced the purple thorn-bar artwork with hand-drawn floating garden islands.
+• Added moss caps, layered soil and stone, hanging roots, rock highlights and
+  sharp natural tips that fit the existing leaves and Twilight Garden artwork.
+• Touching hazard pieces on the same row now render as one continuous island,
+  so dense sections look intentional instead of like separate bars.
+• Edge-grown hazards appear rooted beyond the screen instead of ending abruptly.
+• Preserved the exact Update 22 obstacle positions, reach, spacing, difficulty,
+  collision geometry, safe routes, endless progression and calm periods.
+• Updated game labels, accessibility text and instructions to say thorn islands.
+• Updated the offline cache to v39 so phones receive the new artwork reliably.
+
+GAMEPLAY SAFETY
+
+This is a visual-only obstacle update. The proven Update 22 generator and its
+collision geometry are unchanged. The new island silhouette reaches the same
+danger boundary as the existing hitbox, so the art remains fair and readable.
+
+FALLBACK
+
+If you want to return to the previous look, reinstall the exact Update 22 ZIP.
+
+After uploading, refresh the GitHub Pages site. If an older cached build appears,
+close the tab completely and reopen it once.
