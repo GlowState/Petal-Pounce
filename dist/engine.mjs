@@ -9,6 +9,19 @@ export const LANE_COUNT = 3;
 export const BASE_WAVE_SPACING_PX = 160;
 export const MIN_HAZARD_BUFFER_PX = RADIUS * 3;
 export const CHUNK_WAVE_COUNT = 25;
+export const WIND_WARNING_SECONDS = 3;
+export const WIND_MIN_DURATION = 20;
+export const WIND_MAX_DURATION = 30;
+export const WIND_MIN_ALTITUDE_M = 450;
+export const WIND_LONG_CALM_CHANCE = .22;
+
+export function windCalmRange(altitudeM = 0) {
+  const altitude = Math.max(0, Number(altitudeM) || 0);
+  if (altitude <= 600) return { min: 120, max: 190 };
+  if (altitude <= 1200) return { min: 100, max: 160 };
+  if (altitude <= 2000) return { min: 80, max: 135 };
+  return { min: 65, max: 110 };
+}
 
 export const DIFFICULTY_BANDS = Object.freeze([
   { min: 0, max: 200, label: 'EARLY', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1, maxConsecutiveHazards: 2, centerPressure: .65 },
@@ -497,6 +510,10 @@ export class Game {
     this.spawnWasps(this.level, 0);
     this.remaining = this.level.total;
     this.time = 0;
+    this.windRandom = random((this.seed + this.run * 92821 + 3607) >>> 0);
+    this.wind = { phase: 'calm', direction: 0, strength: 0, timer: 0,
+      duration: 0, elapsed: 0, gustPhase: this.windRandom() * Math.PI * 2,
+      nextAt: Infinity, armed: false, longCalm: false, completed: 0 };
     this.respawn();
     this.reviveTime = 0;
   }
@@ -621,15 +638,81 @@ export class Game {
 
   record() { this.best = Math.max(this.best, this.score); }
 
+  updateWind(dt) {
+    const wind = this.wind;
+    if (!wind) return;
+    if (wind.phase === 'calm') {
+      // Crossing the minimum altitude starts a separate first-event calm
+      // window, preventing a wind scene from firing immediately at 450m.
+      if (!wind.armed) {
+        if (this.distance < WIND_MIN_ALTITUDE_M) return;
+        wind.armed = true;
+        wind.nextAt = this.time + 35 + this.windRandom() * 35;
+        return;
+      }
+      if (this.time < wind.nextAt) return;
+      const difficulty = difficultyAt(this.distance);
+      wind.phase = 'warning';
+      wind.direction = this.windRandom() < .5 ? -1 : 1;
+      wind.duration = WIND_MIN_DURATION + this.windRandom() * (WIND_MAX_DURATION - WIND_MIN_DURATION);
+      wind.strength = 28 + difficulty.bandIndex * 4 + this.windRandom() * 8;
+      wind.timer = WIND_WARNING_SECONDS;
+      wind.elapsed = 0;
+      wind.gustPhase = this.windRandom() * Math.PI * 2;
+      this.events.push({ type: 'windWarning', direction: wind.direction,
+        duration: wind.duration, strength: wind.strength });
+      return;
+    }
+    wind.timer = Math.max(0, wind.timer - dt);
+    if (wind.phase === 'warning' && wind.timer <= 1e-8) {
+      wind.phase = 'active';
+      wind.timer = wind.duration;
+      wind.elapsed = 0;
+      this.events.push({ type: 'windStart', direction: wind.direction,
+        duration: wind.duration, strength: wind.strength });
+      return;
+    }
+    if (wind.phase === 'active') {
+      wind.elapsed += dt;
+      if (wind.timer <= 1e-8) {
+        const endedDirection = wind.direction;
+        wind.phase = 'calm';
+        wind.direction = 0;
+        wind.strength = 0;
+        wind.elapsed = 0;
+        wind.completed++;
+        const calm = windCalmRange(this.distance);
+        wind.longCalm = this.windRandom() < WIND_LONG_CALM_CHANCE;
+        const longBonus = wind.longCalm ? 45 + this.windRandom() * 45 : 0;
+        wind.nextAt = this.time + calm.min + this.windRandom() * (calm.max - calm.min) + longBonus;
+        this.events.push({ type: 'windEnd', direction: endedDirection });
+      }
+    }
+  }
+
+  windVelocity() {
+    const wind = this.wind;
+    if (!wind || wind.phase !== 'active') return 0;
+    // A soft multi-frequency gust. Maximum drift stays far below steering
+    // speed, so holding against the wind always wins.
+    const pulse = .82 + .12 * Math.sin(wind.elapsed * 2.15 + wind.gustPhase)
+      + .06 * Math.sin(wind.elapsed * 4.7 + wind.gustPhase * .7);
+    return wind.direction * wind.strength * pulse;
+  }
+
   step(dt, input = {}) {
     dt = Math.min(dt, 1 / 30);
     if (this.mode === 'reviving') {
+      // Wind scenes continue through the short automatic revive animation so
+      // their advertised 20–30 second duration never silently stretches.
+      if (this.wind?.phase !== 'calm') this.updateWind(dt);
       this.reviveTime = Math.max(0, this.reviveTime - dt);
       if (this.reviveTime <= 1e-8) this.revive();
       return;
     }
     if (this.mode !== 'playing') return;
     this.time += dt;
+    this.updateWind(dt);
     for (const wasp of this.level.wasps) {
       wasp.phase += dt * wasp.speed;
       wasp.x = Math.max(28, Math.min(WIDTH - 28, wasp.homeX + Math.sin(wasp.phase) * wasp.amplitude));
@@ -649,7 +732,7 @@ export class Game {
     // True analog speed control: partial tilt yields a sustainable partial speed,
     // instead of accelerating all the way to the maximum even at a tiny tilt.
     // Exponential easing yields smooth starts, stops and direction reversals.
-    const desiredVx = direction * 235;
+    const desiredVx = direction * 235 + this.windVelocity();
     const response = Math.abs(direction) < .0001 ? 19 : 16;
     b.vx += (desiredVx - b.vx) * (1 - Math.exp(-response * dt));
     if (Math.abs(b.vx) < .08 && Math.abs(desiredVx) < .0001) b.vx = 0;

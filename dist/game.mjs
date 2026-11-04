@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=35';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=37';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -554,6 +554,38 @@ function addBurst(x, y, value = 1) {
   particles.push({ x, y: y-15, vx: 0, vy: -35, life: 1, max: 1, text: `+${value * 10}` });
 }
 
+function drawWindOverlay() {
+  const wind = game.wind;
+  if (!wind || (wind.phase !== 'warning' && wind.phase !== 'active')) return;
+  const active = wind.phase === 'active';
+  const direction = wind.direction || 1;
+  const count = reducedMotion ? 5 : active ? 15 : 9;
+  const speed = reducedMotion ? 24 : active ? 175 : 70;
+  const wrap = (value, size) => ((value % size) + size) % size;
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineWidth = active ? 2 : 1.5;
+  ctx.strokeStyle = currentGarden().night ? '#d6eaff' : '#f5f4ca';
+  ctx.globalAlpha = active ? .48 : .25;
+  for (let i = 0; i < count; i++) {
+    const travel = clock * speed * direction;
+    const x = wrap(i * 79 + travel, WIDTH + 180) - 90;
+    const y = 44 + wrap(i * 97 + Math.sin(clock * 1.7 + i) * 28, Math.max(80, viewH - 88));
+    const length = (active ? 48 : 30) + (i % 4) * 9;
+    ctx.beginPath();
+    ctx.moveTo(x - direction * length, y);
+    ctx.lineTo(x - direction * length * .55, y + (i % 2 ? 3 : -3));
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = active ? .82 : .52;
+  ctx.font = 'bold 12px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillStyle = currentGarden().night ? '#edf7ff' : '#fff6c9';
+  ctx.fillText(direction < 0 ? '← WIND' : 'WIND →', WIDTH - 24, 116);
+  ctx.restore();
+}
+
 function events() {
   for (const event of game.drainEvents()) {
     if (event.type === 'flower') {
@@ -582,6 +614,15 @@ function events() {
       $('toast').classList.remove('show');
     } else if (event.type === 'difficultyBand') {
       notify(`${event.label} · ${Math.round(event.obstacleRatio*100)}% HAZARDS · ${event.speedMultiplier}× SPEED`,2100);
+    } else if (event.type === 'windWarning') {
+      notify('Caution: High Winds', 3000);
+      tone(220,.28,'triangle',0,.022);tone(165,.32,'triangle',.12,.018);
+    } else if (event.type === 'windStart') {
+      notify(`HIGH WINDS · PUSHING ${event.direction < 0 ? 'LEFT' : 'RIGHT'}`, 1400);
+      tone(130,.35,'sawtooth',0,.016);
+    } else if (event.type === 'windEnd') {
+      notify('WINDS CALM', 1200);
+      tone(330,.12,'triangle');tone(440,.14,'triangle',.08);
     } else if (event.type === 'surprise' && event.kind === 'waspRush') {
       notify('WATCH OUT · FAST WASP', 1600);
       tone(740,.09,'triangle',0,.022);
@@ -617,6 +658,7 @@ function drawScene(dt) {
     for (const f of game.level.flowers) drawFlower(f);
     for (const w of game.level.wasps) drawWasp(w);
     drawBee(game.bee);
+    drawWindOverlay();
     if (game.mode === 'playing') {
       const above = game.level.flowers.filter(f=>!f.taken && f.y<camera+70).length;
       const below = game.level.flowers.filter(f=>!f.taken && f.y>camera+viewH-45).length;
