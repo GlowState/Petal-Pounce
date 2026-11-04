@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=37';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=38';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -412,7 +412,7 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Fly as far as you can. Dodge the wasps.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
+    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect the flowers. Dodge the thorns.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
     over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} honey earned.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
@@ -613,7 +613,7 @@ function events() {
       clearInput();
       $('toast').classList.remove('show');
     } else if (event.type === 'difficultyBand') {
-      notify(`${event.label} · ${Math.round(event.obstacleRatio*100)}% HAZARDS · ${event.speedMultiplier}× SPEED`,2100);
+      notify(`${event.label} GARDEN · THORNS GROW DENSER`,2100);
     } else if (event.type === 'windWarning') {
       notify('Caution: High Winds', 3000);
       tone(220,.28,'triangle',0,.022);tone(165,.32,'triangle',.12,.018);

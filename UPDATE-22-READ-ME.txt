@@ -1,0 +1,46 @@
+PETAL POUNCE — UPDATE 22: CLASSIC GARDEN RHYTHM
+
+This is a cumulative update. You do not need to install Updates 17–21 first.
+
+UPLOAD / REPLACE THESE FOUR FILES IN BOTH LOCATIONS:
+
+Repository root:
+  index.html
+  engine.mjs
+  game.mjs
+  sw.js
+
+dist folder:
+  dist/index.html
+  dist/engine.mjs
+  dist/game.mjs
+  dist/sw.js
+
+WHAT CHANGED
+
+• Replaced the visible three-lane course with full-width, free-scattered leaves.
+• Flowers remain attached to leaves and now occupy far more varied positions.
+• The generator plans a reachable flower route before adding any thorns.
+• Horizontal thorns are now a mix of floating branches, long edge-grown vines,
+  paired precision gates, thicker thickets and deliberate calm stretches.
+• Difficulty increases mainly through thorn density, reach, thickness and tighter
+  openings. Flight speed no longer increases with distance.
+• Removed active wasps so thorn branches are the central collision hazard.
+• Preserved endless play, three lives, automatic leaf revival, the joystick,
+  Fly button, flower bank, garden shop, saved backgrounds and rare wind scenes.
+• Updated instructions and game text to match the thorn-focused ruleset.
+• Updated the offline cache to v38 so phones receive the new files reliably.
+
+SAFETY / FAIRNESS
+
+Every generated thorn is checked against the planned flower-to-flower route.
+Thorns remain horizontal, and the bee always has a valid corridor through the
+generated garden. Hundreds of seeded chunks were tested across every distance
+band before packaging.
+
+FALLBACK
+
+If you want to return to the previous build, reinstall the exact Update 21 ZIP.
+
+After uploading, refresh the GitHub Pages site. If an older cached build appears,
+close the tab completely and reopen it once.
