@@ -80,7 +80,7 @@
         </div>
       </section>
 
-      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Long vines can join into thorn walls.</span></p></div><div><span class="guide-number">03</span><p><strong>Commit to your route.</strong><span>Echo vines punish late corrections.</span></p></div></div>
+      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Long vines can join into thorn walls.</span></p></div><div><span class="guide-number">03</span><p><strong>Watch the forecast.</strong><span>High winds can push from either side.</span></p></div></div>
       <footer><span>MADE FOR THE JOY OF ONE MORE GO.</span><span class="fan-note">Small wings. Wild gardens. Sweet victories. · <a href="./privacy.html">Privacy</a></span><span>EST. 2026 <span class="footer-flower">✳</span></span></footer>
     </main>
   </div>
@@ -88,11 +88,12 @@
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Fly upward through one endless garden with no levels or finish line. Difficulty rises mainly through longer, denser thorn walls—not excessive speed. Connected vines remove easy seams, while occasional echo vines create compact two-beat clusters along the same safe route.</p>
+    <p>Fly upward through one endless garden with no levels or finish line. Long thorn walls shape the route, while occasional high-wind scenes gently push the bee left or right. A warning always appears before the wind begins.</p>
     <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Steering responds to left or right tilt at any angle, including near the top or bottom. Tilt farther for more speed; diagonal steering is slightly gentler. The enlarged touch area makes thumb repositioning easier. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
     <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flower chains establish a rhythm. Long joined thorn walls and occasional parallel echo vines break it, but every cluster preserves a reachable escape. Risky blooms are worth three flowers.</p></div>
+    <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
     <p class="help-note">Each flower also earns 10 honey for your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
@@ -107,7 +108,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=35"></script>
+  <script type="module" src="./game.mjs?v=37"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){

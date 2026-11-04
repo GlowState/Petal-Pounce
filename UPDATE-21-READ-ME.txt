@@ -1,0 +1,66 @@
+PETAL POUNCE — UPDATE 21: HIGH WINDS
+====================================
+
+THIS IS A CUMULATIVE UPDATE
+Install this directly over Update 20. Earlier updates are not required.
+
+INSTALL
+1. Replace index.html, engine.mjs, game.mjs, and sw.js in the repository root.
+2. Replace those same four files inside the dist folder.
+3. Commit and push to GitHub.
+4. Close and reopen the game on iPhone so the revised v37 cache can activate.
+
+HIGH-WIND OBSTACLE SCENES
+- High-wind scenes cannot begin before the player reaches 450 meters.
+- Reaching 450m arms the system, then starts a separate randomized 35–70
+  second calm window. Wind never fires immediately at the altitude threshold.
+- A message displays exactly: “Caution: High Winds”.
+- The player receives a full three-second preparation warning.
+- Each scene randomly pushes either left or right.
+- Each active wind sequence lasts a randomized 20–30 seconds.
+- Wind strength uses soft layered gusts rather than a perfectly constant shove.
+- Maximum wind drift remains far below normal steering speed, so holding the
+  joystick against the wind always overpowers it.
+- Later altitude bands increase wind strength only slightly.
+- Calm timing scales with the player's total altitude:
+    450–600m:    120–190 seconds
+    601–1200m:   100–160 seconds
+    1201–2000m:  80–135 seconds
+    2001m+:      65–110 seconds
+- Every cooldown has a 22% chance to receive an additional 45–90 second
+  extra-long calm period.
+- Wind timing continues through the short automatic-revival animation, but
+  pauses normally when the player pauses or leaves the app.
+
+VISUAL AND AUDIO TELEGRAPHING
+- Animated wind streaks move in the push direction.
+- An on-screen WIND arrow shows the current direction.
+- Warning, wind-start, and wind-end cues have distinct subtle sounds.
+- Wind-start text identifies whether the bee is being pushed left or right.
+- “WINDS CALM” confirms the scene has ended.
+- Reduced-motion mode uses fewer, slower wind streaks.
+
+PRESERVED
+- Update 20 long connected thorn walls and echo vines
+- Update 19 center-lane pressure
+- Existing hazard ratios and slower speed curve
+- Random leaves, flower chains, bait traps, wasps, lives, controls, shop,
+  backgrounds, art, and mobile layout
+
+VALIDATION
+- 10/10 automated tests passed.
+- Wind events verified to warn before applying force.
+- Durations verified between 20 and 30 seconds.
+- Both push directions verified across deterministic seeds.
+- Counter-steering verified to overpower maximum wind drift.
+- Ten-minute simulations averaged 3.26 wind scenes at 500m, 3.76 at 900m,
+  4.22 at 1500m, and 4.76 at 2500m.
+- Wind occupied about 13% of early simulated play and about 20% at the hard
+  cap, leaving the majority of every run calm.
+- Calm gaps ranged from approximately two minutes early to just over one
+  minute at the hard cap, with extra-long breaks extending beyond those ranges.
+- Existing generator, thorn-wall, solvability, and route-clearance tests pass.
+
+ROLLBACK
+Use Petal-Pounce-Rollback-Update-20-Long-Thorn-Walls.zip to return to the exact
+pre-Update-21 release.
