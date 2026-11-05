@@ -1,4 +1,4 @@
-PETAL POUNCE — UPDATE 23: FLOATING GARDEN ISLANDS
+PETAL POUNCE — UPDATE 23: POLISHED FLOATING GARDEN ISLANDS
 
 This is a cumulative update. You do not need to install Updates 17–22 first.
 
@@ -19,15 +19,22 @@ dist folder:
 WHAT CHANGED
 
 • Replaced the purple thorn-bar artwork with hand-drawn floating garden islands.
-• Added moss caps, layered soil and stone, hanging roots, rock highlights and
-  sharp natural tips that fit the existing leaves and Twilight Garden artwork.
+• Added irregular moss caps, layered soil and stone, hanging roots, rock cracks,
+  varied sharp points and tiny sprouts that fit the existing garden artwork.
+• Varied island thickness, rock sizes and detail spacing so formations feel
+  organic and hand-drawn instead of like repeating mechanical platforms.
 • Touching hazard pieces on the same row now render as one continuous island,
   so dense sections look intentional instead of like separate bars.
 • Edge-grown hazards appear rooted beyond the screen instead of ending abruptly.
 • Preserved the exact Update 22 obstacle positions, reach, spacing, difficulty,
   collision geometry, safe routes, endless progression and calm periods.
 • Updated game labels, accessibility text and instructions to say thorn islands.
-• Updated the offline cache to v39 so phones receive the new artwork reliably.
+• Renamed the run HUD from HONEY to SCORE. Flowers add 10 score points each.
+• Moved every difficulty notice into the distance HUD to keep the playfield clear.
+• Clipped island art to the original obstacle shapes and added a dashed ring
+  around the bee during temporary protection.
+• Used Flower Garden's smooth bee rendering across all gardens.
+• Updated the offline cache to v41.
 
 GAMEPLAY SAFETY
 
