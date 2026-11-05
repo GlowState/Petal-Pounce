@@ -25,10 +25,10 @@ export function windCalmRange(altitudeM = 0) {
 
 export const DIFFICULTY_BANDS = Object.freeze([
   { min: 0, max: 200, label: 'EARLY', itemRatio: .65, obstacleRatio: .35, speedMultiplier: 1, maxConsecutiveHazards: 2, centerPressure: .65 },
-  { min: 201, max: 600, label: 'GROWING', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1.08, maxConsecutiveHazards: 3, centerPressure: .70 },
-  { min: 601, max: 1200, label: 'MID', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1.15, maxConsecutiveHazards: 4, centerPressure: .75 },
-  { min: 1201, max: 2000, label: 'LATE', itemRatio: .35, obstacleRatio: .65, speedMultiplier: 1.22, maxConsecutiveHazards: 5, centerPressure: .80 },
-  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .30, obstacleRatio: .70, speedMultiplier: 1.28, maxConsecutiveHazards: 6, centerPressure: .85 }
+  { min: 201, max: 600, label: 'GROWING', itemRatio: .55, obstacleRatio: .45, speedMultiplier: 1, maxConsecutiveHazards: 3, centerPressure: .70 },
+  { min: 601, max: 1200, label: 'MID', itemRatio: .45, obstacleRatio: .55, speedMultiplier: 1, maxConsecutiveHazards: 4, centerPressure: .75 },
+  { min: 1201, max: 2000, label: 'LATE', itemRatio: .35, obstacleRatio: .65, speedMultiplier: 1, maxConsecutiveHazards: 5, centerPressure: .80 },
+  { min: 2001, max: Infinity, label: 'HARD CAP', itemRatio: .30, obstacleRatio: .70, speedMultiplier: 1, maxConsecutiveHazards: 6, centerPressure: .85 }
 ]);
 
 export function difficultyAt(altitudeM = 0) {
@@ -42,8 +42,8 @@ export function difficultyAt(altitudeM = 0) {
 // Stage/elapsed time do not determine the upgrade: progress has to be earned.
 export function flightPower(distance = 0) {
   const difficulty = difficultyAt(distance);
-  return { climbCap: 230 * difficulty.speedMultiplier,
-    thrust: 660 * difficulty.speedMultiplier,
+  return { climbCap: 230,
+    thrust: 660,
     progress: difficulty.bandIndex / (DIFFICULTY_BANDS.length - 1),
     speedMultiplier: difficulty.speedMultiplier };
 }
@@ -160,7 +160,7 @@ function legacyMakeLevel(stage, seed = 6819) {
   // Ramp obstacle *density* with progress. Some sections are intentionally
   // quieter; thickets and precision gates create memorable close calls.
   const tangle = stage >= 3 && rng() < .27;
-  const hazardRate = Math.min(10.5, 7.55 + (stage - 1) * .22);
+  const hazardRate = Math.min(12, 7.2 + (stage - 1) * .42);
   const target = Math.min(150, Math.round(height / 1000 * hazardRate) + (tangle ? 4 : 0));
   const maxLength = 295 + Math.min(stage, 10) * 11;
   const bandCount = Math.min(9, Math.max(4, Math.ceil(height / 1400)));
@@ -203,7 +203,7 @@ function legacyMakeLevel(stage, seed = 6819) {
   // in from opposite edges, leaving one clearly visible opening near a
   // feasible flower-to-flower route. The opening is always wider than the bee.
   // There are more passages later, but never a no-win full-width barrier.
-  const gateGoal = Math.min(7, Math.max(1, Math.floor(height / 2400) + Math.floor((stage - 1) / 5)));
+  const gateGoal = Math.min(8, Math.max(1, Math.floor(height / 2400) + Math.floor((stage - 1) / 3)));
   const candidates = [];
   for (let i = 1; i < route.length - 1; i++) {
     const low = route[i - 1], high = route[i];
@@ -223,7 +223,7 @@ function legacyMakeLevel(stage, seed = 6819) {
     // Clearances shrink with stage, with more space for steep approaches.
     const hLeft = 15 + rng() * 6 + Math.min(stage - 1, 10) * .35;
     const hRight = 15 + rng() * 6 + Math.min(stage - 1, 10) * .35;
-    const opening = Math.max(124, 184 - Math.min(stage - 1, 10) * 6)
+    const opening = Math.max(106, 188 - Math.min(stage - 1, 10) * 8)
       + Math.min(42, site.slope * 37) + rng() * 12;
     const center = Math.max(opening / 2 + 16, Math.min(WIDTH - opening / 2 - 16, site.center + (rng() - .5) * 13));
     const leftEnd = center - opening / 2;
@@ -395,7 +395,7 @@ export function planChunkRows({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
 }
 
 // Convert the validated plan to leaves, flowers, and horizontal lane-contained thorns.
-export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, waveCount = CHUNK_WAVE_COUNT } = {}) {
+export function makeLaneChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, waveCount = CHUNK_WAVE_COUNT } = {}) {
   const rng = random(seed + chunkIndex * 1741 + Math.floor(startAltitudeM * 53));
   const rows = planChunkRows({ startAltitudeM, seed, chunkIndex, waveCount });
   const farthestPx = Math.max(...rows.map(row => row.distancePx + (row.baitOffsetPx || 0)));
@@ -468,6 +468,47 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0, wav
     beats: rows.map(row => row.kind), rows, pinchGates, startAltitudeM, endAltitudeM,
     height, platforms, flowers, thorns, route, seconds: 0, total: flowers.length,
     safeRows, hazardRows: rows.length - safeRows };
+}
+
+// Endless classic-garden generator. Leaves occupy the entire playfield rather
+// than three fixed columns. A flower-to-flower route is built first, then every
+// horizontal thorn is rejected if it compromises that route. Difficulty grows
+// through branch density, thickness, reach and tighter gates—not flight speed.
+export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0 } = {}) {
+  const classicStage = 1 + Math.min(10, Math.max(0, startAltitudeM) / 220);
+  const raw = legacyMakeLevel(classicStage,
+    (seed + chunkIndex * 1741 + Math.floor(startAltitudeM * 53)) >>> 0);
+  const spawnY = raw.height - 104;
+  const endAltitudeM = startAltitudeM + (raw.height - 140) / 10;
+  const platforms = raw.platforms.map((platform, index) => ({ ...platform,
+    chunkIndex, rowIndex: Math.max(0, index - 1) }));
+  const flowers = raw.flowers.map((flower, rowIndex) => ({ ...flower,
+    value: 1, bait: false, chunkIndex, rowIndex }));
+  const thorns = raw.thorns.map((thorn, index) => ({ ...thorn,
+    angle: 0, chunkIndex, rowIndex: flowers.length + index,
+    cluster: thorn.gate ? 'pinchGate' : thorn.edge ? 'edgeBranch' : 'floatingBranch' }));
+  const safeRows = flowers.map((flower, rowIndex) => {
+    const distancePx = spawnY - flower.y;
+    return { chunkIndex, rowIndex, kind: 'flowerLeaf', hazard: false,
+      distancePx, altitudeM: startAltitudeM + distancePx / 10,
+      difficulty: difficultyAt(startAltitudeM + distancePx / 10),
+      obstacleLanes: [], openLanes: [0, 1, 2] };
+  });
+  const hazardRows = thorns.map((thorn, index) => {
+    const distancePx = spawnY - thorn.y;
+    return { chunkIndex, rowIndex: flowers.length + index,
+      kind: thorn.gate ? 'pinchGate' : thorn.edge ? 'edgeBranch' : 'floatingBranch',
+      hazard: true, distancePx, altitudeM: startAltitudeM + distancePx / 10,
+      difficulty: difficultyAt(startAltitudeM + distancePx / 10) };
+  });
+  const rows = [...safeRows, ...hazardRows].sort((a, b) => a.distancePx - b.distancePx);
+  return { chunkIndex, stage: difficultyAt(startAltitudeM).bandIndex + 1,
+    pattern: 'classic-free-scatter', tangle: classicStage >= 3,
+    beats: raw.beats, rows, pinchGates: raw.pinchGates,
+    startAltitudeM, endAltitudeM, height: raw.height,
+    platforms, flowers, thorns, route: raw.route,
+    seconds: 0, total: flowers.length,
+    safeRows: safeRows.length, hazardRows: hazardRows.length };
 }
 
 // Compatibility only. Runtime generation uses makeChunk and absolute altitude.
@@ -576,37 +617,10 @@ export class Game {
   }
 
   spawnWasps(piece, offset) {
-    const difficulty = difficultyAt(piece.startAltitudeM);
-    const rng = random(this.seed + this.run * 53719 + piece.chunkIndex * 9137);
-    const count = Math.min(5 + Math.floor(piece.rows.length * difficulty.obstacleRatio * .55), 14);
-    // Occasionally one clearly marked wasp patrols faster than the rest.
-    // No surprise wasps in the opening two zones.
-    const rushSlot = difficulty.bandIndex >= 2 && rng() < .28 ? Math.floor(rng() * count) : -1;
-    for (let i = 0; i < count; i++) {
-      // Vary patrol heights so even familiar sections have different timing.
-      let y = 190 + (piece.height - 380) * (i + .28 + rng() * .44) / count;
-      // A wasp never blocks the narrow opening at the instant it is introduced.
-      // Keep the two challenges independent instead of manufacturing unfair hits.
-      const hazardHeights = piece.rows.filter(row => row.hazard).map(row => piece.height - 104 - row.distancePx);
-      if (hazardHeights.some(hazardY => Math.abs(hazardY - y) < 120)) {
-        // Prefer a nearby height to retain patrol distribution; fall back to
-        // another open stretch only if every close candidate is occupied.
-        const variants = [135, -135, 195, -195, 255, -255];
-        for (let j = 0; j < 48; j++) {
-          const proposed = j < variants.length ? y + variants[j]
-            : 170 + rng() * (piece.height - 325);
-          if (proposed > 170 && proposed < piece.height - 155 &&
-              hazardHeights.every(hazardY => Math.abs(hazardY - proposed) >= 120)) { y = proposed; break; }
-        }
-      }
-      y += offset;
-      const x = 70 + rng() * (WIDTH - 140);
-      const rush = i === rushSlot;
-      const baseSpeed = (.8 + rng() * .6 + difficulty.bandIndex * .12) * difficulty.speedMultiplier;
-      this.level.wasps.push({ x, y, homeX: x, phase: rng() * Math.PI * 2,
-        amplitude: rush ? 130 + rng() * 80 : 85 + rng() * 125,
-        speed: baseSpeed * (rush ? 1.43 : 1), rush, warned: false });
-    }
+    // Thorn branches are the sole collision hazard in the classic ruleset.
+    // Keep the array for compatibility with older rendering code and saves.
+    void piece;
+    void offset;
   }
 
   next() {} // Kept for compatibility with older UI consumers.

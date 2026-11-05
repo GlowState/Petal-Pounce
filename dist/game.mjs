@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=37';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=41';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -6,6 +6,7 @@ import { paintFlower } from './flowers.mjs?v=16';
 
 const $ = id => document.getElementById(id);
 const canvas = $('game');
+canvas.style.imageRendering = 'auto'; // Use Flower Garden's smooth scaling in every garden.
 const ctx = canvas.getContext('2d', { alpha: false });
 const screen = $('screen');
 const cabinet = $('cabinet');
@@ -156,6 +157,7 @@ let displayedMode = '';
 let displayedLives = -1;
 let displayedGarden = '';
 let toastTimer;
+let difficultyNoticeUntil = 0;
 let helpWasPlaying = false;
 let shopWasPlaying = false;
 let displayedFlowers = -1;
@@ -374,7 +376,8 @@ function updateUI() {
   $('remaining').textContent = game.flowersCollected;
   $('timer').textContent = `${game.distance}m`;
   $('timer').parentElement.classList.remove('warning');
-  $('level-label').textContent = 'DISTANCE';
+  $('level-label').textContent = game.mode === 'playing' && clock < difficultyNoticeUntil
+    ? 'DIFFICULTY UP' : 'DISTANCE';
   $('level-label').title = garden.name;
   $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (game.distance % 300) / 3))}%`;
   const inRun = mode !== 'title';
@@ -412,9 +415,9 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Fly as far as you can. Dodge the wasps.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
+    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect the flowers. Dodge the thorn islands.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
-    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} honey earned.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
+    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} points scored.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
     const [tag, title, description, label] = titles[mode];
@@ -482,25 +485,164 @@ function drawFlower(f, offset = camera) {
   } else paintFlower(ctx,{...f,y},{palette:currentGarden().flower,time:clock,reducedMotion});
 }
 
-function drawThorn(t) {
-  if (Math.max(t.y, t.endY) < camera - 35 || Math.min(t.y, t.endY) > camera + viewH + 35) return;
-  const w = Math.round(t.w), h = t.h;
-  ctx.save();
-  ctx.translate(Math.round(t.x), Math.round(t.y - camera));
-  ctx.rotate(t.angle);
-  const night = currentGarden().night;
-  // Heavy vines use the same pixel-thorn art, but with a visibly stronger
-  // trunk and closely spaced spikes; collision uses the actual larger h.
-  const stem = Math.max(6, Math.round(h * (t.heavy ? .77 : .55)));
-  ctx.fillStyle = night ? (t.heavy ? '#86618b' : '#a57aab') : (t.heavy ? '#503444' : '#443a43');
-  ctx.fillRect(0,-stem/2,w,stem);
-  ctx.fillStyle = night ? '#dfb1dc' : '#876071';ctx.fillRect(3,-stem/2,w-6,t.heavy ? 3 : 2);
-  for (let i = 5; i < w - 3; i += t.spacing) {
-    poly([[i-4,-2],[i+2,-h],[i+7,-2]], night ? '#bc83bb' : '#6b435a');
-    poly([[i-4,2],[i+4,h],[i+8,2]], night ? '#966b9b' : '#644254');
-    ctx.fillStyle = night ? '#ffe0eb' : '#d39b94';ctx.fillRect(i+1,-h,2,3);
+// Merge touching pieces on the same horizontal line for rendering only. The
+// collision geometry remains untouched, but dense traps read as one natural
+// island instead of several bars laid end-to-end.
+function obstacleVisuals(thorns) {
+  const visible = thorns.filter(t => Math.max(t.y,t.endY) >= camera-45 && Math.min(t.y,t.endY) <= camera+viewH+45)
+    .map(t => ({...t, segments:[t]}))
+    .sort((a,b) => a.y-b.y || a.x-b.x);
+  const merged=[];
+  for (const thorn of visible) {
+    const last=merged.at(-1);
+    if(last && Math.abs(last.y-thorn.y)<1 && thorn.x<=last.endX+6){
+      last.endX=Math.max(last.endX,thorn.endX);
+      last.x=Math.min(last.x,thorn.x);
+      last.w=last.endX-last.x;
+      last.h=Math.max(last.h,thorn.h);
+      last.heavy ||= thorn.heavy;
+      last.edge ||= thorn.edge;
+      last.segments.push(...thorn.segments);
+      continue;
+    }
+    merged.push(thorn);
   }
-  ctx.fillStyle = '#b78385';ctx.fillRect(0,-stem/2,3,stem);ctx.fillRect(w-3,-stem/2,3,stem);
+  return merged;
+}
+
+function islandNoise(seed, salt) {
+  let value=(seed+Math.imul(salt+1,0x9e3779b1))>>>0;
+  value=Math.imul(value^(value>>>16),0x21f0aaad);
+  value=Math.imul(value^(value>>>15),0x735a2d97);
+  return ((value^(value>>>15))>>>0)/4294967295;
+}
+
+function drawThorn(t) {
+  const w=Math.max(10,Math.round(t.endX-t.x||t.w));
+  const h=Math.max(9,t.h);
+  const heavy=!!t.heavy;
+  const night=currentGarden().night;
+  const seed=((Math.round(t.x)*31)^(Math.round(t.y)*131)^(w*17))>>>0;
+  const noise=salt=>islandNoise(seed,salt);
+  const bodyHalf=Math.max(5,Math.min(h-2,h*(heavy?.59:.50)));
+  const sections=Math.max(2,Math.ceil(w/(15+Math.floor(noise(1)*7))));
+  const palette=night?{
+    shadow:'#1d2d32',rockDark:'#354348',rock:'#536268',rockLight:'#84918b',
+    soil:'#3b463d',mossDark:'#405f47',moss:'#63875c',mossLight:'#a1b67d',
+    root:'#617757',crack:'#303a3c',tip:'#d2d7b7'
+  }:{
+    shadow:'#243029',rockDark:'#41443b',rock:'#626156',rockLight:'#969081',
+    soil:'#484a3b',mossDark:'#3e653d',moss:'#638a4e',mossLight:'#a8bd6b',
+    root:'#5b7147',crack:'#383a33',tip:'#dcdda5'
+  };
+  const top=[],bottom=[];
+  for(let i=0;i<=sections;i++){
+    const x=Math.round(w*i/sections);
+    const edge=i===0||i===sections;
+    top.push([x,Math.round(-bodyHalf+(edge?0:(noise(10+i)-.5)*4))]);
+    bottom.push([x,Math.round(bodyHalf+(edge?0:(noise(70+i)-.42)*5))]);
+  }
+  const topY=x=>top[Math.max(0,Math.min(sections,Math.round(x/w*sections)))][1];
+  const bottomY=x=>bottom[Math.max(0,Math.min(sections,Math.round(x/w*sections)))][1];
+
+  ctx.save();
+  // Clip the artwork to the original hazard shapes, even when islands share a silhouette.
+  ctx.beginPath();
+  for (const segment of t.segments) {
+    ctx.roundRect(segment.x-segment.h, segment.y-camera-segment.h,
+      segment.endX-segment.x+2*segment.h, 2*segment.h, segment.h);
+  }
+  ctx.clip();
+  ctx.translate(t.x,t.y-camera);
+
+  // One irregular landmass spans the full merged obstacle, so neighboring
+  // pieces read as a single floating island instead of repeated bars.
+  poly([[2,top[0][1]+3],...top.slice(1).map(([x,y])=>[x+2,y+3]),
+    ...bottom.slice().reverse().map(([x,y])=>[x+2,y+4])],palette.shadow);
+  poly([...top,...bottom.slice().reverse()],palette.rockDark);
+  const innerTop=top.map(([x,y])=>[x,y+2]);
+  const innerBottom=bottom.slice().reverse().map(([x,y])=>[x,Math.max(1,y-2)]);
+  poly([...innerTop,...innerBottom],palette.rock);
+
+  // Patchy moss follows the uneven island contour rather than forming a
+  // mechanical stripe. Small gaps reveal soil and age the formation.
+  const mossTop=top.map(([x,y],i)=>[x,y-2-Math.round(noise(130+i)*2)]);
+  const mossBottom=top.slice().reverse().map(([x,y])=>[x,y+2]);
+  poly([...mossTop,...mossBottom],palette.mossDark);
+  let patchX=3+noise(180)*8,patch=0;
+  while(patchX<w-5){
+    const length=8+noise(190+patch)*18;
+    const y=topY(patchX)-3-Math.round(noise(220+patch)*2);
+    ctx.fillStyle=patch%3===0?palette.mossLight:palette.moss;
+    ctx.fillRect(Math.round(patchX),y,Math.max(3,Math.min(Math.round(length),w-Math.round(patchX)-2)),2);
+    patchX+=length+5+noise(250+patch)*13;patch++;
+  }
+
+  // Uneven rock facets and cracks make long hazards feel hand-built and
+  // prevent the repeated platform pattern from showing through.
+  let faceX=7+noise(280)*10,face=0;
+  while(faceX<w-8){
+    const faceW=6+noise(290+face)*13;
+    const y=-1+Math.round((noise(320+face)-.5)*4);
+    poly([[faceX,y-2],[faceX+faceW,y-1],[faceX+faceW-3,y+3],[faceX+2,y+2]],
+      face%3===0?palette.rockLight:palette.soil);
+    if(face%2===0){
+      ctx.strokeStyle=palette.crack;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(Math.round(faceX+faceW*.45),y+1);
+      ctx.lineTo(Math.round(faceX+faceW*.62),y+4);
+      ctx.lineTo(Math.round(faceX+faceW*.45),Math.min(bodyHalf-1,y+7));ctx.stroke();
+    }
+    faceX+=faceW+8+noise(350+face)*14;face++;
+  }
+
+  // Roots and stone points use deliberately irregular spacing and length.
+  // Their furthest tips stay inside the existing collision radius.
+  ctx.strokeStyle=palette.root;ctx.lineWidth=2;
+  let rootX=12+noise(380)*16,root=0;
+  while(rootX<w-8){
+    const base=bottomY(rootX)-1;
+    const length=Math.min(Math.max(0,h-base-2),3+noise(390+root)*8);
+    if(length>=2){
+      const bend=noise(420+root)>.5?3:-3;
+      ctx.beginPath();ctx.moveTo(Math.round(rootX),base);
+      ctx.lineTo(Math.round(rootX+bend),Math.round(base+length));
+      if(length>5)ctx.lineTo(Math.round(rootX+bend+(bend>0?-2:2)),Math.round(base+length+1));ctx.stroke();
+    }
+    rootX+=30+noise(450+root)*34;root++;
+  }
+  let toothX=5+noise(480)*9,tooth=0;
+  while(toothX<w-4){
+    const halfWidth=4+noise(490+tooth)*5;
+    const base=bottomY(toothX)-1;
+    const depth=Math.min(h,base+Math.max(4,(h-base)*(.58+noise(520+tooth)*.42)));
+    poly([[toothX-halfWidth,base],[toothX+noise(540+tooth)*3-1,depth],[toothX+halfWidth,base]],
+      tooth%3===0?palette.rockLight:palette.rock);
+    if(depth>h-2){ctx.fillStyle=palette.tip;ctx.fillRect(Math.round(toothX-1),Math.round(depth-2),2,2);}
+    toothX+=halfWidth*2+6+noise(560+tooth)*15;tooth++;
+  }
+
+  // Occasional grass and tiny sprouts make the islands feel alive without
+  // resembling collectible flowers.
+  const sproutCount=w<72?0:Math.min(4,1+Math.floor(w/125));
+  for(let i=0;i<sproutCount;i++){
+    const x=18+noise(600+i)*(w-36);
+    const base=topY(x)-2;
+    const rise=Math.min(Math.max(3,h+base-1),4+noise(620+i)*5);
+    ctx.strokeStyle=palette.mossLight;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(Math.round(x),base);ctx.lineTo(Math.round(x),Math.round(base-rise));ctx.stroke();
+    const side=noise(640+i)>.5?1:-1;
+    poly([[x,base-rise+2],[x+side*6,base-rise-1],[x+side*3,base-rise+4]],palette.mossLight);
+    if(noise(660+i)>.45)poly([[x,base-rise+4],[x-side*5,base-rise+2],[x-side*3,base-rise+6]],palette.moss);
+  }
+
+  // Pointed side faces communicate the capsule-shaped hitbox. Edge-rooted
+  // formations continue beyond the screen and therefore omit that outer cap.
+  const cap=Math.min(h,heavy?20:15);
+  if(t.edge!=='left')poly([[1,top[0][1]],[-cap,-2],[-cap+3,2],[1,bottom[0][1]]],palette.rockLight);
+  if(t.edge!=='right')poly([[w-1,top.at(-1)[1]],[w+cap,1],[w+cap-3,4],[w-1,bottom.at(-1)[1]]],palette.rockLight);
+  ctx.fillStyle=palette.tip;
+  if(t.edge!=='left')ctx.fillRect(-cap,-2,3,2);
+  if(t.edge!=='right')ctx.fillRect(w+cap-3,0,3,2);
   ctx.restore();
 }
 
@@ -522,9 +664,17 @@ function drawBee(b, offset = camera, attract = false) {
   if (!attract && game.mode === 'reviving') return;
   const y = b.y - offset;
   if (y < -50 || y > viewH + 60) return;
-  if (!attract && game.invulnerable > 0 && Math.floor(clock * 12) % 2) ctx.globalAlpha = .45;
   ctx.save();
   ctx.translate(Math.round(b.x), Math.round(y));
+  if (!attract && game.invulnerable > 0) {
+    ctx.strokeStyle = '#fff2cf';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 32, 28, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
   ctx.rotate(Math.max(-.28, Math.min(.28, b.vx / 750)));
   const flap = reducedMotion ? 0 : Math.sin(clock * (input.fly ? 55 : 27)) > 0 ? 4 : 0;
   // Hand-drawn pixel wings and a striped body; no original game assets.
@@ -613,7 +763,7 @@ function events() {
       clearInput();
       $('toast').classList.remove('show');
     } else if (event.type === 'difficultyBand') {
-      notify(`${event.label} · ${Math.round(event.obstacleRatio*100)}% HAZARDS · ${event.speedMultiplier}× SPEED`,2100);
+      difficultyNoticeUntil = clock + 2.1;
     } else if (event.type === 'windWarning') {
       notify('Caution: High Winds', 3000);
       tone(220,.28,'triangle',0,.022);tone(165,.32,'triangle',.12,.018);
@@ -630,7 +780,10 @@ function events() {
       [523,659,784,1047].forEach((note,i) => tone(note,.18,'triangle',i*.1));
       safeSet('nectar-tangle-best-v1', String(game.best));
       clearInput();
-    } else if (event.type === 'start') { tone(392);tone(523,.15,'triangle',.1); }
+    } else if (event.type === 'start') {
+      difficultyNoticeUntil = 0;
+      tone(392);tone(523,.15,'triangle',.1);
+    }
   }
 }
 
@@ -654,7 +807,7 @@ function drawScene(dt) {
     drawBee({x:WIDTH*.85+Math.sin(clock*.8)*20,y:viewH*.37+Math.sin(clock*1.5)*12,vx:0},0,true);
   } else {
     for (const p of game.level.platforms) drawLeaf(p);
-    for (const t of game.level.thorns) drawThorn(t);
+    for (const t of obstacleVisuals(game.level.thorns)) drawThorn(t);
     for (const f of game.level.flowers) drawFlower(f);
     for (const w of game.level.wasps) drawWasp(w);
     drawBee(game.bee);

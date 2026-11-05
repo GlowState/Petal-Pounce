@@ -38,15 +38,15 @@
     </header>
 
     <main>
-      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge the wasps.</p></div>
+      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge thorn islands.</p></div>
 
       <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
         <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
-          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. Collect all flowers and avoid purple thorns."></canvas>
+          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. Collect flowers and avoid mossy floating islands with sharp rocks."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
-            <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
+            <div class="hud-left"><span class="hud-caption">SCORE</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
@@ -54,7 +54,7 @@
             <div class="menu-panel" id="menu-panel">
               <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
-              <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge the wasps. Go farther.</strong></p>
+              <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge thorn islands. Go farther.</strong></p>
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
@@ -80,7 +80,7 @@
         </div>
       </section>
 
-      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Save up for a garden you love.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Long vines can join into thorn walls.</span></p></div><div><span class="guide-number">03</span><p><strong>Watch the forecast.</strong><span>High winds can push from either side.</span></p></div></div>
+      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Follow the scattered leaves through the garden.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Thorn islands grow longer and denser with distance.</span></p></div><div><span class="guide-number">03</span><p><strong>Watch the forecast.</strong><span>High winds can push from either side.</span></p></div></div>
       <footer><span>MADE FOR THE JOY OF ONE MORE GO.</span><span class="fan-note">Small wings. Wild gardens. Sweet victories. · <a href="./privacy.html">Privacy</a></span><span>EST. 2026 <span class="footer-flower">✳</span></span></footer>
     </main>
   </div>
@@ -88,15 +88,15 @@
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Fly upward through one endless garden with no levels or finish line. Long thorn walls shape the route, while occasional high-wind scenes gently push the bee left or right. A warning always appears before the wind begins.</p>
+    <p>Fly upward through one endless garden with no levels or finish line. Flowers rest on leaves scattered across the whole garden. Mossy floating islands and sharp rock teeth shape the route, while occasional high-wind scenes gently push the bee left or right.</p>
     <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Steering responds to left or right tilt at any angle, including near the top or bottom. Tilt farther for more speed; diagonal steering is slightly gentler. The enlarged touch area makes thumb repositioning easier. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
-    <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flower chains establish a rhythm. Long joined thorn walls and occasional parallel echo vines break it, but every cluster preserves a reachable escape. Risky blooms are worth three flowers.</p></div>
+    <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flowers can appear anywhere across the screen. Mossy islands, edge-grown ledges, rock-tooth gates, dense formations and calm stretches create a changing route, but the flower path always remains reachable.</p></div>
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Each flower also earns 10 honey for your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
+    <p class="help-note">Each flower also adds 10 points to your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
   </dialog>
@@ -108,7 +108,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=37"></script>
+  <script type="module" src="./game.mjs?v=41"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
