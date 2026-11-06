@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=42';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=44';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -150,6 +150,7 @@ window.addEventListener('resize', () => { if (!joystickActive) drawJoystick(stee
 
 let viewH = 480;
 let camera = 0;
+let cameraInitialized = false;
 let clock = 0;
 let accumulator = 0;
 let lastFrame = 0;
@@ -158,6 +159,8 @@ let displayedLives = -1;
 let displayedGarden = '';
 let toastTimer;
 let difficultyNoticeUntil = 0;
+let missedNoticeUntil = 0;
+let missedNoticePoints = 0;
 let helpWasPlaying = false;
 let shopWasPlaying = false;
 let displayedFlowers = -1;
@@ -169,7 +172,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scenery = new GardenScenery({ reducedMotion });
 const shopScenery = new GardenScenery({ reducedMotion:true });
 const currentGarden = () => gardenById(profile.data.equipped);
-const fmtScore = value => Math.floor(value).toString().padStart(6, '0');
+const fmtScore = value => (value < 0 ? '−' : '') + Math.abs(value).toString().padStart(6, '0');
 
 function resize() {
   const rect = screen.getBoundingClientRect();
@@ -178,7 +181,10 @@ function resize() {
   canvas.width = WIDTH;
   canvas.height = viewH;
   ctx.imageSmoothingEnabled = false;
-  camera = game.bee.y - viewH * .6;
+  const target = game.bee.y - viewH * .6;
+  if (!cameraInitialized || game.mode === 'title') camera = target;
+  else camera = Math.min(camera, target);
+  cameraInitialized = true;
 }
 new ResizeObserver(resize).observe(screen);
 resize();
@@ -238,6 +244,7 @@ function primaryAction() {
     game.start();
     particles.length = 0;
     camera = game.bee.y - viewH * .6;
+    cameraInitialized = true;
     notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
   } else if (game.mode === 'paused') game.resume();
   updateUI();
@@ -247,6 +254,7 @@ $('play').addEventListener('click', primaryAction);
 $('secondary').addEventListener('click', () => {
   clearInput();
   game.record();
+  safeSet('nectar-tangle-best-v1', String(game.best));
   game.mode = 'title';
   $('toast').classList.remove('show');
   updateUI();
@@ -476,6 +484,7 @@ function drawLeaf(p, offset = camera) {
 }
 
 function drawFlower(f, offset = camera) {
+  if (f.missed) return;
   const y=f.y-offset;
   if(y < -45 || y > viewH+45)return;
   if (f.bait) {
@@ -765,7 +774,9 @@ function events() {
       if(event.bait)notify('RISKY BLOOM · +3 FLOWERS',1500);
       addBurst(event.x,event.y,event.value||1);
       tone(784,.08,'sine');tone(1047,.12,'sine',.065);
-      safeSet('nectar-tangle-best-v1', String(game.best));
+    } else if (event.type === 'flowersMissed') {
+      missedNoticePoints = (clock < missedNoticeUntil ? missedNoticePoints : 0) + event.points;
+      missedNoticeUntil = clock + 1.2;
     } else if (event.type === 'bounce') tone(220,.07,'triangle',0,.014);
     else if (event.type === 'hit') {
       tone(160,.17,'sawtooth',0,.025);tone(95,.19,'triangle',.08);
@@ -780,6 +791,7 @@ function events() {
       tone(440,.12,'triangle');tone(660,.14,'triangle',.08);
       notify(`BACK IN THE GARDEN · ${game.lives} ${game.lives === 1 ? 'LIFE' : 'LIVES'} LEFT`, 1800);
     } else if (event.type === 'over') {
+      safeSet('nectar-tangle-best-v1', String(game.best));
       clearInput();
       $('toast').classList.remove('show');
     } else if (event.type === 'difficultyBand') {
@@ -799,6 +811,8 @@ function events() {
       clearInput();
     } else if (event.type === 'start') {
       difficultyNoticeUntil = 0;
+      missedNoticeUntil = 0;
+      missedNoticePoints = 0;
       tone(392);tone(523,.15,'triangle',.1);
     }
   }
@@ -806,10 +820,6 @@ function events() {
 
 function drawScene(dt) {
   const attract = game.mode === 'title';
-  if (!attract) {
-    const target = game.bee.y-viewH*.57;
-    camera += (target-camera) * (1-Math.exp(-6*dt));
-  }
   ctx.save();
   shake = Math.max(0,shake-dt);
   if (shake > 0) ctx.translate(Math.round((Math.random()-.5)*7),Math.round((Math.random()-.5)*7));
@@ -830,11 +840,21 @@ function drawScene(dt) {
     drawBee(game.bee);
     drawWindOverlay();
     if (game.mode === 'playing') {
-      const above = game.level.flowers.filter(f=>!f.taken && f.y<camera+70).length;
-      const below = game.level.flowers.filter(f=>!f.taken && f.y>camera+viewH-45).length;
+      const above = game.level.flowers.filter(f=>!f.taken && !f.missed && f.y<camera+70).length;
+      const below = game.level.flowers.filter(f=>!f.taken && !f.missed && f.y>camera+viewH-45).length;
       ctx.font = '11px monospace';ctx.textAlign='right';ctx.fillStyle=currentGarden().hint;
       if (above) ctx.fillText(`${above} ABOVE ↑`,WIDTH-24,90);
       if (below) ctx.fillText(`${below} BELOW ↓`,WIDTH-24,viewH-12);
+      if (clock < missedNoticeUntil) {
+        const message = `MISSED · −${missedNoticePoints}`;
+        ctx.font = 'bold 18px monospace';
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = '#30232d';
+        ctx.fillStyle = '#ffc1bb';
+        ctx.strokeText(message, WIDTH / 2, 76);
+        ctx.fillText(message, WIDTH / 2, 76);
+      }
     }
   }
   for (let i=particles.length-1;i>=0;i--) {
@@ -853,10 +873,17 @@ function frame(timestamp) {
   const dt = Math.min(.05, (timestamp-lastFrame)/1000 || 0);
   lastFrame=timestamp;
   clock+=dt;
+  const previousMode = game.mode;
   if(game.mode==='playing'||game.mode==='reviving'){
     accumulator+=dt;
     while(accumulator>=FIXED_STEP){game.step(FIXED_STEP,input);accumulator-=FIXED_STEP;}
   } else accumulator=0;
+  if (game.mode === 'playing') {
+    const previousBottom = camera + viewH;
+    camera = advanceCamera(camera, game.bee.y, viewH, dt, game.distance);
+    if (previousMode === 'playing') game.missFlowers(previousBottom, camera + viewH);
+    game.enforceCameraWindow(camera, camera + viewH);
+  }
   events();
   updateUI();
   drawScene(dt);

@@ -14,6 +14,39 @@ export const WIND_MIN_DURATION = 20;
 export const WIND_MAX_DURATION = 30;
 export const WIND_MIN_ALTITUDE_M = 450;
 export const WIND_LONG_CALM_CHANCE = .22;
+export const BEETLE_MAX_PATROL_SPEED = 155;
+export const CAMERA_START_RISE_SPEED = 28;
+export const CAMERA_MAX_RISE_SPEED = 46;
+
+// The playfield always climbs during active play. The increase is deliberately
+// smooth instead of level-based: hazards remain the main source of difficulty,
+// while the moving bottom edge prevents a player from hovering forever.
+export function cameraRiseSpeed(altitudeM = 0) {
+  const altitude = Math.max(0, Number(altitudeM) || 0);
+  return Math.min(CAMERA_MAX_RISE_SPEED,
+    CAMERA_START_RISE_SPEED + (CAMERA_MAX_RISE_SPEED - CAMERA_START_RISE_SPEED)
+      * (1 - Math.exp(-altitude / 850)));
+}
+
+export function advanceCamera(currentY, beeY, viewHeight, dt, altitudeM = 0) {
+  const current = Number(currentY) || 0;
+  const elapsed = Math.max(0, Number(dt) || 0);
+  const height = Math.max(1, Number(viewHeight) || 1);
+  const followTarget = (Number(beeY) || 0) - height * .57;
+  const followed = current + (followTarget - current) * (1 - Math.exp(-6 * elapsed));
+  const pressured = current - cameraRiseSpeed(altitudeM) * elapsed;
+  // World Y decreases upward. Choosing the smaller value guarantees that the
+  // camera follows a quick climb but can never stall or drift back downward.
+  return Math.min(pressured, followed);
+}
+
+export function beetlePatrolSpeed(amplitude, difficultyBand = 0, variation = 0) {
+  const patrolRadius = Math.max(1, Math.abs(Number(amplitude) || 1));
+  const band = Math.max(0, Math.min(DIFFICULTY_BANDS.length - 1,
+    Math.floor(Number(difficultyBand) || 0)));
+  const roll = Math.max(0, Math.min(1, Number(variation) || 0));
+  return Math.min(BEETLE_MAX_PATROL_SPEED / patrolRadius, 1.05 + band * .10 + roll * .18);
+}
 
 export function windCalmRange(altitudeM = 0) {
   const altitude = Math.max(0, Number(altitudeM) || 0);
@@ -665,7 +698,7 @@ export class Game {
       const { patrolLeft, patrolRight, escapeX } = available[Math.floor(rng() * available.length)];
       const homeX = (patrolLeft + patrolRight) / 2;
       const amplitude = (patrolRight - patrolLeft) / 2;
-      const speed = Math.min(120 / amplitude, .85 + difficulty * .08 + rng() * .16);
+      const speed = beetlePatrolSpeed(amplitude, difficulty, rng());
       const phase = rng() * Math.PI * 2;
       patrols.push({ homeX, amplitude, speed, phase, y, x: homeX + Math.sin(phase) * amplitude,
         chunkIndex: piece.chunkIndex, escapeWidth, escapeX, patrolLeft, patrolRight });
@@ -704,7 +737,55 @@ export class Game {
     this.events.push({ type: 'revive', x: point.x, y: point.y });
   }
 
+  moveCheckpointIntoView(cameraTop, cameraBottom) {
+    const top = Number(cameraTop) || 0;
+    const bottom = Math.max(top + 1, Number(cameraBottom) || top + 1);
+    const height = bottom - top;
+    const targetY = top + height * .64;
+    const visibleLeaves = this.level.platforms.filter(platform => !platform.launch
+      && platform.y >= top + Math.min(80, height * .18)
+      && platform.y <= bottom - Math.min(52, height * .12));
+    if (visibleLeaves.length) {
+      const leaf = visibleLeaves.reduce((best, platform) =>
+        Math.abs(platform.y - targetY) < Math.abs(best.y - targetY) ? platform : best);
+      this.checkpoint = { x: leaf.x + leaf.w / 2, y: leaf.y - 28 };
+      return;
+    }
+    // Rare fallback for an unusually open camera: protection gives the player
+    // time to regain control even when no bounce leaf is currently visible.
+    this.checkpoint = {
+      x: Math.max(30, Math.min(WIDTH - 30, this.bee.x)),
+      y: targetY
+    };
+  }
+
+  enforceCameraWindow(cameraTop, cameraBottom) {
+    if (this.mode !== 'playing') return false;
+    const bottom = Number(cameraBottom);
+    if (!Number.isFinite(bottom) || this.bee.y - RADIUS <= bottom + 4) return false;
+    this.moveCheckpointIntoView(cameraTop, bottom);
+    this.loseLife('scroll');
+    return true;
+  }
+
   record() { this.best = Math.max(this.best, this.score); }
+
+  missFlowers(previousBottom, currentBottom) {
+    if (this.mode !== 'playing' || currentBottom >= previousBottom) return;
+    let missed = 0;
+    for (const flower of this.level.flowers) {
+      if (flower.taken || flower.missed) continue;
+      const bloomTop = flower.y - (flower.bait ? 21 : 16);
+      if (bloomTop > previousBottom || bloomTop <= currentBottom) continue;
+      flower.missed = true;
+      missed++;
+    }
+    if (!missed) return;
+    const points = missed * 10;
+    this.remaining -= missed;
+    this.score -= points;
+    this.events.push({ type: 'flowersMissed', points, count: missed });
+  }
 
   updateWind(dt) {
     const wind = this.wind;
@@ -836,13 +917,12 @@ export class Game {
     }
 
     for (const f of this.level.flowers) {
-      if (!f.taken && Math.hypot(b.x - f.x, b.y - f.y) < 29) {
+      if (!f.taken && !f.missed && Math.hypot(b.x - f.x, b.y - f.y) < 29) {
         f.taken = true;
         this.remaining--;
         const value = Math.max(1, f.value || 1);
         this.flowersCollected += value;
         this.score += 10 * value;
-        this.record();
         this.events.push({ type: 'flower', x: f.x, y: f.y, value, bait: !!f.bait });
       }
     }
