@@ -20,18 +20,26 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Fixed the automatic climb so the screen movement is immediately visible.
+  It now starts at 52 pixels per second and eases smoothly toward 72 pixels
+  per second as the hidden difficulty progression increases.
+• Removed the on-screen distance readout. The center HUD now shows a clean,
+  three-digit flower counter, and the duplicate flower display was removed.
+• Removed distance from the game-over summary while keeping altitude internally
+  for procedural difficulty, hazard density, winds and beetle progression.
+• Updated the offline cache to v45.
+
 • Beetles now patrol about 25–30% faster, with a safe maximum horizontal
   speed of 155 pixels per second. They still fly only horizontally and retain
   their permanent escape corridors.
 • The playfield now scrolls upward continuously during active play. It starts
-  at a gentle 28 pixels per second and rises smoothly toward a 46-pixel maximum
+  at a steady 52 pixels per second and rises smoothly toward a 72-pixel maximum
   as distance increases; there are no sudden speed levels.
 • The camera never reverses downward. A fast-climbing bee can pull it upward,
   while hovering no longer stops the run. Falling completely below the screen
   costs one life and revives the bee at a visible leaf or protected safe point.
 • Automatic scrolling pauses with the game and during the short revive delay,
   preventing an unfair moving respawn.
-• Updated the offline cache to v44.
 
 • Lose 10 run points when an uncollected bloom scrolls below the playfield.
   Each missed flower is counted once and removed from the run. The score can
