@@ -20,20 +20,31 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Smoothed the continuous camera with eased velocity, removing the small hitch
+  that could happen when the bee crossed the camera follow line.
+• Increased scrolling slightly from 52–72 to 58–78 pixels per second.
+• Fixed a double-life bug: a hazard could revive the bee at an old leaf that
+  had already scrolled below the screen, immediately triggering a second loss.
+• Revivals now keep the last touched leaf when it is visible and safe. If it is
+  no longer usable, the game selects the nearest visible leaf with clearance
+  from rocks and beetles—or the clearest open point when no leaf is visible—
+  then grants 2.75 seconds of protection.
+• The scrolling boundary now respects revival protection.
+• Updated the offline cache to v46.
+
 • Fixed the automatic climb so the screen movement is immediately visible.
-  It now starts at 52 pixels per second and eases smoothly toward 72 pixels
+  It now starts at 58 pixels per second and eases smoothly toward 78 pixels
   per second as the hidden difficulty progression increases.
 • Removed the on-screen distance readout. The center HUD now shows a clean,
   three-digit flower counter, and the duplicate flower display was removed.
 • Removed distance from the game-over summary while keeping altitude internally
   for procedural difficulty, hazard density, winds and beetle progression.
-• Updated the offline cache to v45.
 
 • Beetles now patrol about 25–30% faster, with a safe maximum horizontal
   speed of 155 pixels per second. They still fly only horizontally and retain
   their permanent escape corridors.
 • The playfield now scrolls upward continuously during active play. It starts
-  at a steady 52 pixels per second and rises smoothly toward a 72-pixel maximum
+  at a steady 58 pixels per second and rises smoothly toward a 78-pixel maximum
   as distance increases; there are no sudden speed levels.
 • The camera never reverses downward. A fast-climbing bee can pull it upward,
   while hovering no longer stops the run. Falling completely below the screen

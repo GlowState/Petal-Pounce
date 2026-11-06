@@ -15,8 +15,8 @@ export const WIND_MAX_DURATION = 30;
 export const WIND_MIN_ALTITUDE_M = 450;
 export const WIND_LONG_CALM_CHANCE = .22;
 export const BEETLE_MAX_PATROL_SPEED = 155;
-export const CAMERA_START_RISE_SPEED = 52;
-export const CAMERA_MAX_RISE_SPEED = 72;
+export const CAMERA_START_RISE_SPEED = 58;
+export const CAMERA_MAX_RISE_SPEED = 78;
 
 // The playfield always climbs during active play. The increase is deliberately
 // smooth instead of level-based: hazards remain the main source of difficulty,
@@ -28,16 +28,20 @@ export function cameraRiseSpeed(altitudeM = 0) {
       * (1 - Math.exp(-altitude / 850)));
 }
 
-export function advanceCamera(currentY, beeY, viewHeight, dt, altitudeM = 0) {
+export function advanceCamera(currentY, currentRiseSpeed, beeY, viewHeight, dt, altitudeM = 0) {
   const current = Number(currentY) || 0;
   const elapsed = Math.max(0, Number(dt) || 0);
   const height = Math.max(1, Number(viewHeight) || 1);
-  const followTarget = (Number(beeY) || 0) - height * .57;
-  const followed = current + (followTarget - current) * (1 - Math.exp(-6 * elapsed));
-  const pressured = current - cameraRiseSpeed(altitudeM) * elapsed;
-  // World Y decreases upward. Choosing the smaller value guarantees that the
-  // camera follows a quick climb but can never stall or drift back downward.
-  return Math.min(pressured, followed);
+  const baseSpeed = cameraRiseSpeed(altitudeM);
+  const speed = Math.max(baseSpeed, Number(currentRiseSpeed) || baseSpeed);
+  const beeScreenY = (Number(beeY) || 0) - current;
+  const lead = Math.max(0, height * .57 - beeScreenY);
+  const desiredSpeed = Math.min(210, baseSpeed + lead * 2.4);
+  // Smooth velocity instead of switching between two camera positions. This
+  // removes the tiny hitch that could occur when the bee crossed the follow line.
+  const easedSpeed = Math.max(baseSpeed,
+    speed + (desiredSpeed - speed) * (1 - Math.exp(-4.2 * elapsed)));
+  return { y: current - easedSpeed * elapsed, speed: easedSpeed };
 }
 
 export function beetlePatrolSpeed(amplitude, difficultyBand = 0, variation = 0) {
@@ -588,6 +592,7 @@ export class Game {
     this.wind = { phase: 'calm', direction: 0, strength: 0, timer: 0,
       duration: 0, elapsed: 0, gustPhase: this.windRandom() * Math.PI * 2,
       nextAt: Infinity, armed: false, longCalm: false, completed: 0 };
+    this.revivePrepared = false;
     this.respawn();
     this.reviveTime = 0;
   }
@@ -724,6 +729,7 @@ export class Game {
       this.mode = 'reviving';
       this.reason = reason;
       this.reviveTime = REVIVE_DELAY;
+      this.revivePrepared = false;
     }
   }
 
@@ -731,10 +737,32 @@ export class Game {
     if (this.mode !== 'reviving') return;
     const point = this.checkpoint;
     this.bee = { x: point.x, y: point.y, vx: 0, vy: -90, face: 1 };
-    this.invulnerable = 2;
+    this.invulnerable = 2.75;
     this.reviveTime = 0;
+    this.revivePrepared = false;
     this.mode = 'playing';
     this.events.push({ type: 'revive', x: point.x, y: point.y });
+  }
+
+  respawnClearance(x, y) {
+    let clearance = Math.min(x - 27, WIDTH - 27 - x);
+    for (const thorn of this.level.thorns) {
+      clearance = Math.min(clearance,
+        thornDistance(x, y, thorn) - (thorn.h + RADIUS + 14));
+    }
+    for (const beetle of this.level.wasps) {
+      clearance = Math.min(clearance,
+        Math.hypot(x - beetle.x, y - beetle.y) - (RADIUS + 15 + 34));
+    }
+    return clearance;
+  }
+
+  checkpointIsSafeAndVisible(point, cameraTop, cameraBottom) {
+    if (!point) return false;
+    const height = cameraBottom - cameraTop;
+    return point.y >= cameraTop + Math.min(52, height * .12)
+      && point.y <= cameraBottom - Math.min(72, height * .16)
+      && this.respawnClearance(point.x, point.y) >= 0;
   }
 
   moveCheckpointIntoView(cameraTop, cameraBottom) {
@@ -745,26 +773,46 @@ export class Game {
     const visibleLeaves = this.level.platforms.filter(platform => !platform.launch
       && platform.y >= top + Math.min(80, height * .18)
       && platform.y <= bottom - Math.min(52, height * .12));
-    if (visibleLeaves.length) {
-      const leaf = visibleLeaves.reduce((best, platform) =>
-        Math.abs(platform.y - targetY) < Math.abs(best.y - targetY) ? platform : best);
-      this.checkpoint = { x: leaf.x + leaf.w / 2, y: leaf.y - 28 };
+    const candidates = visibleLeaves.flatMap(leaf => [
+      { x: leaf.x + leaf.w * .5, y: leaf.y - 28, leaf },
+      { x: leaf.x + leaf.w * .3, y: leaf.y - 28, leaf },
+      { x: leaf.x + leaf.w * .7, y: leaf.y - 28, leaf }
+    ]).filter(point => this.respawnClearance(point.x, point.y) >= 0)
+      .sort((a, b) => Math.abs(a.y - targetY) - Math.abs(b.y - targetY));
+    if (candidates.length) {
+      const point = candidates[0];
+      this.checkpoint = { x: point.x, y: point.y };
       return;
     }
-    // Rare fallback for an unusually open camera: protection gives the player
-    // time to regain control even when no bounce leaf is currently visible.
-    this.checkpoint = {
-      x: Math.max(30, Math.min(WIDTH - 30, this.bee.x)),
-      y: targetY
-    };
+    // Rare fallback for an unusually open camera: choose the point with the
+    // greatest measured clearance instead of blindly reusing the bee's X.
+    const openPoints = [.28, .5, .72].flatMap(xRatio => [.48, .62, .74].map(yRatio => ({
+      x: WIDTH * xRatio,
+      y: top + height * yRatio
+    }))).sort((a, b) => this.respawnClearance(b.x, b.y) - this.respawnClearance(a.x, a.y));
+    this.checkpoint = openPoints[0];
+  }
+
+  prepareRevive(cameraTop, cameraBottom) {
+    if (this.mode !== 'reviving' || this.revivePrepared) return false;
+    const top = Number(cameraTop) || 0;
+    const bottom = Math.max(top + 1, Number(cameraBottom) || top + 1);
+    // Preserve the last leaf the player touched whenever it is still visible
+    // and clear. Only relocate when scrolling or a hazard made it unsafe.
+    if (!this.checkpointIsSafeAndVisible(this.checkpoint, top, bottom)) {
+      this.moveCheckpointIntoView(top, bottom);
+    }
+    this.revivePrepared = true;
+    return true;
   }
 
   enforceCameraWindow(cameraTop, cameraBottom) {
     if (this.mode !== 'playing') return false;
     const bottom = Number(cameraBottom);
-    if (!Number.isFinite(bottom) || this.bee.y - RADIUS <= bottom + 4) return false;
-    this.moveCheckpointIntoView(cameraTop, bottom);
+    if (!Number.isFinite(bottom) || this.invulnerable
+      || this.bee.y - RADIUS <= bottom + 4) return false;
     this.loseLife('scroll');
+    this.prepareRevive(cameraTop, bottom);
     return true;
   }
 
