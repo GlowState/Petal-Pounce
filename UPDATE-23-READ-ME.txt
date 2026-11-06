@@ -1,4 +1,4 @@
-PETAL POUNCE — UPDATE 23: POLISHED FLOATING GARDEN ISLANDS
+PETAL POUNCE — UPDATE 23: GARDEN ISLANDS AND BEETLE PATROLS
 
 This is a cumulative update. You do not need to install Updates 17–22 first.
 
@@ -18,6 +18,16 @@ dist folder:
 
 WHAT CHANGED
 
+LATEST REVISION
+
+• Added hand-drawn rose-colored beetles with shell details, legs and flying wings.
+• Beetles patrol horizontally at fixed heights and reverse direction smoothly.
+• Patrol density increases with altitude. The first patrol is above 35 meters.
+• Every patrol reserves a 105-pixel escape corridor and clears rocks, flowers
+  and respawn leaves. Maximum horizontal patrol speed is 120 pixels per second.
+• Beetle collisions cost one life and use the existing automatic revival.
+• Updated instructions and refreshed the offline cache to v42.
+
 • Replaced the purple thorn-bar artwork with hand-drawn floating garden islands.
 • Added irregular moss caps, layered soil and stone, hanging roots, rock cracks,
   varied sharp points and tiny sprouts that fit the existing garden artwork.
@@ -26,21 +36,19 @@ WHAT CHANGED
 • Touching hazard pieces on the same row now render as one continuous island,
   so dense sections look intentional instead of like separate bars.
 • Edge-grown hazards appear rooted beyond the screen instead of ending abruptly.
-• Preserved the exact Update 22 obstacle positions, reach, spacing, difficulty,
-  collision geometry, safe routes, endless progression and calm periods.
+• Added moving hazards to the island course for additional difficulty.
 • Updated game labels, accessibility text and instructions to say thorn islands.
 • Renamed the run HUD from HONEY to SCORE. Flowers add 10 score points each.
 • Moved every difficulty notice into the distance HUD to keep the playfield clear.
 • Clipped island art to the original obstacle shapes and added a dashed ring
   around the bee during temporary protection.
 • Used Flower Garden's smooth bee rendering across all gardens.
-• Updated the offline cache to v41.
 
 GAMEPLAY SAFETY
 
-This is a visual-only obstacle update. The proven Update 22 generator and its
-collision geometry are unchanged. The new island silhouette reaches the same
-danger boundary as the existing hitbox, so the art remains fair and readable.
+Patrols are checked against rocks, flowers and respawn leaves. Every patrol has
+an escape corridor. Neighboring patrols also allow time to steer between their
+escape openings. Beetle hits trigger automatic revival and brief protection.
 
 FALLBACK
 
