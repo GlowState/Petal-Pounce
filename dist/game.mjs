@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=41';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES } from './engine.mjs?v=42';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -415,7 +415,7 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect the flowers. Dodge the thorn islands.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
+    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
     over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} points scored.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
@@ -646,18 +646,38 @@ function drawThorn(t) {
   ctx.restore();
 }
 
-function drawWasp(w) {
-  const y = w.y - camera;
+function drawBeetle(beetle) {
+  const y = beetle.y - camera;
   if (y < -35 || y > viewH + 35) return;
-  ctx.save();ctx.translate(w.x,y);
-  const flap = Math.sin(clock*28 + w.phase)*5;
-  ctx.fillStyle='rgba(230,245,255,.68)';
-  ctx.beginPath();ctx.ellipse(-9,-12-flap,10,7,-.3,0,Math.PI*2);ctx.ellipse(9,-12+flap,10,7,.3,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=w.rush?'#ef806b':'#eab840';ctx.beginPath();ctx.ellipse(0,0,17,11,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#3b273d';ctx.fillRect(-9,-9,5,18);ctx.fillRect(2,-10,5,20);
-  ctx.beginPath();ctx.moveTo(13,1);ctx.lineTo(24,5);ctx.lineTo(12,8);ctx.fill();
-  if (w.rush) { ctx.fillStyle='#fff2b8';ctx.fillRect(-2,-8,4,5);ctx.fillRect(9,-3,4,4); }
-  ctx.fillStyle='#fff';ctx.fillRect(-13,-6,4,4);ctx.restore();
+  ctx.save();
+  ctx.translate(Math.round(beetle.x), Math.round(y));
+  ctx.scale(Math.cos(beetle.phase) < 0 ? -1 : 1, 1);
+  const flap = reducedMotion ? 0 : Math.sin(clock * 38 + beetle.phase) * 3;
+  ctx.fillStyle = '#e7efd8b3';
+  ctx.beginPath();
+  ctx.ellipse(-7, -11 - flap, 12, 5, -.35, 0, Math.PI * 2);
+  ctx.ellipse(3, -10 + flap, 11, 5, .25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#383341';
+  ctx.lineWidth = 2;
+  for (const x of [-10, -2, 6]) {
+    ctx.beginPath();
+    ctx.moveTo(x, 5);ctx.lineTo(x - 3, 12);ctx.lineTo(x + 1, 14);
+    ctx.stroke();
+  }
+  poly([[-18,-1],[-13,-10],[-4,-13],[7,-9],[12,-2],[9,8],[0,12],[-12,8]], '#423546');
+  poly([[-15,-2],[-10,-9],[-3,-10],[6,-7],[9,0],[6,7],[-1,9],[-11,6]], '#a65f7b');
+  poly([[-13,-3],[-8,-8],[-2,-8],[3,-5],[-4,-3]], '#d495a5');
+  ctx.strokeStyle = '#674353';
+  ctx.beginPath();ctx.moveTo(-14,1);ctx.lineTo(7,1);ctx.stroke();
+  ctx.fillStyle = '#583d53';
+  ctx.fillRect(-8,3,3,3);ctx.fillRect(0,-6,3,3);
+  poly([[9,-6],[16,-7],[20,-2],[19,5],[13,8],[8,4]], '#3a3543');
+  ctx.fillStyle = '#fff1cf';ctx.fillRect(15,-3,3,4);
+  ctx.fillStyle = '#282c32';ctx.fillRect(17,-2,1,2);
+  ctx.strokeStyle = '#3a3543';
+  ctx.beginPath();ctx.moveTo(16,-6);ctx.lineTo(20,-12);ctx.lineTo(23,-12);ctx.stroke();
+  ctx.restore();
 }
 
 function drawBee(b, offset = camera, attract = false) {
@@ -773,9 +793,6 @@ function events() {
     } else if (event.type === 'windEnd') {
       notify('WINDS CALM', 1200);
       tone(330,.12,'triangle');tone(440,.14,'triangle',.08);
-    } else if (event.type === 'surprise' && event.kind === 'waspRush') {
-      notify('WATCH OUT · FAST WASP', 1600);
-      tone(740,.09,'triangle',0,.022);
     } else if (event.type === 'complete') {
       [523,659,784,1047].forEach((note,i) => tone(note,.18,'triangle',i*.1));
       safeSet('nectar-tangle-best-v1', String(game.best));
@@ -809,7 +826,7 @@ function drawScene(dt) {
     for (const p of game.level.platforms) drawLeaf(p);
     for (const t of obstacleVisuals(game.level.thorns)) drawThorn(t);
     for (const f of game.level.flowers) drawFlower(f);
-    for (const w of game.level.wasps) drawWasp(w);
+    for (const beetle of game.level.wasps) drawBeetle(beetle);
     drawBee(game.bee);
     drawWindOverlay();
     if (game.mode === 'playing') {

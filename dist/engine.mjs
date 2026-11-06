@@ -617,10 +617,64 @@ export class Game {
   }
 
   spawnWasps(piece, offset) {
-    // Thorn branches are the sole collision hazard in the classic ruleset.
-    // Keep the array for compatibility with older rendering code and saves.
-    void piece;
-    void offset;
+    // Retain the collection name used by existing runtime consumers.
+    const rng = random((this.seed + this.run * 741103 + piece.chunkIndex * 1741 + 9187) >>> 0);
+    const difficulty = difficultyAt(piece.startAltitudeM).bandIndex;
+    const targetCount = Math.ceil(piece.height / (1000 - difficulty * 145));
+    const separation = 340 - difficulty * 44;
+    const patrols = [];
+    const playerClearance = RADIUS + 15 + 18;
+    const spawnY = piece.height - 104;
+    const exclusions = [
+      ...piece.thorns.map(thorn => ({x:thorn.x, endX:thorn.endX, y:thorn.y, radius:thorn.h + playerClearance})),
+      ...piece.platforms.map(leaf => ({x:leaf.x, endX:leaf.x+leaf.w, y:leaf.y-28, radius:78})),
+      ...piece.flowers.map(flower => ({x:flower.x, endX:flower.x, y:flower.y, radius:78}))
+    ];
+
+    for (let y = spawnY - 460; y > 190; y -= 30) {
+      const altitude = piece.startAltitudeM + (spawnY - y) / 10;
+      if (altitude < 35 || patrols.some(enemy => Math.abs(enemy.y - y) < separation)) continue;
+      // Expand every rock by both collision radii before finding patrol space.
+      let openings = [[45, WIDTH - 45]];
+      for (const obstacle of exclusions) {
+        const radius = obstacle.radius;
+        const verticalDistance = Math.abs(obstacle.y - y);
+        if (verticalDistance >= radius) continue;
+        const extension = Math.sqrt(radius * radius - verticalDistance * verticalDistance);
+        const left = obstacle.x - extension;
+        const right = obstacle.endX + extension;
+        openings = openings.flatMap(([start, end]) => {
+          if (right <= start || left >= end) return [[start, end]];
+          const remaining = [];
+          if (left > start) remaining.push([start, left]);
+          if (right < end) remaining.push([right, end]);
+          return remaining;
+        });
+      }
+      const choices = openings.filter(([start, end]) => end - start >= 195 - difficulty * 13);
+      if (!choices.length) continue;
+      // Reserve a permanent escape corridor alongside the complete moving patrol.
+      const escapeWidth = 105;
+      const previous = patrols.at(-1);
+      const available = choices.flatMap(([start, end]) => [
+        { patrolLeft: start + escapeWidth, patrolRight: end, escapeX: start + escapeWidth / 2 },
+        { patrolLeft: start, patrolRight: end - escapeWidth, escapeX: end - escapeWidth / 2 }
+      ]).filter(choice => !previous ||
+        Math.abs(choice.escapeX - previous.escapeX) <= Math.max(0, ((previous.y - y) / 230 - .45) * 200));
+      if (!available.length) continue;
+      const { patrolLeft, patrolRight, escapeX } = available[Math.floor(rng() * available.length)];
+      const homeX = (patrolLeft + patrolRight) / 2;
+      const amplitude = (patrolRight - patrolLeft) / 2;
+      const speed = Math.min(120 / amplitude, .85 + difficulty * .08 + rng() * .16);
+      const phase = rng() * Math.PI * 2;
+      patrols.push({ homeX, amplitude, speed, phase, y, x: homeX + Math.sin(phase) * amplitude,
+        chunkIndex: piece.chunkIndex, escapeWidth, escapeX, patrolLeft, patrolRight });
+    }
+    const count = Math.min(targetCount, patrols.length);
+    for (let i = 0; i < count; i++) {
+      const enemy = patrols[Math.floor((i + .5) * patrols.length / count)];
+      this.level.wasps.push({ ...enemy, y: enemy.y + offset });
+    }
   }
 
   next() {} // Kept for compatibility with older UI consumers.
@@ -733,13 +787,6 @@ export class Game {
     }
     this.invulnerable = Math.max(0, this.invulnerable - dt);
     const b = this.bee;
-    // Warn before the special wasp reaches the bee's part of the screen.
-    for (const w of this.level.wasps) {
-      if (w.rush && !w.warned && w.y < b.y + 40 && w.y > b.y - 470) {
-        w.warned = true;
-        this.events.push({ type: 'surprise', kind: 'waspRush' });
-      }
-    }
     const oldBottom = b.y + RADIUS;
     const digitalDirection = Number(!!input.right) - Number(!!input.left);
     const direction = Number.isFinite(input.steer) ? Math.max(-1, Math.min(1, input.steer)) : digitalDirection;
@@ -802,7 +849,7 @@ export class Game {
 
     if (!this.invulnerable) {
       for (const w of this.level.wasps) {
-        if (Math.hypot(b.x - w.x, b.y - w.y) < RADIUS + 15) { this.loseLife('wasp'); return; }
+        if (Math.hypot(b.x - w.x, b.y - w.y) < RADIUS + 15) { this.loseLife('beetle'); return; }
       }
       for (const t of this.level.thorns) {
         if (thornDistance(b.x, b.y, t) < t.h + RADIUS - 3) {
