@@ -15,8 +15,8 @@ export const WIND_MAX_DURATION = 30;
 export const WIND_MIN_ALTITUDE_M = 450;
 export const WIND_LONG_CALM_CHANCE = .22;
 export const BEETLE_MAX_PATROL_SPEED = 155;
-export const CAMERA_START_RISE_SPEED = 28;
-export const CAMERA_MAX_RISE_SPEED = 46;
+export const CAMERA_START_RISE_SPEED = 52;
+export const CAMERA_MAX_RISE_SPEED = 72;
 
 // The playfield always climbs during active play. The increase is deliberately
 // smooth instead of level-based: hazards remain the main source of difficulty,

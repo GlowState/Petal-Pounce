@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=44';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=45';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -382,10 +382,10 @@ function updateUI() {
   $('best').textContent = fmtScore(game.best);
   $('score').textContent = fmtScore(game.score);
   $('remaining').textContent = game.flowersCollected;
-  $('timer').textContent = `${game.distance}m`;
+  $('timer').textContent = String(game.flowersCollected).padStart(3, '0');
   $('timer').parentElement.classList.remove('warning');
   $('level-label').textContent = game.mode === 'playing' && clock < difficultyNoticeUntil
-    ? 'DIFFICULTY UP' : 'DISTANCE';
+    ? 'DIFFICULTY UP' : 'FLOWERS';
   $('level-label').title = garden.name;
   $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (game.distance % 300) / 3))}%`;
   const inRun = mode !== 'title';
@@ -425,7 +425,7 @@ function updateUI() {
   const titles = {
     title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
-    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.distance} meters traveled · ${game.flowersCollected} flowers gathered · ${game.score} points scored.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
+    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.flowersCollected} flowers gathered · ${game.score} points scored.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
     const [tag, title, description, label] = titles[mode];
