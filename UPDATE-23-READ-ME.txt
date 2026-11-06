@@ -20,13 +20,33 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Beetles now patrol about 25–30% faster, with a safe maximum horizontal
+  speed of 155 pixels per second. They still fly only horizontally and retain
+  their permanent escape corridors.
+• The playfield now scrolls upward continuously during active play. It starts
+  at a gentle 28 pixels per second and rises smoothly toward a 46-pixel maximum
+  as distance increases; there are no sudden speed levels.
+• The camera never reverses downward. A fast-climbing bee can pull it upward,
+  while hovering no longer stops the run. Falling completely below the screen
+  costs one life and revives the bee at a visible leaf or protected safe point.
+• Automatic scrolling pauses with the game and during the short revive delay,
+  preventing an unfair moving respawn.
+• Updated the offline cache to v44.
+
+• Lose 10 run points when an uncollected bloom scrolls below the playfield.
+  Each missed flower is counted once and removed from the run. The score can
+  go below zero. The flower bank is separate from the run score.
+• A brief on-screen notice shows the points lost. Personal best uses the score
+  at game over or when you return to the title.
+
+BEETLE PATROLS
+
 • Added hand-drawn rose-colored beetles with shell details, legs and flying wings.
 • Beetles patrol horizontally at fixed heights and reverse direction smoothly.
 • Patrol density increases with altitude. The first patrol is above 35 meters.
 • Every patrol reserves a 105-pixel escape corridor and clears rocks, flowers
   and respawn leaves. Maximum horizontal patrol speed is 120 pixels per second.
 • Beetle collisions cost one life and use the existing automatic revival.
-• Updated instructions and refreshed the offline cache to v42.
 
 • Replaced the purple thorn-bar artwork with hand-drawn floating garden islands.
 • Added irregular moss caps, layered soil and stone, hanging roots, rock cracks,

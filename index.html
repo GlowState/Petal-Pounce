@@ -43,7 +43,7 @@
       <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
         <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
-          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. Collect flowers and avoid mossy floating islands with sharp rocks."></canvas>
+          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. The garden scrolls upward continuously. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. Collect flowers and avoid mossy floating islands with sharp rocks and patrolling beetles."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
             <div class="hud-left"><span class="hud-caption">SCORE</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
@@ -88,15 +88,16 @@
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Fly upward through one endless garden with no levels or finish line. Gather flowers, dodge sharp floating islands, and watch for beetles patrolling from side to side. Beetle encounters become more frequent as you climb. Occasional high-wind scenes gently push the bee left or right.</p>
+    <p>Fly upward through one endless garden with no levels or finish line. The screen keeps climbing, so keep the bee above the bottom edge. Gather flowers, dodge sharp floating islands, and watch for faster beetles patrolling from side to side. Beetle encounters become more frequent as you climb. Occasional high-wind scenes gently push the bee left or right.</p>
     <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Steering responds to left or right tilt at any angle, including near the top or bottom. Tilt farther for more speed; diagonal steering is slightly gentler. The enlarged touch area makes thumb repositioning easier. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
     <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flowers can appear anywhere across the screen. Mossy islands, edge-grown ledges, rock-tooth gates, dense formations and calm stretches create a changing route, but the flower path always remains reachable.</p></div>
+    <div class="help-row"><span>KEEP UP</span><p><strong>The garden never waits</strong>The screen rises continuously during active play and never scrolls back down. Fall completely below the bottom edge and you lose one life, then revive automatically at a visible safe point.</p></div>
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Each flower also adds 10 points to your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
+    <p class="help-note">Pick a flower for 10 points. If its bloom slips below the screen as you climb, you lose 10 points and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
   </dialog>
@@ -108,7 +109,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=42"></script>
+  <script type="module" src="./game.mjs?v=44"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
