@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=50';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=51';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -165,9 +165,7 @@ let toastTimer;
 let difficultyNoticeUntil = 0;
 let missedNoticeUntil = 0;
 let missedNoticePoints = 0;
-let milestoneNoticeUntil = 0;
-let milestoneNoticeFlowers = 0;
-let milestoneNoticeBonus = 0;
+let milestoneTimer;
 let helpWasPlaying = false;
 let shopWasPlaying = false;
 let displayedFlowers = -1;
@@ -245,6 +243,27 @@ function notify(message, duration = 3500) {
 }
 
 function clearInput() { controls.clear(); clearJoystick(); }
+
+function hideMilestone() {
+  clearTimeout(milestoneTimer);
+  const celebration = $('milestone-celebration');
+  celebration.hidden = true;
+  celebration.classList.remove('celebrate');
+}
+
+function showMilestone(event) {
+  clearTimeout(milestoneTimer);
+  const celebration = $('milestone-celebration');
+  $('milestone-title').textContent = `${event.milestone} BLOOMS!`;
+  $('milestone-bonus').textContent = `MILESTONE +${event.bonus}`;
+  celebration.hidden = false;
+  celebration.classList.remove('celebrate');
+  // Restart the animation even if two milestone events ever arrive together.
+  void celebration.offsetWidth;
+  celebration.classList.add('celebrate');
+  notify(`${event.milestone} BLOOMS · +${event.bonus} BONUS`, 2600);
+  milestoneTimer = setTimeout(hideMilestone, 2600);
+}
 
 function primaryAction() {
   ensureAudio();
@@ -800,9 +819,7 @@ function events() {
       const lift = (event.multiplier - 1) * 85;
       tone(784 + lift,.08,'sine');tone(1047 + lift,.12,'sine',.065);
     } else if (event.type === 'flowerMilestone') {
-      milestoneNoticeFlowers = event.milestone;
-      milestoneNoticeBonus = event.bonus;
-      milestoneNoticeUntil = clock + 1.8;
+      showMilestone(event);
       for (let i = 0; i < (reducedMotion ? 6 : 24); i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 55 + Math.random() * 145;
@@ -861,7 +878,7 @@ function events() {
       difficultyNoticeUntil = 0;
       missedNoticeUntil = 0;
       missedNoticePoints = 0;
-      milestoneNoticeUntil = 0;
+      hideMilestone();
       tone(392);tone(523,.15,'triangle',.1);
     }
   }
@@ -903,30 +920,6 @@ function drawScene(dt) {
         ctx.fillStyle = '#ffc1bb';
         ctx.strokeText(message, WIDTH / 2, 76);
         ctx.fillText(message, WIDTH / 2, 76);
-      }
-      if (clock < milestoneNoticeUntil) {
-        const remaining = Math.max(0, milestoneNoticeUntil - clock);
-        const alpha = Math.min(1, remaining * 2.4);
-        const pulse = reducedMotion ? 1 : 1 + Math.sin(clock * 16) * .025;
-        ctx.save();
-        ctx.translate(WIDTH / 2, 122);
-        ctx.scale(pulse, pulse);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = '#1f352bd9';
-        ctx.strokeStyle = '#ffe48f';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(-128, -36, 256, 72, 9);
-        ctx.fill();
-        ctx.stroke();
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#fff1a8';
-        ctx.font = 'bold 23px monospace';
-        ctx.fillText(`${milestoneNoticeFlowers} BLOOMS!`, 0, -3);
-        ctx.fillStyle = '#f7ffdc';
-        ctx.font = 'bold 12px monospace';
-        ctx.fillText(`MILESTONE +${milestoneNoticeBonus}`, 0, 20);
-        ctx.restore();
       }
     }
   }
