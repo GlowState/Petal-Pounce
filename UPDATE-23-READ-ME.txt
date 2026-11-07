@@ -136,3 +136,23 @@ from immediately before this update.
 
 After uploading, refresh the GitHub Pages site. If an older cached build appears,
 close the tab completely and reopen it once.
+
+LATEST UPDATE — RECORDS, ACHIEVEMENTS & BEE REWARDS (v52)
+
+• Added RECORDS and ACHIEVEMENTS buttons side by side directly below LET’S FLY.
+• Records now preserve personal best, most flowers, longest streak, most close
+  calls, lifetime flowers collected and total runs played on this device.
+• Added seven permanent achievements for flower milestones, clean collection,
+  no-damage flying, clean high-wind survival, close calls and a ×4 streak.
+• Each achievement unlocks a hand-drawn bee color or trail. Rewards are purely
+  cosmetic and never change speed, lift, collision size, score or difficulty.
+• Added in-game achievement banners, progress readouts and equip buttons.
+• The Classic bee remains available at all times.
+• Older saved accomplishments are recognized where existing records can prove
+  them; new challenge-specific progress begins with this update.
+• Updated the offline cache to v52.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v51-Milestone-Fix.zip is the exact approved build from
+immediately before this Records and Achievements update.

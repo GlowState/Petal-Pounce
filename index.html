@@ -27,10 +27,13 @@
     .milestone-celebration[hidden]{display:none!important}.milestone-card{position:relative;min-width:min(76%,330px);padding:18px 24px 16px;border:2px solid #ffe490;border-radius:12px;background:linear-gradient(160deg,#294638f2,#142b23f5);box-shadow:0 0 0 4px #1d3027cc,0 10px 28px #08140ec7,0 0 34px #ffe48f70;text-align:center;color:#fff3ad;transform-origin:center}
     .milestone-flower{display:block;margin:-38px auto 5px;width:42px;height:42px;border:2px solid #fff0a4;border-radius:50%;background:#4d6548;color:#e6b5ff;font-size:24px;line-height:38px;box-shadow:0 0 20px #e8bcff99}.milestone-card strong{display:block;font:800 clamp(19px,5vw,29px) var(--mono);letter-spacing:2px;text-shadow:2px 3px #314233}.milestone-card span:last-child{display:block;margin-top:7px;font:700 clamp(10px,2.7vw,14px) var(--mono);letter-spacing:1.6px;color:#f4ffdc}
     .milestone-celebration.celebrate .milestone-card{animation:milestone-card 2.6s cubic-bezier(.2,.8,.2,1) both}.milestone-celebration.celebrate::after{content:'✦  ✿  ✦  ✿  ✦';position:absolute;top:9%;left:0;width:100%;text-align:center;color:#fff0a8;font-size:24px;letter-spacing:24px;text-shadow:0 0 12px #fff1a8;animation:milestone-sparkles 2.6s ease-out both}
+    .meta-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,552px);margin:12px auto 0}.meta-button{min-height:46px;padding:10px 12px;border:2px solid #65725d;border-radius:6px;background:linear-gradient(#354638,#26362c);box-shadow:0 5px 0 #15241c;color:#f6efcf;font:800 12px var(--mono);letter-spacing:1.5px;text-shadow:1px 2px #18251d;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}.meta-button:active{transform:translateY(3px);box-shadow:0 2px 0 #15241c}.meta-button:focus-visible{outline:3px solid #ffe081;outline-offset:3px}
+    .achievement-unlock{position:absolute;z-index:72;top:76px;left:50%;width:min(88%,390px);padding:12px 16px;border:2px solid #ffe086;border-radius:8px;background:linear-gradient(145deg,#314a39f5,#17291ff5);box-shadow:0 7px 0 #0c1a13cc,0 0 25px #ffe78b66;color:#fff0ac;text-align:center;transform:translateX(-50%);pointer-events:none}.achievement-unlock[hidden]{display:none!important}.achievement-unlock.show{animation:achievement-banner 3.2s ease both}.achievement-unlock small{display:block;margin-bottom:4px;font:700 8px var(--mono);letter-spacing:2.2px;color:#d7e7c8}.achievement-unlock strong{display:block;font:900 17px var(--mono);letter-spacing:1.4px}.achievement-unlock span{display:block;margin-top:5px;font:700 9px var(--mono);letter-spacing:1px;color:#eac6ff}
+    dialog.progress-dialog{width:min(92vw,700px);max-height:min(86vh,760px);padding:28px;border:2px solid #718064;border-radius:12px;background:linear-gradient(160deg,#24362d,#15231c);box-shadow:0 22px 70px #07100bd9;color:#f7f0d4}.progress-dialog::backdrop{background:#07100bc9;backdrop-filter:blur(4px)}.progress-dialog h2{margin:2px 0 8px;color:#ffe18a;font:900 clamp(25px,6vw,42px) var(--display);letter-spacing:1px}.progress-intro{margin:0 0 18px;color:#ceddc5;line-height:1.5}.records-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.record-card{padding:14px;border:1px solid #65725d;border-radius:7px;background:#1a2b22}.record-card span{display:block;color:#b9c9b1;font:700 9px var(--mono);letter-spacing:1.3px}.record-card strong{display:block;margin-top:7px;color:#fff0a4;font:900 24px var(--mono);letter-spacing:1px}.achievement-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:10px 12px;border:1px solid #61705a;border-radius:7px;background:#182920}.achievement-summary strong{color:#ffe18a;font:900 12px var(--mono);letter-spacing:1.2px}.classic-equip{min-height:38px;padding:7px 10px;border:1px solid #78856f;border-radius:5px;background:#304337;color:#f6efcf;font:700 9px var(--mono);letter-spacing:1px;touch-action:manipulation}.classic-equip:disabled{opacity:.65}.achievements-list{display:grid;gap:9px}.achievement-card{padding:12px;border:1px solid #596855;border-radius:8px;background:#192b22}.achievement-card.locked{filter:saturate(.5);opacity:.72}.achievement-heading{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}.achievement-badge{display:grid;place-items:center;width:38px;height:38px;border:2px solid #687860;border-radius:50%;background:#2b4032;color:#d9e4d0;font:900 15px var(--mono)}.achievement-card.unlocked .achievement-badge{border-color:#ffe18a;background:#526247;color:#ffe99c;box-shadow:0 0 15px #ffe58a45}.achievement-copy h3{margin:0;color:#f7efd0;font:900 12px var(--mono);letter-spacing:.7px}.achievement-copy p{margin:4px 0 0;color:#bccab5;font-size:13px;line-height:1.35}.achievement-progress{height:5px;margin:10px 0 8px;border-radius:5px;background:#0e1d16;overflow:hidden}.achievement-progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7ca567,#ffe18a);transition:width .3s ease}.achievement-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.achievement-reward{display:block;color:#ffe08a;font:700 9px var(--mono);letter-spacing:.7px}.achievement-equip{min-width:72px;min-height:36px;padding:7px;border:1px solid #7f8b75;border-radius:5px;background:#33483a;color:#fff0d0;font:700 8px var(--mono);letter-spacing:.7px;touch-action:manipulation}.achievement-equip:disabled{opacity:.55}.progress-footer{display:flex;justify-content:flex-end;margin-top:18px}.progress-footer .play-button{width:auto;min-width:230px;margin:0}
     @keyframes streak-pop{from{transform:scale(.8);opacity:.2}to{transform:scale(1);opacity:1}}@keyframes new-best-pulse{to{transform:scale(1.04);filter:brightness(1.18)}}
-    @keyframes milestone-card{0%{opacity:0;transform:translateY(18px) scale(.68) rotate(-2deg)}12%{opacity:1;transform:translateY(0) scale(1.08) rotate(1deg)}22%,76%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateY(-12px) scale(.94)}}@keyframes milestone-sparkles{0%{opacity:0;transform:translateY(18px) scale(.7)}18%,72%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-35px) scale(1.18)}}
-    @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}}
-    @media(prefers-reduced-motion:reduce){.streak-meter,.new-best-callout,.milestone-celebration.celebrate .milestone-card,.milestone-celebration.celebrate::after{animation:none}.milestone-card{transform:none}}
+    @keyframes milestone-card{0%{opacity:0;transform:translateY(18px) scale(.68) rotate(-2deg)}12%{opacity:1;transform:translateY(0) scale(1.08) rotate(1deg)}22%,76%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateY(-12px) scale(.94)}}@keyframes milestone-sparkles{0%{opacity:0;transform:translateY(18px) scale(.7)}18%,72%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-35px) scale(1.18)}}@keyframes achievement-banner{0%{opacity:0;transform:translate(-50%,-18px) scale(.92)}10%,78%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-10px) scale(.97)}}
+    @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}.meta-actions{gap:7px;margin-top:9px}.meta-button{min-height:42px;font-size:9px;letter-spacing:1px}.achievement-unlock{top:62px}.records-grid{gap:7px}.record-card{padding:10px}.record-card strong{font-size:19px}.achievement-heading{gap:9px}.achievement-footer{align-items:flex-start;flex-direction:column}.achievement-equip{align-self:flex-start}.progress-dialog{padding:22px 16px}.progress-footer .play-button{width:100%;min-width:0}}
+    @media(prefers-reduced-motion:reduce){.streak-meter,.new-best-callout,.milestone-celebration.celebrate .milestone-card,.milestone-celebration.celebrate::after,.achievement-unlock.show{animation:none}.milestone-card{transform:none}}
   </style>
 </head>
 <body>
@@ -64,6 +67,9 @@
           <div class="milestone-celebration" id="milestone-celebration" role="status" aria-live="assertive" aria-atomic="true" hidden>
             <div class="milestone-card"><span class="milestone-flower" aria-hidden="true">✿</span><strong id="milestone-title">25 BLOOMS!</strong><span id="milestone-bonus">MILESTONE +100</span></div>
           </div>
+          <div class="achievement-unlock" id="achievement-unlock" role="status" aria-live="assertive" aria-atomic="true" hidden>
+            <small>ACHIEVEMENT UNLOCKED</small><strong id="achievement-unlock-name">FIRST BOUQUET</strong><span id="achievement-unlock-reward">NEW BEE STYLE: ROSE STRIPE</span>
+          </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
           <div class="overlay title-overlay" id="overlay">
@@ -72,6 +78,7 @@
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
               <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge thorn islands. Go farther.</strong></p>
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
+              <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
@@ -128,7 +135,22 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=51"></script>
+  <dialog id="records-dialog" class="progress-dialog" aria-labelledby="records-title">
+    <button class="dialog-close" id="close-records" aria-label="Close records">×</button>
+    <p class="eyebrow">YOUR GARDEN LEGACY</p><h2 id="records-title">Records.</h2>
+    <p class="progress-intro">Every run adds to your story. These records stay saved on this device.</p>
+    <div class="records-grid" id="records-grid"></div>
+    <div class="progress-footer"><button id="records-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  </dialog>
+  <dialog id="achievements-dialog" class="progress-dialog" aria-labelledby="achievements-title">
+    <button class="dialog-close" id="close-achievements" aria-label="Close achievements">×</button>
+    <p class="eyebrow">BLOOM BADGES</p><h2 id="achievements-title">Achievements.</h2>
+    <p class="progress-intro">Master the garden to unlock hand-drawn bee colors and trails. Rewards are cosmetic only.</p>
+    <div class="achievement-summary"><strong id="achievement-count">0 / 7 UNLOCKED</strong><button id="equip-classic" class="classic-equip">EQUIP CLASSIC BEE</button></div>
+    <div class="achievements-list" id="achievements-list"></div>
+    <div class="progress-footer"><button id="achievements-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  </dialog>
+  <script type="module" src="./game.mjs?v=52"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){

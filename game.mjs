@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=51';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=52';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -12,9 +12,64 @@ const screen = $('screen');
 const cabinet = $('cabinet');
 const safeGet = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
 const safeSet = (key, value) => { try { localStorage.setItem(key, value); return true; } catch { return false; } };
+const PROGRESS_KEY = 'petal-pounce-records-achievements-v1';
+const BEE_STYLES = Object.freeze({
+  classic: { id:'classic', name:'Garden Bee', body:'#423d29', stripe:'#edb445', highlight:'#ffda75',
+    wingEdge:'#477a70', wing:'#e5f3d9', wingShade:'#b0d6c7', trail:null },
+  rose: { id:'rose', name:'Rose Stripe', body:'#49323c', stripe:'#d97891', highlight:'#ffc1cc',
+    wingEdge:'#6c5571', wing:'#f2dce8', wingShade:'#d5a8bd', trail:null },
+  royal: { id:'royal', name:'Royal Bloom', body:'#302c4d', stripe:'#8c70d9', highlight:'#d2c0ff',
+    wingEdge:'#4c4777', wing:'#ebe6ff', wingShade:'#bcb2ea', trail:null },
+  mint: { id:'mint', name:'Mintwing', body:'#3d412d', stripe:'#e8b94e', highlight:'#ffe08a',
+    wingEdge:'#36786c', wing:'#d5ffe7', wingShade:'#8ed6bf', trail:null },
+  gold: { id:'gold', name:'Golden Guardian', body:'#43351f', stripe:'#f1c24e', highlight:'#fff0a0',
+    wingEdge:'#97732f', wing:'#fff2ba', wingShade:'#e8c765', trail:null },
+  sky: { id:'sky', name:'Windwhisper', body:'#303d4e', stripe:'#79b8d8', highlight:'#c8edff',
+    wingEdge:'#477892', wing:'#e2f7ff', wingShade:'#9fd7eb', trail:null },
+  petal: { id:'petal', name:'Petal Parade', body:'#423d29', stripe:'#edb445', highlight:'#ffda75',
+    wingEdge:'#7a596e', wing:'#f6e8ed', wingShade:'#d9b5c7', trail:'petal' },
+  star: { id:'star', name:'Starlight Wings', body:'#353044', stripe:'#d7b85d', highlight:'#fff0a6',
+    wingEdge:'#655d8b', wing:'#f0edff', wingShade:'#c7bdf3', trail:'star' }
+});
+const ACHIEVEMENTS = Object.freeze([
+  { id:'first-bouquet', icon:'✿', name:'First Bouquet', description:'Collect 25 flowers in one run.', reward:'Rose Stripe bee', styleId:'rose', target:25, metric:'bestFlowers' },
+  { id:'full-bloom', icon:'❀', name:'Full Bloom', description:'Collect 100 flowers in one run.', reward:'Royal Bloom bee', styleId:'royal', target:100, metric:'bestFlowers' },
+  { id:'perfect-patch', icon:'◇', name:'Perfect Patch', description:'Collect 25 flowers without missing one.', reward:'Mintwing style', styleId:'mint', target:25, metric:'bestPerfect' },
+  { id:'untouchable', icon:'♢', name:'Untouchable', description:'Collect 50 flowers without losing a life.', reward:'Golden Guardian style', styleId:'gold', target:50, metric:'bestUntouchable' },
+  { id:'wind-rider', icon:'≈', name:'Wind Rider', description:'Survive a full high-wind scene without taking damage.', reward:'Windwhisper style', styleId:'sky', target:1, metric:'cleanWinds' },
+  { id:'thread-needle', icon:'✦', name:'Thread the Needle', description:'Earn 10 close calls in one run.', reward:'Petal Parade trail', styleId:'petal', target:10, metric:'bestCloseCalls' },
+  { id:'bloom-master', icon:'★', name:'Bloom Master', description:'Reach the ×4 Bloom Streak multiplier.', reward:'Starlight Wings trail', styleId:'star', target:25, metric:'bestStreak' }
+]);
+const defaultProgress = () => ({
+  records: { bestStreak:0, bestCloseCalls:0, totalFlowers:0, runsPlayed:0,
+    bestPerfect:0, bestUntouchable:0, cleanWinds:0 },
+  unlocked: {}, equippedStyle:'classic'
+});
+function loadProgress() {
+  const fallback = defaultProgress();
+  try {
+    const raw = JSON.parse(safeGet(PROGRESS_KEY, 'null'));
+    if (!raw || typeof raw !== 'object') return fallback;
+    for (const key of Object.keys(fallback.records)) {
+      fallback.records[key] = Math.max(0, Math.floor(Number(raw.records?.[key]) || 0));
+    }
+    for (const achievement of ACHIEVEMENTS) fallback.unlocked[achievement.id] = !!raw.unlocked?.[achievement.id];
+    if (BEE_STYLES[raw.equippedStyle]) fallback.equippedStyle = raw.equippedStyle;
+  } catch {}
+  return fallback;
+}
+const progress = loadProgress();
+const saveProgress = () => safeSet(PROGRESS_KEY, JSON.stringify(progress));
+const styleUnlocked = styleId => styleId === 'classic' || ACHIEVEMENTS.some(achievement =>
+  achievement.styleId === styleId && progress.unlocked[achievement.id]);
+if (!styleUnlocked(progress.equippedStyle)) progress.equippedStyle = 'classic';
+const currentBeeStyle = () => BEE_STYLES[progress.equippedStyle] || BEE_STYLES.classic;
 let savedProfile;
 try { savedProfile = JSON.parse(safeGet(PROFILE_KEY, 'null')); } catch {}
 const profile = new FlowerProfile({ raw: savedProfile, save: value => safeSet(PROFILE_KEY,value) });
+// Carry the existing lifetime flower total into the new Records screen so this
+// update never makes a returning player's collection history look like zero.
+progress.records.totalFlowers = Math.max(progress.records.totalFlowers, profile.data.lifetimeFlowers || 0);
 const loadedBest = Number(safeGet('nectar-tangle-best-v1', safeGet('bumble-best-v1', '0')));
 const loadedBestFlowers = Number(safeGet('petal-pounce-best-flowers-v1', '0'));
 const game = new Game({
@@ -24,7 +79,9 @@ const game = new Game({
 const input = { left: false, right: false, fly: false, steer: 0, glide: 0 };
 const controls = new HoldControls({
   buttons: { left:$('left'), right:$('right'), fly:$('fly') },
-  canPress: () => ['playing','reviving'].includes(game.mode) && !$('help-dialog').open && !$('shop-dialog').open,
+  canPress: () => ['playing','reviving'].includes(game.mode)
+    && !$('help-dialog').open && !$('shop-dialog').open
+    && !$('records-dialog').open && !$('achievements-dialog').open,
   onPress: key => { ensureAudio(); if(game.mode === 'title' && key === 'fly') primaryAction(); },
   onChange: state => {
     Object.assign(input,state);
@@ -125,7 +182,8 @@ function clearJoystick() {
 }
 stickPlate.addEventListener('pointerdown', event => {
   if (event.pointerType === 'mouse' && event.button !== 0) return;
-  if (!['playing', 'reviving'].includes(game.mode) || $('help-dialog').open || $('shop-dialog').open) return;
+  if (!['playing', 'reviving'].includes(game.mode) || $('help-dialog').open || $('shop-dialog').open
+    || $('records-dialog').open || $('achievements-dialog').open) return;
   if (joystickPointer !== null) return;
   event.preventDefault();
   ensureAudio();
@@ -166,6 +224,10 @@ let difficultyNoticeUntil = 0;
 let missedNoticeUntil = 0;
 let missedNoticePoints = 0;
 let milestoneTimer;
+let achievementUnlockTimer;
+let achievementUnlockShowing = false;
+const achievementUnlockQueue = [];
+const runTracker = { perfectSinceMiss:0, flowersSinceHit:0, windActive:false, windClean:true };
 let helpWasPlaying = false;
 let shopWasPlaying = false;
 let displayedFlowers = -1;
@@ -265,6 +327,146 @@ function showMilestone(event) {
   milestoneTimer = setTimeout(hideMilestone, 2600);
 }
 
+function achievementProgress(achievement) {
+  if (achievement.metric === 'bestFlowers') return Math.max(game.bestFlowers, game.flowersCollected);
+  return Math.max(0, Number(progress.records[achievement.metric]) || 0);
+}
+
+function showNextAchievementUnlock() {
+  if (achievementUnlockShowing || !achievementUnlockQueue.length) return;
+  achievementUnlockShowing = true;
+  const achievement = achievementUnlockQueue.shift();
+  const banner = $('achievement-unlock');
+  $('achievement-unlock-name').textContent = achievement.name;
+  $('achievement-unlock-reward').textContent = `UNLOCKED · ${achievement.reward}`;
+  banner.hidden = false;
+  banner.classList.remove('show');
+  void banner.offsetWidth;
+  banner.classList.add('show');
+  tone(659,.12,'triangle');tone(784,.14,'triangle',.08);tone(1047,.18,'sine',.17,.024);
+  if (!reducedMotion && navigator.vibrate) navigator.vibrate([16,28,16]);
+  achievementUnlockTimer = setTimeout(() => {
+    banner.hidden = true;
+    banner.classList.remove('show');
+    achievementUnlockShowing = false;
+    showNextAchievementUnlock();
+  }, 2800);
+}
+
+function unlockAchievement(id, { announce = true } = {}) {
+  if (progress.unlocked[id]) return false;
+  const achievement = ACHIEVEMENTS.find(item => item.id === id);
+  if (!achievement) return false;
+  progress.unlocked[id] = true;
+  saveProgress();
+  if (announce) {
+    achievementUnlockQueue.push(achievement);
+    showNextAchievementUnlock();
+  }
+  if ($('achievements-dialog').open) renderAchievements();
+  return true;
+}
+
+function checkAchievement(id, value) {
+  const achievement = ACHIEVEMENTS.find(item => item.id === id);
+  if (achievement && value >= achievement.target) unlockAchievement(id);
+}
+
+function renderRecords() {
+  const records = [
+    ['PERSONAL BEST', fmtScore(game.best)],
+    ['MOST FLOWERS', String(Math.max(game.bestFlowers, game.flowersCollected))],
+    ['LONGEST STREAK', String(progress.records.bestStreak)],
+    ['MOST CLOSE CALLS', String(progress.records.bestCloseCalls)],
+    ['TOTAL FLOWERS', String(progress.records.totalFlowers)],
+    ['RUNS PLAYED', String(progress.records.runsPlayed)]
+  ];
+  const grid = $('records-grid');
+  grid.replaceChildren();
+  for (const [label, value] of records) {
+    const card = document.createElement('article');
+    card.className = 'record-card';
+    const caption = document.createElement('span');
+    const strong = document.createElement('strong');
+    caption.textContent = label;
+    strong.textContent = value;
+    card.append(caption, strong);
+    grid.append(card);
+  }
+}
+
+function equipBeeStyle(styleId) {
+  if (!styleUnlocked(styleId)) return;
+  progress.equippedStyle = styleId;
+  saveProgress();
+  renderAchievements();
+  notify(`${BEE_STYLES[styleId].name.toUpperCase()} EQUIPPED`, 1800);
+  tone(523,.09,'triangle');tone(784,.14,'sine',.08);
+}
+
+function renderAchievements() {
+  const list = $('achievements-list');
+  list.replaceChildren();
+  const unlockedCount = ACHIEVEMENTS.filter(item => progress.unlocked[item.id]).length;
+  $('achievement-count').textContent = `${unlockedCount} / ${ACHIEVEMENTS.length} UNLOCKED`;
+  $('equip-classic').disabled = progress.equippedStyle === 'classic';
+  $('equip-classic').textContent = progress.equippedStyle === 'classic' ? 'GARDEN BEE EQUIPPED ✓' : 'EQUIP GARDEN BEE';
+  for (const achievement of ACHIEVEMENTS) {
+    const unlocked = !!progress.unlocked[achievement.id];
+    const value = Math.min(achievement.target, achievementProgress(achievement));
+    const style = BEE_STYLES[achievement.styleId];
+    const card = document.createElement('article');
+    card.className = `achievement-card ${unlocked ? 'unlocked' : 'locked'}`;
+    card.style.setProperty('--reward-body', style.stripe);
+    card.style.setProperty('--reward-wing', style.wing);
+    const heading = document.createElement('div');
+    heading.className = 'achievement-heading';
+    const badge = document.createElement('span');
+    badge.className = 'achievement-badge';
+    badge.textContent = achievement.icon;
+    const copy = document.createElement('div');
+    copy.className = 'achievement-copy';
+    const name = document.createElement('h3');
+    const description = document.createElement('p');
+    name.textContent = achievement.name;
+    description.textContent = achievement.description;
+    copy.append(name, description);
+    heading.append(badge, copy);
+    const progressTrack = document.createElement('div');
+    progressTrack.className = 'achievement-progress';
+    const fill = document.createElement('span');
+    fill.style.width = `${Math.min(100, value / achievement.target * 100)}%`;
+    progressTrack.append(fill);
+    const footer = document.createElement('div');
+    footer.className = 'achievement-footer';
+    const reward = document.createElement('span');
+    reward.className = 'achievement-reward';
+    reward.textContent = `${unlocked ? 'REWARD' : `${value} / ${achievement.target}`} · ${achievement.reward}`;
+    const button = document.createElement('button');
+    button.className = 'achievement-equip';
+    button.disabled = !unlocked || progress.equippedStyle === achievement.styleId;
+    button.textContent = !unlocked ? 'LOCKED' : progress.equippedStyle === achievement.styleId ? 'EQUIPPED ✓' : 'EQUIP';
+    if (unlocked) button.addEventListener('click', () => equipBeeStyle(achievement.styleId));
+    footer.append(reward, button);
+    card.append(heading, progressTrack, footer);
+    list.append(card);
+  }
+}
+
+function openRecords() { renderRecords(); $('records-dialog').showModal(); }
+function openAchievements() { renderAchievements(); $('achievements-dialog').showModal(); }
+$('open-records').addEventListener('click', openRecords);
+$('open-achievements').addEventListener('click', openAchievements);
+$('close-records').addEventListener('click', () => $('records-dialog').close());
+$('records-done').addEventListener('click', () => $('records-dialog').close());
+$('close-achievements').addEventListener('click', () => $('achievements-dialog').close());
+$('achievements-done').addEventListener('click', () => $('achievements-dialog').close());
+$('equip-classic').addEventListener('click', () => equipBeeStyle('classic'));
+for (const achievement of ACHIEVEMENTS) {
+  if (achievementProgress(achievement) >= achievement.target) unlockAchievement(achievement.id, { announce:false });
+}
+saveProgress();
+
 function primaryAction() {
   ensureAudio();
   clearInput();
@@ -349,7 +551,8 @@ $('shop-dialog').addEventListener('close',()=>{
 });
 
 addEventListener('keydown', event => {
-  if ($('help-dialog').open || $('shop-dialog').open || event.target instanceof HTMLInputElement) return;
+  if ($('help-dialog').open || $('shop-dialog').open || $('records-dialog').open
+    || $('achievements-dialog').open || event.target instanceof HTMLInputElement) return;
   if (event.code === 'Enter' && ['title', 'paused', 'complete', 'over'].includes(game.mode)) {
     // Focused buttons already activate with Enter; let their native click run once.
     if (event.target instanceof HTMLButtonElement) return;
@@ -453,6 +656,7 @@ function updateUI() {
   $('overlay').classList.toggle('state-overlay', mode !== 'title');
   $('overlay').classList.toggle('title-overlay', mode === 'title');
   $('secondary').hidden = !['paused', 'over'].includes(mode);
+  $('meta-actions').hidden = mode !== 'title';
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const pointsFromBest = Math.max(0, game.runPreviousBest - game.score);
   const resultCallout = game.newBest && game.newBestFlowers
@@ -478,7 +682,8 @@ function updateUI() {
     $('secondary').textContent = mode === 'paused' ? 'End run' : 'Back to title';
     $('start-hint').textContent = mode === 'title' ? 'PRESS ENTER TO START' : 'PRESS ENTER TO CONTINUE';
     // Prevent an old focused pause button from intercepting the next Enter press.
-    if (document.activeElement instanceof HTMLButtonElement && !$('help-dialog').open && !$('shop-dialog').open) document.activeElement.blur();
+    if (document.activeElement instanceof HTMLButtonElement && !$('help-dialog').open && !$('shop-dialog').open
+      && !$('records-dialog').open && !$('achievements-dialog').open) document.activeElement.blur();
   }
 }
 
@@ -731,6 +936,36 @@ function drawBeetle(beetle) {
   ctx.restore();
 }
 
+function drawBeeTrail(b, offset = camera) {
+  const style = currentBeeStyle();
+  if (!style.trail || reducedMotion || game.mode === 'reviving') return;
+  const baseY = b.y - offset;
+  ctx.save();
+  for (let i = 1; i <= 5; i++) {
+    const age = ((clock * 2.2 + i * .19) % 1 + i * .13);
+    const x = b.x - b.vx * age * .10 + Math.sin(clock * 5 + i * 1.7) * (3 + age * 4);
+    const y = baseY - b.vy * age * .035 + 13 + age * 27;
+    ctx.globalAlpha = Math.max(0, .58 - age * .33);
+    ctx.translate(Math.round(x), Math.round(y));
+    ctx.rotate(clock + i * 1.1);
+    if (style.trail === 'petal') {
+      ctx.fillStyle = i % 2 ? '#f1b5df' : '#fff0a5';
+      ctx.beginPath();
+      ctx.ellipse(-3,0,4,2,-.5,0,Math.PI*2);
+      ctx.ellipse(3,0,4,2,.5,0,Math.PI*2);
+      ctx.ellipse(0,-3,2,4,0,0,Math.PI*2);
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = i % 2 ? '#fff3ae' : '#d8d0ff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(4,0);ctx.moveTo(0,-4);ctx.lineTo(0,4);ctx.stroke();
+    }
+    ctx.rotate(-(clock + i * 1.1));
+    ctx.translate(-Math.round(x), -Math.round(y));
+  }
+  ctx.restore();
+}
+
 function drawBee(b, offset = camera, attract = false) {
   if (!attract && game.mode === 'reviving') return;
   const y = b.y - offset;
@@ -748,16 +983,17 @@ function drawBee(b, offset = camera, attract = false) {
   }
   ctx.rotate(Math.max(-.28, Math.min(.28, b.vx / 750)));
   const flap = reducedMotion ? 0 : Math.sin(clock * (input.fly ? 55 : 27)) > 0 ? 4 : 0;
+  const beeStyle = currentBeeStyle();
   // Hand-drawn pixel wings and a striped body; no original game assets.
-  poly([[-8,-6],[-17,-20+flap],[-28,-19+flap],[-28,-8+flap],[-18,2],[-8,7]], '#477a70');
-  poly([[-10,-6],[-18,-17+flap],[-25,-16+flap],[-24,-7+flap],[-16,0],[-10,4]], '#e5f3d9');
-  poly([[-14,-5],[-23,-14+flap],[-19,-5],[-12,1]], '#b0d6c7');
-  poly([[8,-6],[17,-20+flap],[28,-19+flap],[28,-8+flap],[18,2],[8,7]], '#477a70');
-  poly([[10,-6],[18,-17+flap],[25,-16+flap],[24,-7+flap],[16,0],[10,4]], '#e5f3d9');
-  poly([[14,-5],[23,-14+flap],[19,-5],[12,1]], '#b0d6c7');
-  poly([[-6,-19],[6,-19],[11,-13],[13,1],[11,11],[5,17],[-5,17],[-11,11],[-13,1],[-11,-13]], '#423d29');
-  ctx.fillStyle = '#edb445';ctx.fillRect(-8,-10,16,8);ctx.fillRect(-9,4,18,7);ctx.fillRect(-4,12,8,3);
-  ctx.fillStyle = '#ffda75';ctx.fillRect(-7,-10,6,3);ctx.fillRect(-8,4,6,3);
+  poly([[-8,-6],[-17,-20+flap],[-28,-19+flap],[-28,-8+flap],[-18,2],[-8,7]], beeStyle.wingEdge);
+  poly([[-10,-6],[-18,-17+flap],[-25,-16+flap],[-24,-7+flap],[-16,0],[-10,4]], beeStyle.wing);
+  poly([[-14,-5],[-23,-14+flap],[-19,-5],[-12,1]], beeStyle.wingShade);
+  poly([[8,-6],[17,-20+flap],[28,-19+flap],[28,-8+flap],[18,2],[8,7]], beeStyle.wingEdge);
+  poly([[10,-6],[18,-17+flap],[25,-16+flap],[24,-7+flap],[16,0],[10,4]], beeStyle.wing);
+  poly([[14,-5],[23,-14+flap],[19,-5],[12,1]], beeStyle.wingShade);
+  poly([[-6,-19],[6,-19],[11,-13],[13,1],[11,11],[5,17],[-5,17],[-11,11],[-13,1],[-11,-13]], beeStyle.body);
+  ctx.fillStyle = beeStyle.stripe;ctx.fillRect(-8,-10,16,8);ctx.fillRect(-9,4,18,7);ctx.fillRect(-4,12,8,3);
+  ctx.fillStyle = beeStyle.highlight;ctx.fillRect(-7,-10,6,3);ctx.fillRect(-8,4,6,3);
   ctx.fillStyle = '#fff2cf';ctx.fillRect(-7,-17,4,4);ctx.fillRect(3,-17,4,4);
   ctx.fillStyle = '#262f2a';ctx.fillRect(-6,-18,2,3);ctx.fillRect(4,-18,2,3);
   poly([[-3,17],[3,17],[0,24]], '#f7e3b5');
@@ -812,6 +1048,19 @@ function events() {
     if (event.type === 'flower') {
       let credit;
       for(let i=0;i<(event.value||1);i++)credit=profile.collect();
+      const collected = Math.max(1, event.value || 1);
+      progress.records.totalFlowers += collected;
+      runTracker.perfectSinceMiss += collected;
+      runTracker.flowersSinceHit += collected;
+      progress.records.bestPerfect = Math.max(progress.records.bestPerfect, runTracker.perfectSinceMiss);
+      progress.records.bestUntouchable = Math.max(progress.records.bestUntouchable, runTracker.flowersSinceHit);
+      progress.records.bestStreak = Math.max(progress.records.bestStreak, event.streak || 0);
+      checkAchievement('first-bouquet', game.flowersCollected);
+      checkAchievement('full-bloom', game.flowersCollected);
+      checkAchievement('perfect-patch', runTracker.perfectSinceMiss);
+      checkAchievement('untouchable', runTracker.flowersSinceHit);
+      checkAchievement('bloom-master', event.streak || 0);
+      saveProgress();
       if(!credit?.saved)notify('FLOWER SAVED FOR THIS SESSION · DEVICE STORAGE UNAVAILABLE',3000);
       if(event.multiplierChanged)notify(`BLOOM STREAK ×${event.multiplier}`,1500);
       else if(event.bait)notify('RISKY BLOOM · +3 FLOWERS',1500);
@@ -831,14 +1080,20 @@ function events() {
       if (!reducedMotion) shake = Math.max(shake, .12);
       if (!reducedMotion && navigator.vibrate) navigator.vibrate([18,28,22]);
     } else if (event.type === 'flowersMissed') {
+      runTracker.perfectSinceMiss = 0;
       missedNoticePoints = (clock < missedNoticeUntil ? missedNoticePoints : 0) + event.points;
       missedNoticeUntil = clock + 1.2;
     } else if (event.type === 'nearMiss') {
+      progress.records.bestCloseCalls = Math.max(progress.records.bestCloseCalls, event.count || 0);
+      checkAchievement('thread-needle', event.count || 0);
+      saveProgress();
       particles.push({x:event.x,y:event.y,vx:0,vy:-42,life:.85,max:.85,text:'CLOSE CALL +5'});
       tone(330,.06,'square',0,.018);tone(494,.09,'triangle',.045,.018);
       if (!reducedMotion && navigator.vibrate) navigator.vibrate(12);
     } else if (event.type === 'bounce') tone(220,.07,'triangle',0,.014);
     else if (event.type === 'hit') {
+      runTracker.flowersSinceHit = 0;
+      if (runTracker.windActive) runTracker.windClean = false;
       tone(160,.17,'sawtooth',0,.025);tone(95,.19,'triangle',.08);
       if (!reducedMotion) shake = .25;
       for (let i = 0; i < (reducedMotion ? 4 : 16); i++) {
@@ -864,9 +1119,17 @@ function events() {
       notify('Caution: High Winds', 3000);
       tone(220,.28,'triangle',0,.022);tone(165,.32,'triangle',.12,.018);
     } else if (event.type === 'windStart') {
+      runTracker.windActive = true;
+      runTracker.windClean = true;
       notify(`HIGH WINDS · PUSHING ${event.direction < 0 ? 'LEFT' : 'RIGHT'}`, 1400);
       tone(130,.35,'sawtooth',0,.016);
     } else if (event.type === 'windEnd') {
+      if (runTracker.windActive && runTracker.windClean) {
+        progress.records.cleanWinds++;
+        checkAchievement('wind-rider', progress.records.cleanWinds);
+        saveProgress();
+      }
+      runTracker.windActive = false;
       notify('WINDS CALM', 1200);
       tone(330,.12,'triangle');tone(440,.14,'triangle',.08);
     } else if (event.type === 'complete') {
@@ -875,6 +1138,12 @@ function events() {
       safeSet('petal-pounce-best-flowers-v1', String(game.bestFlowers));
       clearInput();
     } else if (event.type === 'start') {
+      progress.records.runsPlayed++;
+      runTracker.perfectSinceMiss = 0;
+      runTracker.flowersSinceHit = 0;
+      runTracker.windActive = false;
+      runTracker.windClean = true;
+      saveProgress();
       difficultyNoticeUntil = 0;
       missedNoticeUntil = 0;
       missedNoticePoints = 0;
@@ -903,6 +1172,7 @@ function drawScene(dt) {
     for (const t of obstacleVisuals(game.level.thorns)) drawThorn(t);
     for (const f of game.level.flowers) drawFlower(f);
     for (const beetle of game.level.wasps) drawBeetle(beetle);
+    drawBeeTrail(game.bee);
     drawBee(game.bee);
     drawWindOverlay();
     if (game.mode === 'playing') {
