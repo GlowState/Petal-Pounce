@@ -1,10 +1,14 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=52';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=53';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
 import { paintFlower } from './flowers.mjs?v=16';
 
 const $ = id => document.getElementById(id);
+const APP_VERSION = '1.0 RC';
+const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
+const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog'];
+const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
 const canvas = $('game');
 canvas.style.imageRendering = 'auto'; // Use Flower Garden's smooth scaling in every garden.
 const ctx = canvas.getContext('2d', { alpha: false });
@@ -76,12 +80,13 @@ const game = new Game({
   best: Number.isFinite(loadedBest) ? Math.max(0, loadedBest) : 0,
   bestFlowers: Number.isFinite(loadedBestFlowers) ? Math.max(0, loadedBestFlowers) : 0
 });
+let firstFlightSeen = safeGet(FIRST_FLIGHT_KEY, '') === 'done'
+  || profile.data.lifetimeFlowers > 0 || game.best > 0 || game.bestFlowers > 0;
 const input = { left: false, right: false, fly: false, steer: 0, glide: 0 };
 const controls = new HoldControls({
   buttons: { left:$('left'), right:$('right'), fly:$('fly') },
   canPress: () => ['playing','reviving'].includes(game.mode)
-    && !$('help-dialog').open && !$('shop-dialog').open
-    && !$('records-dialog').open && !$('achievements-dialog').open,
+    && !blockingDialogOpen(),
   onPress: key => { ensureAudio(); if(game.mode === 'title' && key === 'fly') primaryAction(); },
   onChange: state => {
     Object.assign(input,state);
@@ -182,8 +187,7 @@ function clearJoystick() {
 }
 stickPlate.addEventListener('pointerdown', event => {
   if (event.pointerType === 'mouse' && event.button !== 0) return;
-  if (!['playing', 'reviving'].includes(game.mode) || $('help-dialog').open || $('shop-dialog').open
-    || $('records-dialog').open || $('achievements-dialog').open) return;
+  if (!['playing', 'reviving'].includes(game.mode) || blockingDialogOpen()) return;
   if (joystickPointer !== null) return;
   event.preventDefault();
   ensureAudio();
@@ -228,6 +232,10 @@ let achievementUnlockTimer;
 let achievementUnlockShowing = false;
 const achievementUnlockQueue = [];
 const runTracker = { perfectSinceMiss:0, flowersSinceHit:0, windActive:false, windClean:true };
+let feedbackTimer;
+let beetleWarningCooldown = 0;
+let windAudioCooldown = 0;
+let warnedBeetles = new WeakSet();
 let helpWasPlaying = false;
 let shopWasPlaying = false;
 let displayedFlowers = -1;
@@ -302,6 +310,23 @@ function notify(message, duration = 3500) {
   $('toast').textContent = message;
   $('toast').classList.add('show');
   toastTimer = setTimeout(() => $('toast').classList.remove('show'), duration);
+}
+
+function showFeedback(kind) {
+  const flash = $('feedback-flash');
+  clearTimeout(feedbackTimer);
+  flash.className = `feedback-flash ${kind}`;
+  void flash.offsetWidth;
+  flash.classList.add('show');
+  feedbackTimer = setTimeout(() => { flash.className = 'feedback-flash'; }, kind === 'hit' ? 520 : 360);
+}
+
+function persistSession() {
+  const savedBest = Math.max(game.best, game.score);
+  const savedFlowers = Math.max(game.bestFlowers, game.flowersCollected);
+  safeSet('nectar-tangle-best-v1', String(savedBest));
+  safeSet('petal-pounce-best-flowers-v1', String(savedFlowers));
+  saveProgress();
 }
 
 function clearInput() { controls.clear(); clearJoystick(); }
@@ -455,6 +480,7 @@ function renderAchievements() {
 
 function openRecords() { renderRecords(); $('records-dialog').showModal(); }
 function openAchievements() { renderAchievements(); $('achievements-dialog').showModal(); }
+function openCredits() { $('credits-version').textContent = `PETAL POUNCE · ${APP_VERSION}`; $('credits-dialog').showModal(); }
 $('open-records').addEventListener('click', openRecords);
 $('open-achievements').addEventListener('click', openAchievements);
 $('close-records').addEventListener('click', () => $('records-dialog').close());
@@ -462,25 +488,45 @@ $('records-done').addEventListener('click', () => $('records-dialog').close());
 $('close-achievements').addEventListener('click', () => $('achievements-dialog').close());
 $('achievements-done').addEventListener('click', () => $('achievements-dialog').close());
 $('equip-classic').addEventListener('click', () => equipBeeStyle('classic'));
+$('open-credits').addEventListener('click', openCredits);
+$('close-credits').addEventListener('click', () => $('credits-dialog').close());
+$('credits-done').addEventListener('click', () => $('credits-dialog').close());
 for (const achievement of ACHIEVEMENTS) {
   if (achievementProgress(achievement) >= achievement.target) unlockAchievement(achievement.id, { announce:false });
 }
 saveProgress();
 
-function primaryAction() {
+function startRun() {
   ensureAudio();
   clearInput();
-  if (game.mode === 'title' || game.mode === 'over') {
-    game.start();
-    particles.length = 0;
-    camera = game.bee.y - viewH * .6;
-    cameraInitialized = true;
-    notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
-  } else if (game.mode === 'paused') game.resume();
+  game.start();
+  particles.length = 0;
+  camera = game.bee.y - viewH * .6;
+  cameraInitialized = true;
+  notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
   updateUI();
 }
 
-$('play').addEventListener('click', primaryAction);
+function primaryAction() {
+  ensureAudio();
+  clearInput();
+  if (game.mode === 'title' && !firstFlightSeen) {
+    $('first-flight-dialog').showModal();
+    return;
+  }
+  if (game.mode === 'title' || game.mode === 'over') startRun();
+  else if (game.mode === 'paused') game.resume();
+  updateUI();
+}
+
+$('play').addEventListener('click', () => primaryAction());
+$('close-first-flight').addEventListener('click', () => $('first-flight-dialog').close());
+$('first-flight-go').addEventListener('click', () => {
+  firstFlightSeen = true;
+  safeSet(FIRST_FLIGHT_KEY, 'done');
+  $('first-flight-dialog').close();
+  startRun();
+});
 $('secondary').addEventListener('click', () => {
   clearInput();
   game.record();
@@ -551,8 +597,7 @@ $('shop-dialog').addEventListener('close',()=>{
 });
 
 addEventListener('keydown', event => {
-  if ($('help-dialog').open || $('shop-dialog').open || $('records-dialog').open
-    || $('achievements-dialog').open || event.target instanceof HTMLInputElement) return;
+  if (blockingDialogOpen() || event.target instanceof HTMLInputElement) return;
   if (event.code === 'Enter' && ['title', 'paused', 'complete', 'over'].includes(game.mode)) {
     // Focused buttons already activate with Enter; let their native click run once.
     if (event.target instanceof HTMLButtonElement) return;
@@ -573,6 +618,7 @@ function backgroundPause() {
 }
 addEventListener('blur', backgroundPause);
 document.addEventListener('visibilitychange', () => { if (document.hidden) backgroundPause(); });
+addEventListener('pagehide', persistSession);
 
 $('fullscreen').addEventListener('click', async () => {
   if (document.fullscreenElement) {
@@ -657,6 +703,7 @@ function updateUI() {
   $('overlay').classList.toggle('title-overlay', mode === 'title');
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('meta-actions').hidden = mode !== 'title';
+  $('open-credits').hidden = mode !== 'title';
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const pointsFromBest = Math.max(0, game.runPreviousBest - game.score);
   const resultCallout = game.newBest && game.newBestFlowers
@@ -682,8 +729,7 @@ function updateUI() {
     $('secondary').textContent = mode === 'paused' ? 'End run' : 'Back to title';
     $('start-hint').textContent = mode === 'title' ? 'PRESS ENTER TO START' : 'PRESS ENTER TO CONTINUE';
     // Prevent an old focused pause button from intercepting the next Enter press.
-    if (document.activeElement instanceof HTMLButtonElement && !$('help-dialog').open && !$('shop-dialog').open
-      && !$('records-dialog').open && !$('achievements-dialog').open) document.activeElement.blur();
+    if (document.activeElement instanceof HTMLButtonElement && !blockingDialogOpen()) document.activeElement.blur();
   }
 }
 
@@ -1088,12 +1134,14 @@ function events() {
       checkAchievement('thread-needle', event.count || 0);
       saveProgress();
       particles.push({x:event.x,y:event.y,vx:0,vy:-42,life:.85,max:.85,text:'CLOSE CALL +5'});
+      showFeedback('near');
       tone(330,.06,'square',0,.018);tone(494,.09,'triangle',.045,.018);
       if (!reducedMotion && navigator.vibrate) navigator.vibrate(12);
     } else if (event.type === 'bounce') tone(220,.07,'triangle',0,.014);
     else if (event.type === 'hit') {
       runTracker.flowersSinceHit = 0;
       if (runTracker.windActive) runTracker.windClean = false;
+      showFeedback('hit');
       tone(160,.17,'sawtooth',0,.025);tone(95,.19,'triangle',.08);
       if (!reducedMotion) shake = .25;
       for (let i = 0; i < (reducedMotion ? 4 : 16); i++) {
@@ -1116,11 +1164,13 @@ function events() {
     } else if (event.type === 'difficultyBand') {
       difficultyNoticeUntil = clock + 2.1;
     } else if (event.type === 'windWarning') {
+      showFeedback('wind');
       notify('Caution: High Winds', 3000);
       tone(220,.28,'triangle',0,.022);tone(165,.32,'triangle',.12,.018);
     } else if (event.type === 'windStart') {
       runTracker.windActive = true;
       runTracker.windClean = true;
+      windAudioCooldown = 1.1;
       notify(`HIGH WINDS · PUSHING ${event.direction < 0 ? 'LEFT' : 'RIGHT'}`, 1400);
       tone(130,.35,'sawtooth',0,.016);
     } else if (event.type === 'windEnd') {
@@ -1143,6 +1193,9 @@ function events() {
       runTracker.flowersSinceHit = 0;
       runTracker.windActive = false;
       runTracker.windClean = true;
+      beetleWarningCooldown = 0;
+      windAudioCooldown = 0;
+      warnedBeetles = new WeakSet();
       saveProgress();
       difficultyNoticeUntil = 0;
       missedNoticeUntil = 0;
@@ -1150,6 +1203,31 @@ function events() {
       hideMilestone();
       tone(392);tone(523,.15,'triangle',.1);
     }
+  }
+}
+
+function updateAmbientCues(dt) {
+  beetleWarningCooldown = Math.max(0, beetleWarningCooldown - dt);
+  windAudioCooldown = Math.max(0, windAudioCooldown - dt);
+  if (!['playing', 'reviving'].includes(game.mode)) return;
+  if (game.wind?.phase === 'active' && windAudioCooldown <= 0) {
+    const base = game.wind.direction < 0 ? 82 : 94;
+    tone(base,.28,'sawtooth',0,.006);
+    tone(base * 1.5,.22,'sine',.08,.004);
+    windAudioCooldown = 1.65;
+  }
+  if (game.mode !== 'playing' || beetleWarningCooldown > 0) return;
+  const beeY = game.bee.y - camera;
+  for (const beetle of game.level.wasps) {
+    if (warnedBeetles.has(beetle)) continue;
+    const y = beetle.y - camera;
+    if (y < 24 || y > Math.min(viewH * .48, beeY - 34)) continue;
+    warnedBeetles.add(beetle);
+    beetleWarningCooldown = 2.4;
+    showFeedback('beetle');
+    tone(196,.08,'square',0,.012);
+    tone(147,.11,'square',.08,.01);
+    break;
   }
 }
 
@@ -1222,6 +1300,7 @@ function frame(timestamp) {
     game.enforceCameraWindow(camera, camera + viewH);
   }
   events();
+  updateAmbientCues(dt);
   updateUI();
   drawScene(dt);
   requestAnimationFrame(frame);

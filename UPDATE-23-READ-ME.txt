@@ -156,3 +156,23 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v51-Milestone-Fix.zip is the exact approved build from
 immediately before this Records and Achievements update.
+
+LATEST UPDATE — RELEASE CANDIDATE POLISH (v53 / v1.0 RC)
+
+• Added a compact first-flight guide for genuinely new players. Returning
+  players with an existing score or flower history are not interrupted.
+• Added clearer visual feedback for life loss, close calls, wind warnings and
+  approaching beetle patrols without changing collision sizes or difficulty.
+• Added subtle beetle alert tones and low-volume high-wind ambience. Existing
+  sound controls and reduced-motion preferences remain respected.
+• Added session-safe record saving when the app closes or leaves the page.
+• Added a small Credits screen and visible v1.0 RC version marker.
+• Expanded the field guide with Records, Achievements and cosmetic reward info.
+• Preserved the exact approved bee speed, lift, hazards, pacing, scoring,
+  procedural generation, revival protection and three-life rules from v52.
+• Updated the offline cache to v53.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v52-Records-Achievements.zip is the exact approved build
+from immediately before this release-candidate polish pass.
