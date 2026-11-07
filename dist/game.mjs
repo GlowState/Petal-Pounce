@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera, cameraRiseSpeed } from './engine.mjs?v=46';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=47';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -150,7 +150,6 @@ window.addEventListener('resize', () => { if (!joystickActive) drawJoystick(stee
 
 let viewH = 480;
 let camera = 0;
-let cameraSpeed = cameraRiseSpeed(0);
 let cameraInitialized = false;
 let clock = 0;
 let accumulator = 0;
@@ -185,7 +184,6 @@ function resize() {
   const target = game.bee.y - viewH * .6;
   if (!cameraInitialized || game.mode === 'title') {
     camera = target;
-    cameraSpeed = cameraRiseSpeed(0);
   }
   else camera = Math.min(camera, target);
   cameraInitialized = true;
@@ -248,7 +246,6 @@ function primaryAction() {
     game.start();
     particles.length = 0;
     camera = game.bee.y - viewH * .6;
-    cameraSpeed = cameraRiseSpeed(0);
     cameraInitialized = true;
     notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
   } else if (game.mode === 'paused') game.resume();
@@ -886,9 +883,7 @@ function frame(timestamp) {
   if (game.mode === 'reviving') game.prepareRevive(camera, camera + viewH);
   if (game.mode === 'playing') {
     const previousBottom = camera + viewH;
-    const motion = advanceCamera(camera, cameraSpeed, game.bee.y, viewH, dt, game.distance);
-    camera = motion.y;
-    cameraSpeed = motion.speed;
+    camera = advanceCamera(camera, game.highestY, viewH, dt);
     if (previousMode === 'playing') game.missFlowers(previousBottom, camera + viewH);
     game.enforceCameraWindow(camera, camera + viewH);
   }
