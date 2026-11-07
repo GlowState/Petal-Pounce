@@ -15,6 +15,32 @@ export const WIND_MAX_DURATION = 30;
 export const WIND_MIN_ALTITUDE_M = 450;
 export const WIND_LONG_CALM_CHANCE = .22;
 export const BEETLE_MAX_PATROL_SPEED = 155;
+export const BEE_MAX_HORIZONTAL_SPEED = 216;
+export const PACING_CYCLE_M = 600;
+
+// A run breathes instead of climbing at one constant intensity. These phases
+// repeat invisibly; they are not levels and never stop the action.
+export const PACING_PHASES = Object.freeze([
+  { phase: 'calm', endM: 120, hazardDensity: .34, beetleDensity: .30,
+    reachMultiplier: .90, thicknessMultiplier: .90, neighborGap: 62, gateWeight: .06 },
+  { phase: 'build', endM: 350, hazardDensity: 1, beetleDensity: .60,
+    reachMultiplier: 1, thicknessMultiplier: 1, neighborGap: 38, gateWeight: 1 },
+  { phase: 'challenge', endM: 490, hazardDensity: 1.75, beetleDensity: 2.30,
+    reachMultiplier: 1.14, thicknessMultiplier: 1.12, neighborGap: 23, gateWeight: 2.10 },
+  { phase: 'recovery', endM: PACING_CYCLE_M, hazardDensity: .26, beetleDensity: .14,
+    reachMultiplier: .84, thicknessMultiplier: .86, neighborGap: 64, gateWeight: .04 }
+]);
+
+export function pacingAt(altitudeM = 0) {
+  const altitude = Math.max(0, Number(altitudeM) || 0);
+  const cycleIndex = Math.floor(altitude / PACING_CYCLE_M);
+  const cycleM = altitude - cycleIndex * PACING_CYCLE_M;
+  const phaseIndex = Math.max(0, PACING_PHASES.findIndex(phase => cycleM < phase.endM));
+  const phase = PACING_PHASES[phaseIndex];
+  const startM = phaseIndex ? PACING_PHASES[phaseIndex - 1].endM : 0;
+  return { ...phase, phaseIndex, cycleIndex, cycleM,
+    progress: Math.max(0, Math.min(1, (cycleM - startM) / Math.max(1, phase.endM - startM))) };
+}
 
 // The camera follows only height the player has actually earned. It never
 // advances on its own and never scrolls back down when the bee descends.
@@ -109,7 +135,7 @@ export function segmentDistance(ax, ay, bx, by, cx, cy, dx, dy) {
 
 export const thornDistance = (x, y, thorn) => pointSegmentDistance(x, y, thorn.x, thorn.y, thorn.endX, thorn.endY);
 
-function legacyMakeLevel(stage, seed = 6819) {
+function legacyMakeLevel(stage, seed = 6819, startAltitudeM = 0) {
   const rng = random(seed + stage * 1171);
   // A lively but readable garden: more flowers than Update 14, without
   // recreating the old wall of leaves or a repetitive zigzag staircase.
@@ -143,7 +169,9 @@ function legacyMakeLevel(stage, seed = 6819) {
       // Time to cross the playfield at sustainable lateral speed while flying up;
       // later stages allow for the earned faster climb speed from Update 12.
       const expectedClimb = flightPower(Math.min(1100, (stage - 1) * 250)).climbCap;
-      gap = Math.max(gap, (sideways / 215) * expectedClimb + 95 + rng() * 38);
+      // The bee is deliberately a touch slower in this revision. Add enough
+      // height for full-width crossings so the slower steering stays fair.
+      gap = Math.max(gap, (sideways / (BEE_MAX_HORIZONTAL_SPEED * .92)) * expectedClimb + 95 + rng() * 38);
     } else {
       // Each new position is independently sampled. We accept nearby repeats,
       // center leaves, and jumps toward an edge instead of alternate-side rules.
@@ -181,6 +209,7 @@ function legacyMakeLevel(stage, seed = 6819) {
   const platforms = [{ x: WIDTH / 2 - 55, y: height - 70, w: 110, launch: true }, ...drafts.map(p => ({ ...p, y: p.y + height }))];
   const flowers = platforms.slice(1).map(p => ({ x: p.flip ? p.x + 16 : p.x + p.w - 16, y: p.y - 31, taken: false, phase: rng() * 7 }));
   const spawn = { x: WIDTH / 2, y: height - 104 };
+  const altitudeAtY = y => startAltitudeM + Math.max(0, spawn.y - y) / 10;
   // Keep a winding route through all flowers, rather than a straight safe lane.
   const route = [spawn, ...flowers.map(f => ({ x: f.x, y: f.y }))];
   const thorns = [];
@@ -192,16 +221,11 @@ function legacyMakeLevel(stage, seed = 6819) {
   const target = Math.min(150, Math.round(height / 1000 * hazardRate) + (tangle ? 4 : 0));
   const maxLength = 295 + Math.min(stage, 10) * 11;
   const bandCount = Math.min(9, Math.max(4, Math.ceil(height / 1400)));
-  const beats = Array(bandCount).fill('normal');
-  const quietSlot = Math.floor(rng() * bandCount);
-  beats[quietSlot] = 'breather';
-  const busyOptions = beats.map((beat, i) => beat === 'normal' && i > 0 ? i : -1).filter(i => i > 0);
-  if (busyOptions.length) beats[busyOptions[Math.floor(rng() * busyOptions.length)]] = 'thicket';
-  if (stage >= 5 && bandCount >= 5 && rng() < .6) {
-    const options = beats.map((beat, i) => beat === 'normal' && i > 0 ? i : -1).filter(i => i > 0);
-    if (options.length) beats[options[Math.floor(rng() * options.length)]] = 'thicket';
-  }
-  const weights = beats.map(beat => beat === 'breather' ? .5 : beat === 'thicket' ? (stage <= 2 ? 2 : 3) : 1);
+  const bandSpan = (height - 310) / bandCount;
+  const bandPacing = Array.from({ length: bandCount }, (_, i) =>
+    pacingAt(altitudeAtY(90 + (i + .5) * bandSpan)));
+  const beats = bandPacing.map(pace => pace.phase);
+  const weights = bandPacing.map(pace => pace.hazardDensity);
   const weightTotal = weights.reduce((sum, n) => sum + n, 0);
   const pickHeight = () => {
     let roll = rng() * weightTotal;
@@ -223,7 +247,8 @@ function legacyMakeLevel(stage, seed = 6819) {
     if (route.slice(1).some((point, i) =>
       segmentDistance(t.x, t.y, t.endX, t.endY, route[i].x, route[i].y, point.x, point.y) < routeClearance(h))) return false;
     if (neighbors.some(other =>
-      segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY) < h + other.h + (tangle ? 31 : 38))) return false;
+      segmentDistance(t.x, t.y, t.endX, t.endY, other.x, other.y, other.endX, other.endY)
+        < h + other.h + Math.max(t.paceGap || 38, other.paceGap || 38))) return false;
     return true;
   };
 
@@ -242,25 +267,33 @@ function legacyMakeLevel(stage, seed = 6819) {
     const center = low.x + (high.x - low.x) * fraction;
     const slope = Math.abs(high.x - low.x) / verticalGap;
     if (center < 145 || center > WIDTH - 145 || slope > 1.3) continue;
-    candidates.push({ y, center, slope, pick: rng() });
+    const pace = pacingAt(altitudeAtY(y));
+    // Precision gates belong primarily to the build/challenge beats. Recovery
+    // can still contain scenery, but it should almost never demand a tight gate.
+    if (rng() > Math.min(1, pace.gateWeight * .82)) continue;
+    candidates.push({ y, center, slope, pace, pick: rng() / Math.max(.08, pace.gateWeight) });
   }
   candidates.sort((a, b) => a.pick - b.pick);
   for (const site of candidates) {
     if (pinchGates.length >= gateGoal) break;
     if (pinchGates.some(other => Math.abs(other.y - site.y) < 400)) continue;
     // Clearances shrink with stage, with more space for steep approaches.
-    const hLeft = 15 + rng() * 6 + Math.min(stage - 1, 10) * .35;
-    const hRight = 15 + rng() * 6 + Math.min(stage - 1, 10) * .35;
-    const opening = Math.max(106, 188 - Math.min(stage - 1, 10) * 8)
+    const hLeft = (15 + rng() * 6 + Math.min(stage - 1, 10) * .35) * site.pace.thicknessMultiplier;
+    const hRight = (15 + rng() * 6 + Math.min(stage - 1, 10) * .35) * site.pace.thicknessMultiplier;
+    const openingScale = site.pace.phase === 'challenge' ? .90
+      : site.pace.phase === 'recovery' ? 1.16 : site.pace.phase === 'calm' ? 1.08 : 1;
+    const opening = Math.max(106, (188 - Math.min(stage - 1, 10) * 8) * openingScale)
       + Math.min(42, site.slope * 37) + rng() * 12;
     const center = Math.max(opening / 2 + 16, Math.min(WIDTH - opening / 2 - 16, site.center + (rng() - .5) * 13));
     const leftEnd = center - opening / 2;
     const rightStart = center + opening / 2;
     const bleedLeft = 26 + rng() * 16, bleedRight = 26 + rng() * 16;
     const left = { x: -bleedLeft, y: site.y, endX: leftEnd, endY: site.y,
-      w: leftEnd + bleedLeft, h: hLeft, angle: 0, spacing: 13 + rng() * 7, edge: 'left', gate: true };
+      w: leftEnd + bleedLeft, h: hLeft, angle: 0, spacing: 13 + rng() * 7, edge: 'left', gate: true,
+      pacePhase: site.pace.phase, paceGap: site.pace.neighborGap };
     const right = { x: rightStart, y: site.y, endX: WIDTH + bleedRight, endY: site.y,
-      w: WIDTH + bleedRight - rightStart, h: hRight, angle: 0, spacing: 13 + rng() * 7, edge: 'right', gate: true };
+      w: WIDTH + bleedRight - rightStart, h: hRight, angle: 0, spacing: 13 + rng() * 7, edge: 'right', gate: true,
+      pacePhase: site.pace.phase, paceGap: site.pace.neighborGap };
     if (!validThorn(left) || !validThorn(right)) continue;
     if (segmentDistance(left.x, left.y, left.endX, left.endY, right.x, right.y, right.endX, right.endY) < hLeft + hRight + 42) continue;
     thorns.push(left, right);
@@ -276,27 +309,36 @@ function legacyMakeLevel(stage, seed = 6819) {
   for (let attempt = 0; attempt < target * 240 && soloPlaced < target; attempt++) {
     const makeEdge = edgePlaced < soloEdgeGoal && (soloPlaced + soloEdgeGoal - edgePlaced >= target || rng() < .45);
     const heavyShare = Math.min(.58, .30 + .028 * (stage - 1));
-    const heavy = rng() < heavyShare;
-    const h = heavy ? 22 + rng() * 6 + Math.min(stage - 1, 10) * .3
-      : 9 + rng() * 10 + Math.min(stage - 1, 10) * .45;
     const cy = pickHeight();
+    const pace = pacingAt(altitudeAtY(cy));
+    const paceHeavyBonus = pace.phase === 'challenge' ? .12
+      : pace.phase === 'recovery' ? -.15 : pace.phase === 'calm' ? -.08 : 0;
+    const heavy = rng() < Math.max(.12, Math.min(.72, heavyShare + paceHeavyBonus));
+    const h = (heavy ? 22 + rng() * 6 + Math.min(stage - 1, 10) * .3
+      : 9 + rng() * 10 + Math.min(stage - 1, 10) * .45) * pace.thicknessMultiplier;
     let t;
     if (makeEdge) {
       const side = attempt % 3 === 0 ? (lastSide === 'left' ? 'right' : 'left') : (rng() < .5 ? 'left' : 'right');
       lastSide = side;
-      const maxReach = Math.min(maxLength + (heavy ? 20 : 0), WIDTH * .78);
-      const reach = (heavy ? 155 : 105) + rng() * (maxReach - (heavy ? 155 : 105));
+      const maxReach = Math.min((maxLength + (heavy ? 20 : 0)) * pace.reachMultiplier, WIDTH * .80);
+      const minReach = (heavy ? 155 : 105) * Math.min(1, pace.reachMultiplier);
+      const reach = minReach + rng() * Math.max(1, maxReach - minReach);
       const bleed = 24 + rng() * 17;
       t = side === 'left'
         ? { x: -bleed, y: cy, endX: reach, endY: cy, w: reach + bleed, h, angle: 0,
-          spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, edge: 'left', heavy }
+          spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, edge: 'left', heavy,
+          pacePhase: pace.phase, paceGap: pace.neighborGap }
         : { x: WIDTH - reach, y: cy, endX: WIDTH + bleed, endY: cy, w: reach + bleed, h, angle: 0,
-          spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, edge: 'right', heavy };
+          spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, edge: 'right', heavy,
+          pacePhase: pace.phase, paceGap: pace.neighborGap };
     } else {
-      const w = (heavy ? 155 : 95) + rng() * (maxLength + (heavy ? 24 : 0) - (heavy ? 155 : 95));
+      const minWidth = (heavy ? 155 : 95) * Math.min(1, pace.reachMultiplier);
+      const maxWidth = (maxLength + (heavy ? 24 : 0)) * pace.reachMultiplier;
+      const w = minWidth + rng() * Math.max(1, maxWidth - minWidth);
       const cx = WIDTH * (.15 + rng() * .7);
       t = { x: cx - w / 2, y: cy, endX: cx + w / 2, endY: cy, w, h, angle: 0,
-        spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, heavy };
+        spacing: heavy ? 12 + rng() * 6 : 14 + rng() * 9, heavy,
+        pacePhase: pace.phase, paceGap: pace.neighborGap };
       if (t.x < 24 + h || t.endX > WIDTH - 24 - h) continue;
     }
     if (!validThorn(t)) continue;
@@ -505,7 +547,7 @@ export function makeLaneChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0,
 export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0 } = {}) {
   const classicStage = 1 + Math.min(10, Math.max(0, startAltitudeM) / 220);
   const raw = legacyMakeLevel(classicStage,
-    (seed + chunkIndex * 1741 + Math.floor(startAltitudeM * 53)) >>> 0);
+    (seed + chunkIndex * 1741 + Math.floor(startAltitudeM * 53)) >>> 0, startAltitudeM);
   const spawnY = raw.height - 104;
   const endAltitudeM = startAltitudeM + (raw.height - 140) / 10;
   const platforms = raw.platforms.map((platform, index) => ({ ...platform,
@@ -520,6 +562,7 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0 } = 
     return { chunkIndex, rowIndex, kind: 'flowerLeaf', hazard: false,
       distancePx, altitudeM: startAltitudeM + distancePx / 10,
       difficulty: difficultyAt(startAltitudeM + distancePx / 10),
+      pacePhase: pacingAt(startAltitudeM + distancePx / 10).phase,
       obstacleLanes: [], openLanes: [0, 1, 2] };
   });
   const hazardRows = thorns.map((thorn, index) => {
@@ -527,6 +570,7 @@ export function makeChunk({ startAltitudeM = 0, seed = 6819, chunkIndex = 0 } = 
     return { chunkIndex, rowIndex: flowers.length + index,
       kind: thorn.gate ? 'pinchGate' : thorn.edge ? 'edgeBranch' : 'floatingBranch',
       hazard: true, distancePx, altitudeM: startAltitudeM + distancePx / 10,
+      pacePhase: thorn.pacePhase || pacingAt(startAltitudeM + distancePx / 10).phase,
       difficulty: difficultyAt(startAltitudeM + distancePx / 10) };
   });
   const rows = [...safeRows, ...hazardRows].sort((a, b) => a.distancePx - b.distancePx);
@@ -563,6 +607,7 @@ export class Game {
     this.chunkIndex = 0;
     this.generatedAltitudeM = 0;
     this.difficultyBandIndex = 0;
+    this.pacingPhase = 'calm';
     this.distance = 0;
     this.mode = 'title';
     this.events = [];
@@ -574,6 +619,7 @@ export class Game {
     this.chunkIndex = 0;
     this.generatedAltitudeM = 0;
     this.difficultyBandIndex = 0;
+    this.pacingPhase = pacingAt(0).phase;
     this.level = makeChunk({ startAltitudeM: 0,
       seed: (this.seed + this.run * 741103) >>> 0, chunkIndex: this.chunkIndex });
     this.level.wasps = [];
@@ -674,7 +720,10 @@ export class Game {
 
     for (let y = spawnY - 460; y > 190; y -= 30) {
       const altitude = piece.startAltitudeM + (spawnY - y) / 10;
-      if (altitude < 35 || patrols.some(enemy => Math.abs(enemy.y - y) < separation)) continue;
+      const pace = pacingAt(altitude);
+      const minimumSeparation = pace.phase === 'challenge' ? 145 : 205;
+      const localSeparation = Math.max(minimumSeparation, separation / Math.max(.25, pace.beetleDensity));
+      if (altitude < 35 || patrols.some(enemy => Math.abs(enemy.y - y) < localSeparation)) continue;
       // Expand every rock by both collision radii before finding patrol space.
       let openings = [[45, WIDTH - 45]];
       for (const obstacle of exclusions) {
@@ -709,11 +758,28 @@ export class Game {
       const speed = beetlePatrolSpeed(amplitude, difficulty, rng());
       const phase = rng() * Math.PI * 2;
       patrols.push({ homeX, amplitude, speed, phase, y, x: homeX + Math.sin(phase) * amplitude,
-        chunkIndex: piece.chunkIndex, escapeWidth, escapeX, patrolLeft, patrolRight });
+        chunkIndex: piece.chunkIndex, escapeWidth, escapeX, patrolLeft, patrolRight,
+        pacePhase: pace.phase, paceWeight: pace.beetleDensity });
     }
     const count = Math.min(targetCount, patrols.length);
-    for (let i = 0; i < count; i++) {
-      const enemy = patrols[Math.floor((i + .5) * patrols.length / count)];
+    const ranked = patrols.map(enemy => ({ enemy,
+      priority: Math.pow(Math.max(.0001, rng()), 1 / Math.max(.08, enemy.paceWeight || 1)) }))
+      .sort((a, b) => b.priority - a.priority);
+    const maximum = Math.min(patrols.length, Math.ceil(targetCount * 1.45));
+    const retained = ranked.filter(entry => {
+      const keepChance = Math.min(.98, .12 + (entry.enemy.paceWeight || 1) / 2.3 * .88);
+      return rng() < keepChance;
+    }).slice(0, maximum);
+    const retainedEnemies = new Set(retained.map(entry => entry.enemy));
+    for (const entry of ranked) {
+      if (retained.length >= count || retained.length >= maximum) break;
+      if (!retainedEnemies.has(entry.enemy)) {
+        retained.push(entry);
+        retainedEnemies.add(entry.enemy);
+      }
+    }
+    const selected = retained.map(entry => entry.enemy).sort((a, b) => b.y - a.y);
+    for (const enemy of selected) {
       this.level.wasps.push({ ...enemy, y: enemy.y + offset });
     }
   }
@@ -871,6 +937,12 @@ export class Game {
         return;
       }
       if (this.time < wind.nextAt) return;
+      // A recovery beat is protected. Delay the next wind check briefly rather
+      // than stacking a special event on the intended relief section.
+      if (pacingAt(this.distance).phase === 'recovery') {
+        wind.nextAt = this.time + 8;
+        return;
+      }
       const difficulty = difficultyAt(this.distance);
       wind.phase = 'warning';
       wind.direction = this.windRandom() < .5 ? -1 : 1;
@@ -946,7 +1018,7 @@ export class Game {
     // True analog speed control: partial tilt yields a sustainable partial speed,
     // instead of accelerating all the way to the maximum even at a tiny tilt.
     // Exponential easing yields smooth starts, stops and direction reversals.
-    const desiredVx = direction * 235 + this.windVelocity();
+    const desiredVx = direction * BEE_MAX_HORIZONTAL_SPEED + this.windVelocity();
     const response = Math.abs(direction) < .0001 ? 19 : 16;
     b.vx += (desiredVx - b.vx) * (1 - Math.exp(-response * dt));
     if (Math.abs(b.vx) < .08 && Math.abs(desiredVx) < .0001) b.vx = 0;
@@ -965,6 +1037,12 @@ export class Game {
     if (b.x > WIDTH - 25) { b.x = WIDTH - 25; b.vx = 0; }
     this.highestY = Math.min(this.highestY, b.y);
     this.distance = Math.max(this.distance, Math.floor((this.startY - this.highestY) / 10));
+    const activePacing = pacingAt(this.distance);
+    if (activePacing.phase !== this.pacingPhase) {
+      this.pacingPhase = activePacing.phase;
+      this.events.push({ type: 'pacePhase', phase: activePacing.phase,
+        cycleIndex: activePacing.cycleIndex });
+    }
     const activeDifficulty = difficultyAt(this.distance);
     if (activeDifficulty.bandIndex > this.difficultyBandIndex) {
       for (let band = this.difficultyBandIndex + 1; band <= activeDifficulty.bandIndex; band++) {

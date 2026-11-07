@@ -20,6 +20,19 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Added an invisible pacing director with four repeating beats: calm, build,
+  challenge and recovery. These are not levels and never interrupt the run.
+• Challenge beats concentrate longer, thicker garden islands, precision gates
+  and beetle patrol pressure. Recovery beats deliberately reduce all three.
+• Existing altitude difficulty still increases hazard pressure over the full run;
+  pacing now adds short-term rhythm so intensity does not feel constant.
+• Every generated obstacle still clears the verified flower-to-flower route.
+  Beetles keep permanent escape corridors and recovery sections reject new winds.
+• Reduced the bee's maximum horizontal speed from 235 to 216 pixels per second
+  (about 8%). Full-width leaf jumps receive extra vertical reaction space.
+• Preserved the player-controlled camera: there is still no automatic scrolling.
+• Updated the offline cache to v49.
+
 • Added Bloom Streak scoring. Flowers 1–4 score ×1, 5–11 score ×2,
   12–24 score ×3 and 25+ score ×4. A miss or lost life resets the streak.
 • Multipliers affect run score only. Shop flower currency is unchanged.
@@ -94,7 +107,9 @@ escape openings. Beetle hits trigger automatic revival and brief protection.
 
 FALLBACK
 
-If you want to return to the previous look, reinstall the exact Update 22 ZIP.
+If this pacing pass does not feel right, reinstall the separately saved
+Petal-Pounce-Rollback-v48-Replay-Loop.zip. That rollback is the exact build
+from immediately before this update.
 
 After uploading, refresh the GitHub Pages site. If an older cached build appears,
 close the tab completely and reopen it once.
