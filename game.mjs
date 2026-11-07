@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=49';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=50';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -16,7 +16,11 @@ let savedProfile;
 try { savedProfile = JSON.parse(safeGet(PROFILE_KEY, 'null')); } catch {}
 const profile = new FlowerProfile({ raw: savedProfile, save: value => safeSet(PROFILE_KEY,value) });
 const loadedBest = Number(safeGet('nectar-tangle-best-v1', safeGet('bumble-best-v1', '0')));
-const game = new Game({ best: Number.isFinite(loadedBest) ? Math.max(0, loadedBest) : 0 });
+const loadedBestFlowers = Number(safeGet('petal-pounce-best-flowers-v1', '0'));
+const game = new Game({
+  best: Number.isFinite(loadedBest) ? Math.max(0, loadedBest) : 0,
+  bestFlowers: Number.isFinite(loadedBestFlowers) ? Math.max(0, loadedBestFlowers) : 0
+});
 const input = { left: false, right: false, fly: false, steer: 0, glide: 0 };
 const controls = new HoldControls({
   buttons: { left:$('left'), right:$('right'), fly:$('fly') },
@@ -161,6 +165,9 @@ let toastTimer;
 let difficultyNoticeUntil = 0;
 let missedNoticeUntil = 0;
 let missedNoticePoints = 0;
+let milestoneNoticeUntil = 0;
+let milestoneNoticeFlowers = 0;
+let milestoneNoticeBonus = 0;
 let helpWasPlaying = false;
 let shopWasPlaying = false;
 let displayedFlowers = -1;
@@ -257,6 +264,7 @@ $('secondary').addEventListener('click', () => {
   clearInput();
   game.record();
   safeSet('nectar-tangle-best-v1', String(game.best));
+  safeSet('petal-pounce-best-flowers-v1', String(game.bestFlowers));
   game.mode = 'title';
   $('toast').classList.remove('show');
   updateUI();
@@ -428,15 +436,19 @@ function updateUI() {
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
   const pointsFromBest = Math.max(0, game.runPreviousBest - game.score);
-  const resultCallout = game.newBest
-    ? '<strong class="new-best-callout">NEW PERSONAL BEST!</strong>'
+  const resultCallout = game.newBest && game.newBestFlowers
+    ? '<strong class="new-best-callout">NEW SCORE & FLOWER RECORD!</strong>'
+    : game.newBest
+      ? '<strong class="new-best-callout">NEW PERSONAL BEST!</strong>'
+      : game.newBestFlowers
+        ? '<strong class="new-best-callout">NEW FLOWER RECORD!</strong>'
     : game.score === game.runPreviousBest
       ? '<strong class="best-gap-callout">PERSONAL BEST MATCHED</strong>'
       : `<strong class="best-gap-callout">${pointsFromBest} ${pointsFromBest === 1 ? 'POINT' : 'POINTS'} FROM YOUR BEST</strong>`;
   const titles = {
-    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
+    title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', `Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>${game.bestFlowers ? `<br>BEST RUN: ${game.bestFlowers} FLOWERS` : ''}`, 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
-    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${resultCallout}<br>${game.score} points · ${game.flowersCollected} flowers<br>Best streak: ${game.bestStreak} · Close calls: ${game.nearMisses}<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
+    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${resultCallout}<br>${game.score} points · ${game.flowersCollected} flowers<br>Best flowers: ${game.bestFlowers} · Milestone: ${game.highestMilestone || '—'}<br>Best streak: ${game.bestStreak} · Close calls: ${game.nearMisses}<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
     const [tag, title, description, label] = titles[mode];
@@ -787,6 +799,20 @@ function events() {
       addBurst(event.x,event.y,event.value||1);
       const lift = (event.multiplier - 1) * 85;
       tone(784 + lift,.08,'sine');tone(1047 + lift,.12,'sine',.065);
+    } else if (event.type === 'flowerMilestone') {
+      milestoneNoticeFlowers = event.milestone;
+      milestoneNoticeBonus = event.bonus;
+      milestoneNoticeUntil = clock + 1.8;
+      for (let i = 0; i < (reducedMotion ? 6 : 24); i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 55 + Math.random() * 145;
+        particles.push({ x:event.x, y:event.y, vx:Math.cos(angle)*speed,
+          vy:Math.sin(angle)*speed-35, life:1.05, max:1.05,
+          color:i%3===0?'#fff5b0':i%2?currentGarden().flower.light:currentGarden().flower.center });
+      }
+      [523,659,784,1047].forEach((note,i) => tone(note,.14,'triangle',i*.065,.022));
+      if (!reducedMotion) shake = Math.max(shake, .12);
+      if (!reducedMotion && navigator.vibrate) navigator.vibrate([18,28,22]);
     } else if (event.type === 'flowersMissed') {
       missedNoticePoints = (clock < missedNoticeUntil ? missedNoticePoints : 0) + event.points;
       missedNoticeUntil = clock + 1.2;
@@ -809,7 +835,8 @@ function events() {
       notify(`BACK IN THE GARDEN · ${game.lives} ${game.lives === 1 ? 'LIFE' : 'LIVES'} LEFT`, 1800);
     } else if (event.type === 'over') {
       safeSet('nectar-tangle-best-v1', String(game.best));
-      if (game.newBest) {
+      safeSet('petal-pounce-best-flowers-v1', String(game.bestFlowers));
+      if (game.newBest || game.newBestFlowers) {
         [523,659,784,1047].forEach((note,i) => tone(note,.17,'triangle',i*.08,.024));
       }
       clearInput();
@@ -828,11 +855,13 @@ function events() {
     } else if (event.type === 'complete') {
       [523,659,784,1047].forEach((note,i) => tone(note,.18,'triangle',i*.1));
       safeSet('nectar-tangle-best-v1', String(game.best));
+      safeSet('petal-pounce-best-flowers-v1', String(game.bestFlowers));
       clearInput();
     } else if (event.type === 'start') {
       difficultyNoticeUntil = 0;
       missedNoticeUntil = 0;
       missedNoticePoints = 0;
+      milestoneNoticeUntil = 0;
       tone(392);tone(523,.15,'triangle',.1);
     }
   }
@@ -874,6 +903,30 @@ function drawScene(dt) {
         ctx.fillStyle = '#ffc1bb';
         ctx.strokeText(message, WIDTH / 2, 76);
         ctx.fillText(message, WIDTH / 2, 76);
+      }
+      if (clock < milestoneNoticeUntil) {
+        const remaining = Math.max(0, milestoneNoticeUntil - clock);
+        const alpha = Math.min(1, remaining * 2.4);
+        const pulse = reducedMotion ? 1 : 1 + Math.sin(clock * 16) * .025;
+        ctx.save();
+        ctx.translate(WIDTH / 2, 122);
+        ctx.scale(pulse, pulse);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#1f352bd9';
+        ctx.strokeStyle = '#ffe48f';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-128, -36, 256, 72, 9);
+        ctx.fill();
+        ctx.stroke();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#fff1a8';
+        ctx.font = 'bold 23px monospace';
+        ctx.fillText(`${milestoneNoticeFlowers} BLOOMS!`, 0, -3);
+        ctx.fillStyle = '#f7ffdc';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText(`MILESTONE +${milestoneNoticeBonus}`, 0, 20);
+        ctx.restore();
       }
     }
   }

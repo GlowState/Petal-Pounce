@@ -20,6 +20,20 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Added flower milestones every 25 collected flowers. They celebrate without
+  pausing the endless run and do not restore lives.
+• Milestone score bonuses are +100 at 25 flowers, +200 at 50, +300 at 75,
+  +400 at 100 and +500 at 125 flowers and every 25-flower marker beyond it.
+• Added a brief hand-drawn milestone card, flower burst, arcade chime and
+  supported-device haptic. Reduced Motion keeps the celebration stationary.
+• Added a permanent Best Flowers in One Run record. The title and game-over
+  screens show it, including a special callout when a new flower record is set.
+• Increased maximum horizontal speed by exactly 3%: 216 to 222.48 pixels/sec.
+• Reduced maximum climbing speed from 230 to 220 pixels/sec and maximum falling
+  speed from 340 to 326 pixels/sec while preserving responsive acceleration.
+• Preserved the pacing director, player-controlled camera and safe revival.
+• Updated the offline cache to v50.
+
 • Added an invisible pacing director with four repeating beats: calm, build,
   challenge and recovery. These are not levels and never interrupt the run.
 • Challenge beats concentrate longer, thicker garden islands, precision gates

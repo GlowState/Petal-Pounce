@@ -15,7 +15,10 @@ export const WIND_MAX_DURATION = 30;
 export const WIND_MIN_ALTITUDE_M = 450;
 export const WIND_LONG_CALM_CHANCE = .22;
 export const BEETLE_MAX_PATROL_SPEED = 155;
-export const BEE_MAX_HORIZONTAL_SPEED = 216;
+export const BEE_MAX_HORIZONTAL_SPEED = 222.48; // Exactly 3% above the v49 value of 216.
+export const BEE_MAX_VERTICAL_CLIMB_SPEED = 220;
+export const BEE_MAX_VERTICAL_FALL_SPEED = 326;
+export const FLOWER_MILESTONE_SIZE = 25;
 export const PACING_CYCLE_M = 600;
 
 // A run breathes instead of climbing at one constant intensity. These phases
@@ -92,11 +95,16 @@ export function streakMultiplier(streak = 0) {
   return 1;
 }
 
+export function flowerMilestoneBonus(flowers = 0) {
+  const milestoneIndex = Math.floor(Math.max(0, Number(flowers) || 0) / FLOWER_MILESTONE_SIZE);
+  return milestoneIndex > 0 ? Math.min(500, milestoneIndex * 100) : 0;
+}
+
 // Flight power grows with the player's best distance during this run.
 // Stage/elapsed time do not determine the upgrade: progress has to be earned.
 export function flightPower(distance = 0) {
   const difficulty = difficultyAt(distance);
-  return { climbCap: 230,
+  return { climbCap: BEE_MAX_VERTICAL_CLIMB_SPEED,
     thrust: 660,
     progress: difficulty.bandIndex / (DIFFICULTY_BANDS.length - 1),
     speedMultiplier: difficulty.speedMultiplier };
@@ -590,10 +598,11 @@ export function makeLevel(stage = 1, seed = 6819) {
 }
 
 export class Game {
-  constructor({ seed = Math.floor(Math.random() * 100000), best = 0 } = {}) {
+  constructor({ seed = Math.floor(Math.random() * 100000), best = 0, bestFlowers = 0 } = {}) {
     this.seed = seed;
     this.run = 0;
     this.best = best;
+    this.bestFlowers = Math.max(0, Math.floor(Number(bestFlowers) || 0));
     this.score = 0;
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
@@ -602,7 +611,10 @@ export class Game {
     this.nearMisses = 0;
     this.nearMissCooldown = 0;
     this.runPreviousBest = best;
+    this.runPreviousBestFlowers = this.bestFlowers;
     this.newBest = false;
+    this.newBestFlowers = false;
+    this.highestMilestone = 0;
     this.stage = 1;
     this.chunkIndex = 0;
     this.generatedAltitudeM = 0;
@@ -650,10 +662,13 @@ export class Game {
   start() {
     this.run++;
     this.runPreviousBest = this.best;
+    this.runPreviousBestFlowers = this.bestFlowers;
     this.newBest = false;
+    this.newBestFlowers = false;
     this.score = 0;
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
+    this.highestMilestone = 0;
     this.streak = 0;
     this.bestStreak = 0;
     this.nearMisses = 0;
@@ -889,7 +904,9 @@ export class Game {
 
   record() {
     this.newBest = this.score > this.runPreviousBest;
+    this.newBestFlowers = this.flowersCollected > this.runPreviousBestFlowers;
     this.best = Math.max(this.best, this.score);
+    this.bestFlowers = Math.max(this.bestFlowers, this.flowersCollected);
   }
 
   get multiplier() { return streakMultiplier(this.streak); }
@@ -1030,7 +1047,7 @@ export class Game {
     const glide = Number.isFinite(input.glide) ? Math.max(-1, Math.min(1, input.glide)) : 0;
     const flight = flightPower(this.distance);
     b.vy += (input.fly ? -flight.thrust - glide * 145 : 660 - glide * 200) * dt;
-    b.vy = Math.max(-flight.climbCap, Math.min(340, b.vy));
+    b.vy = Math.max(-flight.climbCap, Math.min(BEE_MAX_VERTICAL_FALL_SPEED, b.vy));
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     if (b.x < 25) { b.x = 25; b.vx = 0; }
@@ -1076,11 +1093,22 @@ export class Game {
         this.bestStreak = Math.max(this.bestStreak, this.streak);
         const multiplier = this.multiplier;
         const points = 10 * value * multiplier;
+        const previousFlowers = this.flowersCollected;
         this.flowersCollected += value;
         this.score += points;
         this.events.push({ type: 'flower', x: f.x, y: f.y, value, points,
           streak: this.streak, multiplier,
           multiplierChanged: multiplier > previousMultiplier, bait: !!f.bait });
+        const previousMilestone = Math.floor(previousFlowers / FLOWER_MILESTONE_SIZE);
+        const currentMilestone = Math.floor(this.flowersCollected / FLOWER_MILESTONE_SIZE);
+        for (let milestoneIndex = previousMilestone + 1; milestoneIndex <= currentMilestone; milestoneIndex++) {
+          const milestone = milestoneIndex * FLOWER_MILESTONE_SIZE;
+          const bonus = flowerMilestoneBonus(milestone);
+          this.highestMilestone = milestone;
+          this.score += bonus;
+          this.events.push({ type: 'flowerMilestone', milestone, bonus,
+            x: f.x, y: f.y, flowersCollected: this.flowersCollected });
+        }
       }
     }
 
