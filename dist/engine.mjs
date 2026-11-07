@@ -58,6 +58,14 @@ export function difficultyAt(altitudeM = 0) {
   return { ...DIFFICULTY_BANDS[bandIndex], bandIndex, altitudeM: altitude };
 }
 
+export function streakMultiplier(streak = 0) {
+  const count = Math.max(0, Math.floor(Number(streak) || 0));
+  if (count >= 25) return 4;
+  if (count >= 12) return 3;
+  if (count >= 5) return 2;
+  return 1;
+}
+
 // Flight power grows with the player's best distance during this run.
 // Stage/elapsed time do not determine the upgrade: progress has to be earned.
 export function flightPower(distance = 0) {
@@ -545,6 +553,12 @@ export class Game {
     this.score = 0;
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
+    this.streak = 0;
+    this.bestStreak = 0;
+    this.nearMisses = 0;
+    this.nearMissCooldown = 0;
+    this.runPreviousBest = best;
+    this.newBest = false;
     this.stage = 1;
     this.chunkIndex = 0;
     this.generatedAltitudeM = 0;
@@ -589,9 +603,15 @@ export class Game {
 
   start() {
     this.run++;
+    this.runPreviousBest = this.best;
+    this.newBest = false;
     this.score = 0;
     this.lives = MAX_LIVES;
     this.flowersCollected = 0;
+    this.streak = 0;
+    this.bestStreak = 0;
+    this.nearMisses = 0;
+    this.nearMissCooldown = 0;
     this.stage = 1;
     this.distance = 0;
     this.loadLevel();
@@ -702,8 +722,10 @@ export class Game {
 
   loseLife(reason) {
     if (this.mode !== 'playing') return;
+    const streakLost = this.streak;
+    this.streak = 0;
     this.lives--;
-    this.events.push({ type: 'hit', reason, x: this.bee.x, y: this.bee.y });
+    this.events.push({ type: 'hit', reason, x: this.bee.x, y: this.bee.y, streakLost });
     if (this.lives <= 0) {
       this.mode = 'over';
       this.record();
@@ -799,7 +821,23 @@ export class Game {
     return true;
   }
 
-  record() { this.best = Math.max(this.best, this.score); }
+  record() {
+    this.newBest = this.score > this.runPreviousBest;
+    this.best = Math.max(this.best, this.score);
+  }
+
+  get multiplier() { return streakMultiplier(this.streak); }
+
+  awardNearMiss(hazard, kind) {
+    if (!hazard || hazard.nearMissed || this.nearMissCooldown > 0) return false;
+    hazard.nearMissed = true;
+    this.nearMissCooldown = .32;
+    this.nearMisses++;
+    this.score += 5;
+    this.events.push({ type: 'nearMiss', kind, points: 5,
+      x: this.bee.x, y: this.bee.y, count: this.nearMisses });
+    return true;
+  }
 
   missFlowers(previousBottom, currentBottom) {
     if (this.mode !== 'playing' || currentBottom >= previousBottom) return;
@@ -813,9 +851,11 @@ export class Game {
     }
     if (!missed) return;
     const points = missed * 10;
+    const streakLost = this.streak;
+    this.streak = 0;
     this.remaining -= missed;
     this.score -= points;
-    this.events.push({ type: 'flowersMissed', points, count: missed });
+    this.events.push({ type: 'flowersMissed', points, count: missed, streakLost });
   }
 
   updateWind(dt) {
@@ -893,6 +933,7 @@ export class Game {
     if (this.mode !== 'playing') return;
     this.time += dt;
     this.updateWind(dt);
+    this.nearMissCooldown = Math.max(0, this.nearMissCooldown - dt);
     for (const wasp of this.level.wasps) {
       wasp.phase += dt * wasp.speed;
       wasp.x = Math.max(28, Math.min(WIDTH - 28, wasp.homeX + Math.sin(wasp.phase) * wasp.amplitude));
@@ -952,9 +993,16 @@ export class Game {
         f.taken = true;
         this.remaining--;
         const value = Math.max(1, f.value || 1);
+        const previousMultiplier = this.multiplier;
+        this.streak++;
+        this.bestStreak = Math.max(this.bestStreak, this.streak);
+        const multiplier = this.multiplier;
+        const points = 10 * value * multiplier;
         this.flowersCollected += value;
-        this.score += 10 * value;
-        this.events.push({ type: 'flower', x: f.x, y: f.y, value, bait: !!f.bait });
+        this.score += points;
+        this.events.push({ type: 'flower', x: f.x, y: f.y, value, points,
+          streak: this.streak, multiplier,
+          multiplierChanged: multiplier > previousMultiplier, bait: !!f.bait });
       }
     }
 
@@ -966,6 +1014,21 @@ export class Game {
         if (thornDistance(b.x, b.y, t) < t.h + RADIUS - 3) {
           this.loseLife('thorn');
           return;
+        }
+      }
+      // Award only after every collision check has passed, preventing a close
+      // call and a life loss from being recorded on the same physics step.
+      for (const w of this.level.wasps) {
+        const distance = Math.hypot(b.x - w.x, b.y - w.y);
+        if (distance >= RADIUS + 15 && distance <= RADIUS + 29
+          && this.awardNearMiss(w, 'beetle')) break;
+      }
+      if (!this.nearMissCooldown) {
+        for (const t of this.level.thorns) {
+          const hitRadius = t.h + RADIUS - 3;
+          const distance = thornDistance(b.x, b.y, t);
+          if (distance >= hitRadius && distance <= hitRadius + 12
+            && this.awardNearMiss(t, 'thorn')) break;
         }
       }
     }
