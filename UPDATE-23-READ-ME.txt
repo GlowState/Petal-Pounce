@@ -20,6 +20,17 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Added Bloom Streak scoring. Flowers 1–4 score ×1, 5–11 score ×2,
+  12–24 score ×3 and 25+ score ×4. A miss or lost life resets the streak.
+• Multipliers affect run score only. Shop flower currency is unchanged.
+• Added one-time close-call bonuses: narrowly clearing an island or beetle
+  awards +5 points, a small sound, floating message and supported-device haptic.
+  Cooldowns and per-hazard flags prevent hovering beside danger to farm points.
+• Upgraded the game-over summary with final score, flowers, longest streak,
+  close-call count and either a new-best celebration or points-to-best message.
+• Preserved the player-paced camera, safe revival and double-life protections.
+• Updated the offline cache to v48.
+
 • Removed automatic screen scrolling completely. Hovering no longer moves the
   course and the player controls the pace of the run again.
 • The camera now follows only the highest point the bee has actually reached,

@@ -19,6 +19,14 @@
   <link rel="stylesheet" href="./retro-arcade.css?v=17">
   <link rel="stylesheet" href="./zoom-B.css?v=19">
   <link rel="stylesheet" href="./joystick.css?v=26">
+  <style>
+    .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
+    .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
+    .new-best-callout,.best-gap-callout{display:inline-block;margin-bottom:3px;font:700 11px var(--mono);letter-spacing:1.3px;color:#ffe18b}.new-best-callout{animation:new-best-pulse .75s ease-in-out infinite alternate;text-shadow:0 0 10px #ffe18b99}.best-gap-callout{color:#d5e5c7}
+    @keyframes streak-pop{from{transform:scale(.8);opacity:.2}to{transform:scale(1);opacity:1}}@keyframes new-best-pulse{to{transform:scale(1.04);filter:brightness(1.18)}}
+    @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}}
+    @media(prefers-reduced-motion:reduce){.streak-meter,.new-best-callout{animation:none}}
+  </style>
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -46,7 +54,7 @@
           <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. The camera follows the bee's highest climb. Collect flowers and avoid mossy floating islands with sharp rocks and patrolling beetles."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
-            <div class="hud-left"><span class="hud-caption">SCORE</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">FLOWERS</span><strong id="timer">000</strong></div><div class="hud-right" hidden aria-hidden="true"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">0</span></strong></div>
+            <div class="hud-left"><span class="hud-caption">SCORE</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">FLOWERS</span><strong id="timer">000</strong><span class="streak-meter" id="streak" hidden>BLOOM STREAK 5 · ×2</span></div><div class="hud-right" hidden aria-hidden="true"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">0</span></strong></div>
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
@@ -93,11 +101,13 @@
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
     <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flowers can appear anywhere across the screen. Mossy islands, edge-grown ledges, rock-tooth gates, dense formations and calm stretches create a changing route, but the flower path always remains reachable.</p></div>
+    <div class="help-row"><span>STREAKS</span><p><strong>Chain every bloom</strong>Collect 5 flowers without a miss or hit for ×2 score, 12 for ×3 and 25 for ×4. The multiplier changes score only—every collected bloom keeps its normal shop value.</p></div>
+    <div class="help-row"><span>CLOSE CALL</span><p><strong>Brush past danger</strong>Pass just outside an island or beetle hitbox for a one-time +5 bonus. The same hazard cannot be farmed repeatedly.</p></div>
     <div class="help-row"><span>CLIMB</span><p><strong>You set the pace</strong>The screen follows only the highest point you reach and never moves upward on its own. If you fall completely below the screen after climbing, you lose one life and revive automatically at a visible safe point.</p></div>
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Pick a flower for 10 points. If its bloom slips below the screen as you climb, you lose 10 points and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
+    <p class="help-note">Pick a flower for at least 10 points. Bloom Streak multipliers raise run score only. If a bloom slips below the screen as you climb, you lose 10 points, the streak resets and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
   </dialog>
@@ -109,7 +119,7 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=47"></script>
+  <script type="module" src="./game.mjs?v=48"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){

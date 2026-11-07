@@ -1,4 +1,4 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=47';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=48';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
@@ -385,12 +385,15 @@ function updateUI() {
   $('score').textContent = fmtScore(game.score);
   $('remaining').textContent = game.flowersCollected;
   $('timer').textContent = String(game.flowersCollected).padStart(3, '0');
+  const inRun = mode !== 'title';
+  $('streak').hidden = !inRun || game.multiplier <= 1;
+  $('streak').textContent = `BLOOM STREAK ${game.streak} · ×${game.multiplier}`;
+  $('streak').dataset.multiplier = String(game.multiplier);
   $('timer').parentElement.classList.remove('warning');
   $('level-label').textContent = game.mode === 'playing' && clock < difficultyNoticeUntil
     ? 'DIFFICULTY UP' : 'FLOWERS';
   $('level-label').title = garden.name;
   $('altitude-fill').style.height = `${Math.max(4, Math.min(100, (game.distance % 300) / 3))}%`;
-  const inRun = mode !== 'title';
   $('hud').hidden = !inRun;
   $('lives').hidden = !inRun;
   $('altitude').hidden = !inRun;
@@ -424,10 +427,16 @@ function updateUI() {
   $('overlay').classList.toggle('title-overlay', mode === 'title');
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('start-hint').textContent = 'PRESS ENTER TO CONTINUE';
+  const pointsFromBest = Math.max(0, game.runPreviousBest - game.score);
+  const resultCallout = game.newBest
+    ? '<strong class="new-best-callout">NEW PERSONAL BEST!</strong>'
+    : game.score === game.runPreviousBest
+      ? '<strong class="best-gap-callout">PERSONAL BEST MATCHED</strong>'
+      : `<strong class="best-gap-callout">${pointsFromBest} ${pointsFromBest === 1 ? 'POINT' : 'POINTS'} FROM YOUR BEST</strong>`;
   const titles = {
     title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', 'Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>', 'LET’S FLY'],
     paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
-    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${game.flowersCollected} flowers gathered · ${game.score} points scored.<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
+    over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${resultCallout}<br>${game.score} points · ${game.flowersCollected} flowers<br>Best streak: ${game.bestStreak} · Close calls: ${game.nearMisses}<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
     const [tag, title, description, label] = titles[mode];
@@ -773,12 +782,18 @@ function events() {
       let credit;
       for(let i=0;i<(event.value||1);i++)credit=profile.collect();
       if(!credit?.saved)notify('FLOWER SAVED FOR THIS SESSION · DEVICE STORAGE UNAVAILABLE',3000);
-      if(event.bait)notify('RISKY BLOOM · +3 FLOWERS',1500);
+      if(event.multiplierChanged)notify(`BLOOM STREAK ×${event.multiplier}`,1500);
+      else if(event.bait)notify('RISKY BLOOM · +3 FLOWERS',1500);
       addBurst(event.x,event.y,event.value||1);
-      tone(784,.08,'sine');tone(1047,.12,'sine',.065);
+      const lift = (event.multiplier - 1) * 85;
+      tone(784 + lift,.08,'sine');tone(1047 + lift,.12,'sine',.065);
     } else if (event.type === 'flowersMissed') {
       missedNoticePoints = (clock < missedNoticeUntil ? missedNoticePoints : 0) + event.points;
       missedNoticeUntil = clock + 1.2;
+    } else if (event.type === 'nearMiss') {
+      particles.push({x:event.x,y:event.y,vx:0,vy:-42,life:.85,max:.85,text:'CLOSE CALL +5'});
+      tone(330,.06,'square',0,.018);tone(494,.09,'triangle',.045,.018);
+      if (!reducedMotion && navigator.vibrate) navigator.vibrate(12);
     } else if (event.type === 'bounce') tone(220,.07,'triangle',0,.014);
     else if (event.type === 'hit') {
       tone(160,.17,'sawtooth',0,.025);tone(95,.19,'triangle',.08);
@@ -794,6 +809,9 @@ function events() {
       notify(`BACK IN THE GARDEN · ${game.lives} ${game.lives === 1 ? 'LIFE' : 'LIVES'} LEFT`, 1800);
     } else if (event.type === 'over') {
       safeSet('nectar-tangle-best-v1', String(game.best));
+      if (game.newBest) {
+        [523,659,784,1047].forEach((note,i) => tone(note,.17,'triangle',i*.08,.024));
+      }
       clearInput();
       $('toast').classList.remove('show');
     } else if (event.type === 'difficultyBand') {
