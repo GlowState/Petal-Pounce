@@ -20,6 +20,15 @@ WHAT CHANGED
 
 LATEST REVISION
 
+• Fixed milestone celebrations not appearing reliably at 25 and 50 flowers.
+• Replaced the canvas-only notice with a dedicated full-playfield celebration
+  layer above the HUD, including a large bloom card and visible sparkle burst.
+• Added a second toast announcement as a fallback, plus assertive screen-reader
+  status text. The score bonus and permanent Best Flowers record are unchanged.
+• Milestone cards now stay visible for 2.6 seconds and can restart cleanly if
+  more than one milestone event is received.
+• Updated the offline cache to v51 so mobile browsers fetch the corrected UI.
+
 • Added flower milestones every 25 collected flowers. They celebrate without
   pausing the endless run and do not restore lives.
 • Milestone score bonuses are +100 at 25 flowers, +200 at 50, +300 at 75,
