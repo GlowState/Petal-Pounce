@@ -15,33 +15,16 @@ export const WIND_MAX_DURATION = 30;
 export const WIND_MIN_ALTITUDE_M = 450;
 export const WIND_LONG_CALM_CHANCE = .22;
 export const BEETLE_MAX_PATROL_SPEED = 155;
-export const CAMERA_START_RISE_SPEED = 58;
-export const CAMERA_MAX_RISE_SPEED = 78;
 
-// The playfield always climbs during active play. The increase is deliberately
-// smooth instead of level-based: hazards remain the main source of difficulty,
-// while the moving bottom edge prevents a player from hovering forever.
-export function cameraRiseSpeed(altitudeM = 0) {
-  const altitude = Math.max(0, Number(altitudeM) || 0);
-  return Math.min(CAMERA_MAX_RISE_SPEED,
-    CAMERA_START_RISE_SPEED + (CAMERA_MAX_RISE_SPEED - CAMERA_START_RISE_SPEED)
-      * (1 - Math.exp(-altitude / 850)));
-}
-
-export function advanceCamera(currentY, currentRiseSpeed, beeY, viewHeight, dt, altitudeM = 0) {
+// The camera follows only height the player has actually earned. It never
+// advances on its own and never scrolls back down when the bee descends.
+export function advanceCamera(currentY, highestBeeY, viewHeight, dt) {
   const current = Number(currentY) || 0;
   const elapsed = Math.max(0, Number(dt) || 0);
   const height = Math.max(1, Number(viewHeight) || 1);
-  const baseSpeed = cameraRiseSpeed(altitudeM);
-  const speed = Math.max(baseSpeed, Number(currentRiseSpeed) || baseSpeed);
-  const beeScreenY = (Number(beeY) || 0) - current;
-  const lead = Math.max(0, height * .57 - beeScreenY);
-  const desiredSpeed = Math.min(210, baseSpeed + lead * 2.4);
-  // Smooth velocity instead of switching between two camera positions. This
-  // removes the tiny hitch that could occur when the bee crossed the follow line.
-  const easedSpeed = Math.max(baseSpeed,
-    speed + (desiredSpeed - speed) * (1 - Math.exp(-4.2 * elapsed)));
-  return { y: current - easedSpeed * elapsed, speed: easedSpeed };
+  const earnedTarget = (Number(highestBeeY) || 0) - height * .57;
+  if (earnedTarget >= current || elapsed <= 0) return current;
+  return current + (earnedTarget - current) * (1 - Math.exp(-5.2 * elapsed));
 }
 
 export function beetlePatrolSpeed(amplitude, difficultyBand = 0, variation = 0) {
@@ -798,7 +781,7 @@ export class Game {
     const top = Number(cameraTop) || 0;
     const bottom = Math.max(top + 1, Number(cameraBottom) || top + 1);
     // Preserve the last leaf the player touched whenever it is still visible
-    // and clear. Only relocate when scrolling or a hazard made it unsafe.
+    // and clear. Only relocate when camera progression or a hazard made it unsafe.
     if (!this.checkpointIsSafeAndVisible(this.checkpoint, top, bottom)) {
       this.moveCheckpointIntoView(top, bottom);
     }

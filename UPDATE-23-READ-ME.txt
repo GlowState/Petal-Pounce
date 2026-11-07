@@ -20,21 +20,21 @@ WHAT CHANGED
 
 LATEST REVISION
 
-• Smoothed the continuous camera with eased velocity, removing the small hitch
-  that could happen when the bee crossed the camera follow line.
-• Increased scrolling slightly from 52–72 to 58–78 pixels per second.
+• Removed automatic screen scrolling completely. Hovering no longer moves the
+  course and the player controls the pace of the run again.
+• The camera now follows only the highest point the bee has actually reached,
+  eases smoothly upward after a climb and never drifts back down.
+• Falling below the already-climbed playfield can still cost a life, but the
+  camera itself never pushes the bee off screen.
 • Fixed a double-life bug: a hazard could revive the bee at an old leaf that
   had already scrolled below the screen, immediately triggering a second loss.
 • Revivals now keep the last touched leaf when it is visible and safe. If it is
   no longer usable, the game selects the nearest visible leaf with clearance
   from rocks and beetles—or the clearest open point when no leaf is visible—
   then grants 2.75 seconds of protection.
-• The scrolling boundary now respects revival protection.
-• Updated the offline cache to v46.
+• The bottom screen boundary respects revival protection.
+• Updated the offline cache to v47.
 
-• Fixed the automatic climb so the screen movement is immediately visible.
-  It now starts at 58 pixels per second and eases smoothly toward 78 pixels
-  per second as the hidden difficulty progression increases.
 • Removed the on-screen distance readout. The center HUD now shows a clean,
   three-digit flower counter, and the duplicate flower display was removed.
 • Removed distance from the game-over summary while keeping altitude internally
@@ -43,14 +43,6 @@ LATEST REVISION
 • Beetles now patrol about 25–30% faster, with a safe maximum horizontal
   speed of 155 pixels per second. They still fly only horizontally and retain
   their permanent escape corridors.
-• The playfield now scrolls upward continuously during active play. It starts
-  at a steady 58 pixels per second and rises smoothly toward a 78-pixel maximum
-  as distance increases; there are no sudden speed levels.
-• The camera never reverses downward. A fast-climbing bee can pull it upward,
-  while hovering no longer stops the run. Falling completely below the screen
-  costs one life and revives the bee at a visible leaf or protected safe point.
-• Automatic scrolling pauses with the game and during the short revive delay,
-  preventing an unfair moving respawn.
 
 • Lose 10 run points when an uncollected bloom scrolls below the playfield.
   Each missed flower is counted once and removed from the run. The score can
@@ -64,7 +56,7 @@ BEETLE PATROLS
 • Beetles patrol horizontally at fixed heights and reverse direction smoothly.
 • Patrol density increases with altitude. The first patrol is above 35 meters.
 • Every patrol reserves a 105-pixel escape corridor and clears rocks, flowers
-  and respawn leaves. Maximum horizontal patrol speed is 120 pixels per second.
+  and respawn leaves. Maximum horizontal patrol speed is 155 pixels per second.
 • Beetle collisions cost one life and use the existing automatic revival.
 
 • Replaced the purple thorn-bar artwork with hand-drawn floating garden islands.
@@ -78,7 +70,7 @@ BEETLE PATROLS
 • Added moving hazards to the island course for additional difficulty.
 • Updated game labels, accessibility text and instructions to say thorn islands.
 • Renamed the run HUD from HONEY to SCORE. Flowers add 10 score points each.
-• Moved every difficulty notice into the distance HUD to keep the playfield clear.
+• Moved every difficulty notice into the center HUD to keep the playfield clear.
 • Clipped island art to the original obstacle shapes and added a dashed ring
   around the bee during temporary protection.
 • Used Flower Garden's smooth bee rendering across all gardens.
