@@ -1,11 +1,11 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=54';
-import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
-import { HoldControls } from './hold-controls.mjs?v=23';
-import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
-import { paintFlower } from './flowers.mjs?v=16';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=55';
+import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=55';
+import { HoldControls } from './hold-controls.mjs?v=55';
+import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=55';
+import { paintFlower } from './flowers.mjs?v=55';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC2';
+const APP_VERSION = '1.0 RC3';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -252,9 +252,14 @@ const fmtScore = value => (value < 0 ? '−' : '') + Math.abs(value).toString().
 function resize() {
   const rect = screen.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
-  viewH = Math.round(WIDTH * rect.height / rect.width);
-  canvas.width = WIDTH;
-  canvas.height = viewH;
+  const nextViewH = Math.round(WIDTH * rect.height / rect.width);
+  // iOS standalone mode may report repeated sub-pixel viewport changes. Never
+  // clear and rebuild the canvas unless its actual render size changed enough
+  // to matter; otherwise those callbacks appear as a full-screen flash.
+  if (canvas.width === WIDTH && Math.abs(nextViewH - viewH) <= 2) return;
+  viewH = nextViewH;
+  if (canvas.width !== WIDTH) canvas.width = WIDTH;
+  if (canvas.height !== viewH) canvas.height = viewH;
   ctx.imageSmoothingEnabled = false;
   const target = game.bee.y - viewH * .6;
   if (!cameraInitialized || game.mode === 'title') {
@@ -263,7 +268,11 @@ function resize() {
   else camera = Math.min(camera, target);
   cameraInitialized = true;
 }
-new ResizeObserver(resize).observe(screen);
+let resizeFrame = 0;
+new ResizeObserver(() => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(resize);
+}).observe(screen);
 resize();
 
 function ensureAudio() {
@@ -1241,7 +1250,8 @@ function updateAmbientCues(dt) {
     if (y < 24 || y > Math.min(viewH * .48, beeY - 34)) continue;
     warnedBeetles.add(beetle);
     beetleWarningCooldown = 2.4;
-    showFeedback('beetle');
+    // The approach tone is enough warning. A full-screen flash for every new
+    // patrol felt nearly constant in the taller iPhone standalone viewport.
     tone(196,.08,'square',0,.012);
     tone(147,.11,'square',.08,.01);
     break;

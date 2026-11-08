@@ -14,17 +14,17 @@
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=16">
-  <link rel="stylesheet" href="./shop.css?v=16">
-  <link rel="stylesheet" href="./retro-arcade.css?v=17">
-  <link rel="stylesheet" href="./zoom-B.css?v=19">
-  <link rel="stylesheet" href="./joystick.css?v=26">
+  <link rel="stylesheet" href="./style.css?v=55">
+  <link rel="stylesheet" href="./shop.css?v=55">
+  <link rel="stylesheet" href="./retro-arcade.css?v=55">
+  <link rel="stylesheet" href="./zoom-B.css?v=55">
+  <link rel="stylesheet" href="./joystick.css?v=55">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
     .new-best-callout,.best-gap-callout{display:inline-block;margin-bottom:3px;font:700 11px var(--mono);letter-spacing:1.3px;color:#ffe18b}.new-best-callout{animation:new-best-pulse .75s ease-in-out infinite alternate;text-shadow:0 0 10px #ffe18b99}.best-gap-callout{color:#d5e5c7}
-    .garden-notification{position:absolute;z-index:72;right:12px;bottom:12px;width:min(244px,calc(100% - 24px));height:78px;box-sizing:border-box;display:grid;grid-template-columns:54px minmax(0,1fr);align-items:center;gap:9px;padding:8px 12px 8px 8px;border:2px solid #ffe49a;border-radius:39px 11px 11px 39px;background:linear-gradient(145deg,#fff0ae,#efbd56);box-shadow:0 6px 0 #966423,0 9px 22px #07100b80,0 0 18px #ffe38a42;color:#273c2f;pointer-events:none;overflow:hidden}
-    .garden-notification[hidden]{display:none!important}.garden-notification.show{animation:garden-notice 2.65s cubic-bezier(.2,.8,.2,1) both}.garden-notice-medallion{display:grid;place-items:center;width:50px;height:50px;box-sizing:border-box;border:2px solid #fff0a4;border-radius:50%;background:#4d6548;color:#e6b5ff;font:900 25px/1 var(--mono);text-shadow:0 2px #2b3f2c;box-shadow:inset 0 0 0 3px #354b37,0 2px 0 #9d6f2f,0 0 13px #e8bcff75}.garden-notification[data-kind="achievement"] .garden-notice-medallion{color:#fff1a0}
+    .garden-notification{position:absolute;z-index:72;right:12px;bottom:12px;width:min(224px,calc(100% - 132px));height:74px;box-sizing:border-box;display:grid;grid-template-columns:50px minmax(0,1fr);align-items:center;gap:8px;padding:7px 10px 7px 7px;border:2px solid #ffe49a;border-radius:37px 11px 11px 37px;background:linear-gradient(145deg,#fff0ae,#efbd56);box-shadow:0 6px 0 #966423,0 9px 22px #07100b80,0 0 18px #ffe38a42;color:#273c2f;pointer-events:none;overflow:hidden}
+    .garden-notification[hidden]{display:none!important}.garden-notification.show{animation:garden-notice 2.65s cubic-bezier(.2,.8,.2,1) both}.garden-notice-medallion{display:grid;place-items:center;width:46px;height:46px;box-sizing:border-box;border:2px solid #fff0a4;border-radius:50%;background:#4d6548;color:#e6b5ff;font:900 23px/1 var(--mono);text-shadow:0 2px #2b3f2c;box-shadow:inset 0 0 0 3px #354b37,0 2px 0 #9d6f2f,0 0 13px #e8bcff75}.garden-notification[data-kind="achievement"] .garden-notice-medallion{color:#fff1a0}
     .garden-notice-copy{min-width:0;display:grid;align-content:center;gap:6px;overflow:hidden}.garden-notice-copy strong,.garden-notice-copy span{display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip}.garden-notice-copy strong{font:900 12px/1.05 var(--mono);letter-spacing:.55px;color:#263b2e;text-shadow:0 1px #fff3bd}.garden-notice-copy span{font:800 9px/1.05 var(--mono);letter-spacing:.25px;color:#4a4932}.garden-notice-copy.compact strong{font-size:11px;letter-spacing:.2px}.garden-notice-copy.compact span{font-size:8px;letter-spacing:0}.garden-notice-copy.extra-compact strong{font-size:10px;letter-spacing:0}.garden-notice-copy.extra-compact span{font-size:7px;letter-spacing:0}
     .meta-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,552px);margin:12px auto 0}.meta-button{min-height:46px;padding:10px 12px;border:2px solid #65725d;border-radius:6px;background:linear-gradient(#354638,#26362c);box-shadow:0 5px 0 #15241c;color:#f6efcf;font:800 12px var(--mono);letter-spacing:1.5px;text-shadow:1px 2px #18251d;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}.meta-button:active{transform:translateY(3px);box-shadow:0 2px 0 #15241c}.meta-button:focus-visible{outline:3px solid #ffe081;outline-offset:3px}
     .feedback-flash{position:absolute;inset:0;z-index:58;pointer-events:none;opacity:0}.feedback-flash.show.hit{animation:feedback-hit .52s ease-out}.feedback-flash.show.near{animation:feedback-near .36s ease-out}.feedback-flash.show.wind{animation:feedback-wind .5s ease-out}.feedback-flash.show.beetle{animation:feedback-beetle .42s ease-out}.title-version{margin:5px auto 0;padding:4px 8px;border:0;background:transparent;color:#bdcbb7;font:700 7px var(--mono);letter-spacing:1.4px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;touch-action:manipulation}.title-version:hover{color:#fff0a4}.title-version:focus-visible{outline:2px solid #ffe081;outline-offset:2px}
@@ -32,7 +32,8 @@
     .quick-start-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.quick-start-card{padding:14px;border:1px solid #65725d;border-radius:8px;background:#182a21}.quick-start-card span{display:block;margin-bottom:6px;color:#ffe18a;font:900 10px var(--mono);letter-spacing:1px}.quick-start-card p{margin:0;color:#d2ddca;font-size:13px;line-height:1.45}.credits-list{display:grid;gap:9px;margin:18px 0}.credits-list div{display:flex;justify-content:space-between;gap:18px;padding:11px;border-bottom:1px solid #53604f}.credits-list span{color:#b9c8b1;font:700 9px var(--mono);letter-spacing:1px}.credits-list strong{color:#fff0a4;text-align:right}.credits-version{color:#e8c4ff;font:800 10px var(--mono);letter-spacing:1.5px}
     @keyframes streak-pop{from{transform:scale(.8);opacity:.2}to{transform:scale(1);opacity:1}}@keyframes new-best-pulse{to{transform:scale(1.04);filter:brightness(1.18)}}
     @keyframes garden-notice{0%{opacity:0;transform:translate(18px,12px) scale(.88)}10%{opacity:1;transform:translate(0,0) scale(1.035)}17%,82%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(10px,8px) scale(.96)}}@keyframes feedback-hit{0%{opacity:.82;background:#ff5d5540;box-shadow:inset 0 0 0 9px #ff9b76,inset 0 0 70px #d62d2d}100%{opacity:0;background:transparent;box-shadow:inset 0 0 0 0 transparent}}@keyframes feedback-near{0%{opacity:.72;box-shadow:inset 0 0 38px #fff09e,inset 0 0 0 3px #fff4bd}100%{opacity:0;box-shadow:inset 0 0 0 transparent}}@keyframes feedback-wind{0%{opacity:.55;box-shadow:inset 30px 0 55px #c9edff88,inset -30px 0 55px #c9edff88}100%{opacity:0;box-shadow:inset 0 0 0 transparent}}@keyframes feedback-beetle{0%{opacity:.68;box-shadow:inset 0 15px 36px #ffb866aa,inset 0 0 0 2px #ffd280}100%{opacity:0;box-shadow:inset 0 0 0 transparent}}
-    @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}.meta-actions{gap:7px;margin-top:9px}.meta-button{min-height:42px;font-size:9px;letter-spacing:1px}.garden-notification{right:9px;bottom:9px;width:min(236px,calc(100% - 18px));height:74px;grid-template-columns:51px minmax(0,1fr);gap:7px}.garden-notice-medallion{width:48px;height:48px}.records-grid{gap:7px}.record-card{padding:10px}.record-card strong{font-size:19px}.achievement-heading{gap:9px}.achievement-footer{align-items:flex-start;flex-direction:column}.achievement-equip{align-self:flex-start}.progress-dialog{padding:22px 16px}.progress-footer .play-button{width:100%;min-width:0}.quick-start-grid{grid-template-columns:1fr;gap:7px}.quick-start-card{padding:11px}.credits-list div{align-items:flex-start;flex-direction:column;gap:4px}.credits-list strong{text-align:left}}
+    @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}.meta-actions{gap:7px;margin-top:9px}.meta-button{min-height:42px;font-size:9px;letter-spacing:1px}.garden-notification{right:9px;bottom:9px;width:min(218px,calc(100% - 126px));height:70px;grid-template-columns:47px minmax(0,1fr);gap:6px;padding-right:8px}.garden-notice-medallion{width:44px;height:44px;font-size:22px}.records-grid{gap:7px}.record-card{padding:10px}.record-card strong{font-size:19px}.achievement-heading{gap:9px}.achievement-footer{align-items:flex-start;flex-direction:column}.achievement-equip{align-self:flex-start}.progress-dialog{padding:22px 16px}.progress-footer .play-button{width:100%;min-width:0}.quick-start-grid{grid-template-columns:1fr;gap:7px}.quick-start-card{padding:11px}.credits-list div{align-items:flex-start;flex-direction:column;gap:4px}.credits-list strong{text-align:left}}
+    @media(max-width:365px){.garden-notification{bottom:72px;width:min(210px,calc(100% - 18px))}}
     @media(prefers-reduced-motion:reduce){.streak-meter,.new-best-callout,.garden-notification.show,.feedback-flash.show{animation:none}}
   </style>
 </head>
@@ -79,7 +80,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC2 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC3 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -167,18 +168,20 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC3</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=54"></script>
+  <script type="module" src="./game.mjs?v=55"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
       document.querySelector('.tools').prepend(document.getElementById('help'));
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
-    if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').then(registration => registration.update()).catch(() => {});
+    });
   </script>
 </body>
 </html>

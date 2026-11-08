@@ -197,3 +197,26 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v53-Release-Candidate.zip is the exact approved build
 from immediately before this Garden Bubble notification update.
+
+LATEST UPDATE — iPHONE APP PARITY & FLASH FIX (v55 / v1.0 RC3)
+
+• Shortened the milestone and achievement Garden Bubble horizontally while
+  preserving its circular medallion, two-line layout and automatic text fit.
+• Reserved room for the lives display. On the narrowest phones the bubble
+  automatically rises above it, so the two interfaces can never overlap.
+• Fixed repeated iOS standalone canvas resets that could appear as a constant
+  full-screen flash. Tiny viewport changes no longer clear the canvas.
+• Removed the repeated full-screen beetle warning flash while keeping the
+  approach tones and every beetle gameplay behavior unchanged.
+• Changed the offline loader to fetch the live HTML, CSS and JavaScript first,
+  then use its saved copy only when offline. The Home Screen app now uses the
+  same current files as the website instead of lingering on an older mix.
+• Versioned the complete website asset set together as v55 so Safari and the
+  installed iPhone app load identical styles, controls, art and game modules.
+• Preserved movement, hazards, pacing, scoring, lives, revival protection,
+  procedural generation and all achievement/milestone rewards from v54.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v54-Garden-Bubble.zip is the exact approved build from
+immediately before this iPhone parity and flashing fix.
