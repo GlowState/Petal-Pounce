@@ -311,3 +311,26 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v58-iPhone-Viewport-Cap.zip is the exact RC6 build from
 immediately before this full-height Home Screen correction.
+
+LATEST UPDATE — TRUE iOS DISPLAY HEIGHT (v60 / v1.0 RC8)
+
+• Diagnosed the remaining strip from the current RC7 Home Screen screenshot.
+  RC7 reached the bottom of iOS's dynamic web viewport, but iOS still reserved
+  the final portion of the physical display outside that viewport.
+• Replaced the standalone bottom-position calculation with 100lvh, iOS's large
+  viewport height. The arcade cabinet now reaches the physical bottom of the
+  display instead of stopping at the shorter dynamic viewport boundary.
+• Because the complete cabinet grows, the entire control deck moves downward;
+  the gap is not merely recolored or covered by a decorative filler.
+• Preserved bottom-safe-area padding so the joystick and Fly button remain
+  comfortably above the Home indicator after moving down.
+• Added a one-time service-worker activation refresh with an appbuild marker.
+  This forces an installed app to load the matching current HTML and prevents
+  a new game module from running inside an older cached layout.
+• The thin top arcade rail and side rails remain aligned. Browser layout and
+  every gameplay behavior remain unchanged.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v59-Full-Height-Controls.zip is the exact RC7 build from
+immediately before this iOS large-viewport correction.
