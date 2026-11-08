@@ -287,3 +287,27 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v57-Browser-Proportion.zip is the exact build from
 immediately before this final iPhone/browser geometry correction.
+
+LATEST UPDATE — FULL-HEIGHT HOME SCREEN CONTROLS (v59 / v1.0 RC7)
+
+• Corrected the final interpretation after comparing the current browser view:
+  the browser's bottom “Ask Gemini / New Tab / All Tabs” toolbar is outside the
+  game and naturally disappears in Home Screen mode.
+• Removed RC6's 1.69:1 standalone cabinet cap. That cap incorrectly preserved
+  the missing browser toolbar as an empty strip in the installed app.
+• The Home Screen cabinet now extends from the iPhone's top safe area to the
+  bottom of the display, reclaiming the empty strip and pushing the joystick
+  and Fly button lower as requested.
+• Restored the control deck's normal iPhone bottom-safe-area padding so both
+  controls stay above the Home indicator while using the newly available room.
+• Added a thin green arcade rail beneath the iPhone status area, visually
+  matching the existing left and right playfield borders.
+• These rules activate only in installed Home Screen mode. The browser layout
+  shown in the supplied RC6 screenshot remains unchanged.
+• Gameplay, camera logic, art, hazards, scoring, achievements and control
+  response remain identical to RC6.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v58-iPhone-Viewport-Cap.zip is the exact RC6 build from
+immediately before this full-height Home Screen correction.
