@@ -1,11 +1,11 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=53';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=54';
 import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=16';
 import { HoldControls } from './hold-controls.mjs?v=23';
 import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=16';
 import { paintFlower } from './flowers.mjs?v=16';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC';
+const APP_VERSION = '1.0 RC2';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -227,10 +227,10 @@ let toastTimer;
 let difficultyNoticeUntil = 0;
 let missedNoticeUntil = 0;
 let missedNoticePoints = 0;
-let milestoneTimer;
-let achievementUnlockTimer;
-let achievementUnlockShowing = false;
-const achievementUnlockQueue = [];
+let gardenNoticeTimer;
+let gardenNoticeScheduled = false;
+let gardenNoticeShowing = false;
+const gardenNoticeQueue = [];
 const runTracker = { perfectSinceMiss:0, flowersSinceHit:0, windActive:false, windClean:true };
 let feedbackTimer;
 let beetleWarningCooldown = 0;
@@ -331,51 +331,68 @@ function persistSession() {
 
 function clearInput() { controls.clear(); clearJoystick(); }
 
-function hideMilestone() {
-  clearTimeout(milestoneTimer);
-  const celebration = $('milestone-celebration');
-  celebration.hidden = true;
-  celebration.classList.remove('celebrate');
+function clearGardenNotices() {
+  clearTimeout(gardenNoticeTimer);
+  gardenNoticeScheduled = false;
+  gardenNoticeShowing = false;
+  gardenNoticeQueue.length = 0;
+  const notice = $('garden-notification');
+  notice.hidden = true;
+  notice.classList.remove('show');
 }
 
-function showMilestone(event) {
-  clearTimeout(milestoneTimer);
-  const celebration = $('milestone-celebration');
-  $('milestone-title').textContent = `${event.milestone} BLOOMS!`;
-  $('milestone-bonus').textContent = `MILESTONE +${event.bonus}`;
-  celebration.hidden = false;
-  celebration.classList.remove('celebrate');
-  // Restart the animation even if two milestone events ever arrive together.
-  void celebration.offsetWidth;
-  celebration.classList.add('celebrate');
-  notify(`${event.milestone} BLOOMS · +${event.bonus} BONUS`, 2600);
-  milestoneTimer = setTimeout(hideMilestone, 2600);
+function fitGardenNotice() {
+  const copy = $('garden-notice-copy');
+  const title = $('garden-notice-title');
+  const detail = $('garden-notice-detail');
+  copy.classList.remove('compact','extra-compact');
+  if (title.scrollWidth > title.clientWidth || detail.scrollWidth > detail.clientWidth) copy.classList.add('compact');
+  if (title.scrollWidth > title.clientWidth || detail.scrollWidth > detail.clientWidth) copy.classList.add('extra-compact');
+}
+
+function showNextGardenNotice() {
+  gardenNoticeScheduled = false;
+  if (gardenNoticeShowing || !gardenNoticeQueue.length) return;
+  gardenNoticeShowing = true;
+  const item = gardenNoticeQueue.shift();
+  const notice = $('garden-notification');
+  notice.dataset.kind = item.kind;
+  $('garden-notice-icon').textContent = item.icon;
+  $('garden-notice-title').textContent = item.title;
+  $('garden-notice-detail').textContent = item.detail;
+  notice.hidden = false;
+  fitGardenNotice();
+  notice.classList.remove('show');
+  void notice.offsetWidth;
+  notice.classList.add('show');
+  if (item.kind === 'achievement') {
+    tone(659,.12,'triangle');tone(784,.14,'triangle',.08);tone(1047,.18,'sine',.17,.024);
+    if (!reducedMotion && navigator.vibrate) navigator.vibrate([16,28,16]);
+  }
+  gardenNoticeTimer = setTimeout(() => {
+    notice.hidden = true;
+    notice.classList.remove('show');
+    gardenNoticeShowing = false;
+    showNextGardenNotice();
+  }, 2650);
+}
+
+function queueGardenNotice(item) {
+  // A bloom milestone is the immediate result of the collected flower, so it
+  // takes priority over an achievement unlocked by that same flower.
+  if (item.kind === 'milestone') {
+    const firstAchievement = gardenNoticeQueue.findIndex(queued => queued.kind === 'achievement');
+    gardenNoticeQueue.splice(firstAchievement < 0 ? gardenNoticeQueue.length : firstAchievement, 0, item);
+  } else gardenNoticeQueue.push(item);
+  if (!gardenNoticeScheduled && !gardenNoticeShowing) {
+    gardenNoticeScheduled = true;
+    queueMicrotask(showNextGardenNotice);
+  }
 }
 
 function achievementProgress(achievement) {
   if (achievement.metric === 'bestFlowers') return Math.max(game.bestFlowers, game.flowersCollected);
   return Math.max(0, Number(progress.records[achievement.metric]) || 0);
-}
-
-function showNextAchievementUnlock() {
-  if (achievementUnlockShowing || !achievementUnlockQueue.length) return;
-  achievementUnlockShowing = true;
-  const achievement = achievementUnlockQueue.shift();
-  const banner = $('achievement-unlock');
-  $('achievement-unlock-name').textContent = achievement.name;
-  $('achievement-unlock-reward').textContent = `UNLOCKED · ${achievement.reward}`;
-  banner.hidden = false;
-  banner.classList.remove('show');
-  void banner.offsetWidth;
-  banner.classList.add('show');
-  tone(659,.12,'triangle');tone(784,.14,'triangle',.08);tone(1047,.18,'sine',.17,.024);
-  if (!reducedMotion && navigator.vibrate) navigator.vibrate([16,28,16]);
-  achievementUnlockTimer = setTimeout(() => {
-    banner.hidden = true;
-    banner.classList.remove('show');
-    achievementUnlockShowing = false;
-    showNextAchievementUnlock();
-  }, 2800);
 }
 
 function unlockAchievement(id, { announce = true } = {}) {
@@ -385,8 +402,8 @@ function unlockAchievement(id, { announce = true } = {}) {
   progress.unlocked[id] = true;
   saveProgress();
   if (announce) {
-    achievementUnlockQueue.push(achievement);
-    showNextAchievementUnlock();
+    queueGardenNotice({ kind:'achievement', icon:'★', title:achievement.name.toUpperCase(),
+      detail:`${BEE_STYLES[achievement.styleId].name.toUpperCase()} UNLOCKED` });
   }
   if ($('achievements-dialog').open) renderAchievements();
   return true;
@@ -1114,7 +1131,7 @@ function events() {
       const lift = (event.multiplier - 1) * 85;
       tone(784 + lift,.08,'sine');tone(1047 + lift,.12,'sine',.065);
     } else if (event.type === 'flowerMilestone') {
-      showMilestone(event);
+      queueGardenNotice({ kind:'milestone', icon:'✿', title:`${event.milestone} BLOOMS!`, detail:`+${event.bonus} BONUS` });
       for (let i = 0; i < (reducedMotion ? 6 : 24); i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 55 + Math.random() * 145;
@@ -1200,7 +1217,7 @@ function events() {
       difficultyNoticeUntil = 0;
       missedNoticeUntil = 0;
       missedNoticePoints = 0;
-      hideMilestone();
+      clearGardenNotices();
       tone(392);tone(523,.15,'triangle',.1);
     }
   }
