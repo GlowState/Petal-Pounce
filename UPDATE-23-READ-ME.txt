@@ -357,3 +357,30 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v60-iOS-Large-Viewport.zip is the exact RC8 build from
 immediately before this physical-screen-height correction.
+
+LATEST UPDATE — NORMALIZED iPHONE SCREEN HEIGHT (v62 / v1.0 RC10)
+
+• Reverted RC9's raw screen-height calculation after the supplied screenshot
+  confirmed that this iPhone reports screen dimensions in physical pixels.
+  Treating those pixels as CSS pixels made the garden several times too tall
+  and pushed the joystick and Fly button below the visible display.
+• The Home Screen app now normalizes screen height against screen width and the
+  live CSS viewport width. It works whether iOS reports screen dimensions in
+  CSS pixels or physical pixels.
+• Added a strict 56–64 CSS-pixel maximum reclaim guard. Even if iOS supplies an
+  unexpected screen value, the cabinet can only grow by the measured lower
+  strip; the controls can never be sent far below the display again.
+• Restored the stable RC7/RC8 flex geometry. Only the missing lower strip is
+  reclaimed, so the playfield grows modestly and the complete control deck
+  moves down together without changing its proportions.
+• Kept the thin top arcade rail, Home-indicator padding and standalone-only
+  scope. The ordinary browser layout remains unchanged.
+• Retained the one-time service-worker HTML refresh, now marked appbuild 62,
+  so the RC10 label and RC10 layout load as one synchronized update.
+• Gameplay, camera behavior, obstacles, scoring, achievements and controls are
+  unchanged from RC9.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v61-Physical-Screen-Height.zip is the exact RC9 build
+from immediately before this normalized-height correction.

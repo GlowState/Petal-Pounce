@@ -17,22 +17,34 @@
       const standalone=navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
       if(!standalone)return;
       root.classList.add('ios-standalone');
-      const syncScreenHeight=()=>{
-        const fullHeight=Math.max(Number(screen?.height)||0,innerHeight||0);
-        if(fullHeight>0)root.style.setProperty('--ios-full-screen-height',`${fullHeight}px`);
+      const syncStandaloneHeight=()=>{
+        const viewportWidth=Math.max(document.documentElement.clientWidth||0,innerWidth||0);
+        const viewportHeight=Math.max(document.documentElement.clientHeight||0,innerHeight||0);
+        const rawScreenWidth=Number(screen?.width)||viewportWidth;
+        const rawScreenHeight=Number(screen?.height)||viewportHeight;
+        const screenScale=viewportWidth>0&&rawScreenWidth>viewportWidth*1.25
+          ?rawScreenWidth/viewportWidth
+          :1;
+        const cssScreenHeight=rawScreenHeight/screenScale;
+        const maxReclaim=Math.min(64,Math.max(56,viewportWidth*.15));
+        const fullHeight=Math.min(
+          viewportHeight+maxReclaim,
+          Math.max(viewportHeight,cssScreenHeight)
+        );
+        if(fullHeight>0)root.style.setProperty('--ios-app-height',`${Math.round(fullHeight*100)/100}px`);
       };
-      syncScreenHeight();
-      addEventListener('orientationchange',syncScreenHeight,{passive:true});
+      syncStandaloneHeight();
+      addEventListener('orientationchange',syncStandaloneHeight,{passive:true});
     })();
   </script>
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=61">
-  <link rel="stylesheet" href="./shop.css?v=61">
-  <link rel="stylesheet" href="./retro-arcade.css?v=61">
-  <link rel="stylesheet" href="./zoom-B.css?v=61">
-  <link rel="stylesheet" href="./joystick.css?v=61">
+  <link rel="stylesheet" href="./style.css?v=62">
+  <link rel="stylesheet" href="./shop.css?v=62">
+  <link rel="stylesheet" href="./retro-arcade.css?v=62">
+  <link rel="stylesheet" href="./zoom-B.css?v=62">
+  <link rel="stylesheet" href="./joystick.css?v=62">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -50,7 +62,7 @@
     @media(max-width:365px){.garden-notification{bottom:72px;width:min(210px,calc(100% - 18px))}}
     @media(max-width:560px){
       html.ios-standalone body{background:#171e20}
-      html.ios-standalone .cabinet{top:env(safe-area-inset-top);bottom:auto;height:calc(var(--ios-full-screen-height,100vh) - env(safe-area-inset-top));padding:0}
+      html.ios-standalone .cabinet{top:env(safe-area-inset-top);bottom:auto;height:calc(var(--ios-app-height,100dvh) - env(safe-area-inset-top));padding:0}
       html.ios-standalone .cabinet::before{content:"";position:absolute;z-index:12;top:0;left:0;right:0;height:4px;pointer-events:none;background:linear-gradient(180deg,#0b1813,#526454 45%,#15251c);box-shadow:0 1px 0 #9cab8a66,0 2px 4px #07110e77}
       html.ios-standalone .cabinet-bar{top:0}
       html.ios-standalone .screen-frame{background:#171e20}
@@ -102,7 +114,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC9 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC10 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -190,11 +202,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC9</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC10</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=61"></script>
+  <script type="module" src="./game.mjs?v=62"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -202,7 +214,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=61';
+      const swUrl='./sw.js?v=62';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
