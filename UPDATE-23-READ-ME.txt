@@ -334,3 +334,26 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v59-Full-Height-Controls.zip is the exact RC7 build from
 immediately before this iOS large-viewport correction.
+
+LATEST UPDATE — PHYSICAL iPHONE SCREEN HEIGHT (v61 / v1.0 RC9)
+
+• Confirmed that iOS 26 Home Screen mode reports the same shortened usable
+  height for viewport-based units, including the large viewport used by RC8.
+• Stopped deriving standalone cabinet height from vh, dvh, lvh or fixed bottom
+  positioning. Home Screen mode now measures window.screen.height directly in
+  CSS pixels before the page renders.
+• The cabinet height is calculated from the physical screen measurement minus
+  only the top status safe area. This includes the lower strip that iOS omitted
+  from every prior viewport calculation.
+• The full control deck therefore moves into that lower space naturally while
+  retaining its Home-indicator padding and original joystick/Fly geometry.
+• The screen measurement refreshes on orientation changes and falls back to
+  the ordinary viewport only if screen.height is unavailable.
+• Retained the one-time service-worker HTML refresh, now marked appbuild 61,
+  so RC9's version label and RC9's layout must load together.
+• Browser layout and all gameplay remain unchanged.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v60-iOS-Large-Viewport.zip is the exact RC8 build from
+immediately before this physical-screen-height correction.
