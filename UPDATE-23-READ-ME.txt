@@ -220,3 +220,22 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v54-Garden-Bubble.zip is the exact approved build from
 immediately before this iPhone parity and flashing fix.
+
+LATEST UPDATE — iPHONE HOME SCREEN LAYOUT MATCH (v56 / v1.0 RC4)
+
+• Added an explicit iPhone Home Screen layout mode after reviewing the supplied
+  screenshot from the installed web app.
+• The garden no longer extends underneath the iPhone clock, signal and battery.
+  The system safe area is now separated from the playable camera window.
+• The utility bar and score HUD retain their website spacing instead of being
+  pushed apart by the standalone safe-area inset.
+• Reducing the standalone camera to the true playable area also keeps obstacle
+  visibility, camera follow and steering feel aligned with the Safari version.
+• Preserved the shorter non-overlapping Garden Bubble, canvas flash fix,
+  live-first offline loader and complete v55 gameplay behavior.
+• Versioned the synchronized website/Home Screen asset set as v56.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v55-iPhone-Parity.zip is the exact build from immediately
+before this screenshot-based Home Screen layout correction.
