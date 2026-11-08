@@ -384,3 +384,31 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v61-Physical-Screen-Height.zip is the exact RC9 build
 from immediately before this normalized-height correction.
+
+LATEST UPDATE — iOS 26 WEBKIT VIEWPORT WORKAROUND (v63 / v1.0 RC11)
+
+• Identified the persistent lower strip as an iOS 26 standalone WebKit viewport
+  defect rather than a Petal Pounce flexbox or height-calculation error.
+• With viewport-fit=cover, affected iPhones expose a paintable web viewport that
+  is one status-bar height shorter than the physical display. The missing band
+  sits outside the DOM and cannot contain canvas pixels, buttons or controls.
+• Removed viewport-fit=cover, the verified iOS 26 workaround. The installed app
+  now begins immediately below the status bar and receives the full remaining
+  display down to the bottom edge.
+• Removed RC9/RC10's screen-height measurement and reclaim logic completely.
+  No guessed height, viewport-unit override or oversized off-screen cabinet
+  remains.
+• Anchored the standalone cabinet directly between the top and bottom of the
+  coherent app viewport. The thin top arcade rail remains in place and the
+  control deck occupies the true bottom of that viewport.
+• Browser gameplay, hazards, art, scoring, achievements and control response
+  remain unchanged.
+• IMPORTANT: iOS stores viewport behavior when a Home Screen web app is added.
+  After publishing v63, delete the existing Petal Pounce Home Screen icon and
+  add it again from Safari with “Open as Web App” enabled. Merely relaunching
+  the old icon cannot apply this install-time viewport change.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v62-Normalized-Screen-Height.zip is the exact RC10 build
+from immediately before this iOS 26 WebKit workaround.
