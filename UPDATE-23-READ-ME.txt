@@ -176,3 +176,24 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v52-Records-Achievements.zip is the exact approved build
 from immediately before this release-candidate polish pass.
+
+LATEST UPDATE — GARDEN BUBBLE NOTIFICATIONS (v54 / v1.0 RC2)
+
+• Moved flower milestones and achievement unlocks to the bottom-right corner
+  so the upper route stays visible while the bee is climbing.
+• Replaced both previous banners with one compact, fixed-size Garden Bubble:
+  a gold hand-drawn card, centered circular medallion and exactly two text lines.
+• Milestones use a flower medallion and show the bloom count plus score bonus.
+  Achievements use a star medallion and show the achievement plus bee reward.
+• Removed the redundant “Achievement Unlocked” and “Milestone Reached” labels.
+• Added automatic text fitting for long achievement and cosmetic names.
+• Added one shared notification queue. A 25-flower milestone and an achievement
+  earned together now play one after the other instead of overlapping.
+• Preserved every gameplay value from v53: movement, hazards, pacing, winds,
+  beetles, scoring, lives, revival protection and procedural generation.
+• Updated the offline cache to v54.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v53-Release-Candidate.zip is the exact approved build
+from immediately before this Garden Bubble notification update.
