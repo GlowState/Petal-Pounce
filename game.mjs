@@ -1,11 +1,11 @@
-import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=57';
-import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=57';
-import { HoldControls } from './hold-controls.mjs?v=57';
-import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=57';
-import { paintFlower } from './flowers.mjs?v=57';
+import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=58';
+import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=58';
+import { HoldControls } from './hold-controls.mjs?v=58';
+import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=58';
+import { paintFlower } from './flowers.mjs?v=58';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC5';
+const APP_VERSION = '1.0 RC6';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);

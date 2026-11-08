@@ -261,3 +261,29 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v56-Home-Screen-Safe-Area.zip is the exact build from
 immediately before this browser-proportion correction.
+
+LATEST UPDATE — VERIFIED iPHONE/BROWSER GEOMETRY (v58 / v1.0 RC6)
+
+• Re-reviewed the supplied side-by-side image at matching screen widths and
+  measured the browser's complete game cabinet instead of only its controls.
+• Fixed the remaining root cause: Home Screen mode could still consume the
+  iPhone's entire taller viewport, while the browser is constrained by its
+  shorter visible content window.
+• Home Screen mode now caps the complete cabinet at the browser's measured
+  1.69:1 height-to-width proportion. The camera, utility bar, HUD, control
+  deck, joystick and Fly button therefore retain the browser composition.
+• The cap is width-driven, so it remains consistent across narrow and wide
+  iPhones instead of relying on one phone model's fixed pixel height.
+• The status-bar safe area remains outside the cabinet and the unused lower
+  area uses the same dark arcade background, preventing overlap or stretching.
+• Registered the service worker through an explicitly versioned URL with
+  update caching disabled, preventing iOS Home Screen mode from reusing an old
+  worker while the website has already moved to the new layout.
+• Browser-only layout rules remain unchanged. Gameplay, camera behavior,
+  hazards, pacing, scoring, achievements and controls are byte-for-byte the
+  same as v57.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v57-Browser-Proportion.zip is the exact build from
+immediately before this final iPhone/browser geometry correction.

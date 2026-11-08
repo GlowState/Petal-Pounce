@@ -17,11 +17,11 @@
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=57">
-  <link rel="stylesheet" href="./shop.css?v=57">
-  <link rel="stylesheet" href="./retro-arcade.css?v=57">
-  <link rel="stylesheet" href="./zoom-B.css?v=57">
-  <link rel="stylesheet" href="./joystick.css?v=57">
+  <link rel="stylesheet" href="./style.css?v=58">
+  <link rel="stylesheet" href="./shop.css?v=58">
+  <link rel="stylesheet" href="./retro-arcade.css?v=58">
+  <link rel="stylesheet" href="./zoom-B.css?v=58">
+  <link rel="stylesheet" href="./joystick.css?v=58">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -38,7 +38,8 @@
     @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}.meta-actions{gap:7px;margin-top:9px}.meta-button{min-height:42px;font-size:9px;letter-spacing:1px}.garden-notification{right:9px;bottom:9px;width:min(218px,calc(100% - 126px));height:70px;grid-template-columns:47px minmax(0,1fr);gap:6px;padding-right:8px}.garden-notice-medallion{width:44px;height:44px;font-size:22px}.records-grid{gap:7px}.record-card{padding:10px}.record-card strong{font-size:19px}.achievement-heading{gap:9px}.achievement-footer{align-items:flex-start;flex-direction:column}.achievement-equip{align-self:flex-start}.progress-dialog{padding:22px 16px}.progress-footer .play-button{width:100%;min-width:0}.quick-start-grid{grid-template-columns:1fr;gap:7px}.quick-start-card{padding:11px}.credits-list div{align-items:flex-start;flex-direction:column;gap:4px}.credits-list strong{text-align:left}}
     @media(max-width:365px){.garden-notification{bottom:72px;width:min(210px,calc(100% - 18px))}}
     @media(max-width:560px){
-      html.ios-standalone .cabinet{top:env(safe-area-inset-top);bottom:auto;height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:0}
+      html.ios-standalone body{background:#171e20}
+      html.ios-standalone .cabinet{top:env(safe-area-inset-top);bottom:auto;height:min(calc(100dvh - env(safe-area-inset-top)),169vw);padding:0}
       html.ios-standalone .cabinet-bar{top:0}
       html.ios-standalone .screen-frame{background:#171e20}
       html.ios-standalone .hud{top:54px}
@@ -91,7 +92,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC5 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC6 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -179,11 +180,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC5</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC6</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=57"></script>
+  <script type="module" src="./game.mjs?v=58"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -191,7 +192,11 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then(registration => registration.update()).catch(() => {});
+      const swUrl='./sw.js?v=58';
+      navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
+        .catch(()=>navigator.serviceWorker.register(swUrl))
+        .then(registration=>registration.update())
+        .catch(()=>{});
     });
   </script>
 </body>
