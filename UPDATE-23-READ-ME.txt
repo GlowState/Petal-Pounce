@@ -239,3 +239,25 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v55-iPhone-Parity.zip is the exact build from immediately
 before this screenshot-based Home Screen layout correction.
+
+LATEST UPDATE — EXACT BROWSER-PROPORTION HOME SCREEN (v57 / v1.0 RC5)
+
+• Re-measured the supplied side-by-side app and browser comparison instead of
+  treating the mismatch as only a status-bar problem.
+• The Home Screen app now lays out the cabinet strictly between the iPhone's
+  top and bottom safe areas, matching Safari's true content viewport.
+• Removed the extra bottom-safe-area height from the standalone control deck.
+  The joystick, Fly button and deck now use the same scale and spacing as the
+  browser version instead of the oversized app presentation.
+• Preserved the corrected browser-height garden window, HUD placement and
+  camera scale so identical obstacle spacing is visible in both versions.
+• Browser CSS remains untouched; these overrides activate only when Petal
+  Pounce is launched from the iPhone Home Screen.
+• Preserved the shorter Garden Bubble, flash fix, live-first cache loading and
+  every gameplay value from v56.
+• Versioned the synchronized asset set as v57.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v56-Home-Screen-Safe-Area.zip is the exact build from
+immediately before this browser-proportion correction.
