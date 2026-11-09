@@ -412,3 +412,23 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v62-Normalized-Screen-Height.zip is the exact RC10 build
 from immediately before this iOS 26 WebKit workaround.
+
+LATEST UPDATE — FLOATING GAME HUD (v64 / v1.0 RC12)
+
+• Removed the shared dark utility-bar background from the mobile game screen.
+  The garden now remains visible behind the utility controls.
+• Kept the Shop button floating at the upper-left and the Sound/Pause buttons
+  floating at the upper-right with subtle shadows for readability.
+• Removed the Personal Best label and number from the play screen. Personal
+  best data is still saved and remains available through Records and results.
+• Reduced the lives card by roughly ten percent while preserving its exact
+  bottom-left anchor. Its count, label and three bee-life icons remain intact.
+• Preserved RC11's iOS 26 viewport workaround exactly. This update does not
+  modify the viewport meta configuration, cabinet height or control deck.
+• Gameplay, difficulty, camera behavior, scoring, achievements, controls and
+  collision logic are unchanged.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v63-iOS-Viewport-Workaround.zip is the exact RC11 build
+from immediately before this floating-HUD update.
