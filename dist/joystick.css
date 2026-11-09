@@ -570,3 +570,131 @@
     z-index:92!important;
   }
 }
+
+
+/* ========================================================================
+   PETAL POUNCE RC23 — SMALLER PAUSE POPUP
+   Visual-only overlay refinement built on RC22.
+   ======================================================================== */
+@media (max-width:560px) {
+  /* Turn the full-screen pause/restate view into a smaller centered popup. */
+  #cabinet .screen .overlay.state-overlay {
+    inset:0!important;
+    bottom:calc(176px + env(safe-area-inset-bottom,0px))!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:18px 16px!important;
+    background:rgba(11,32,28,.18)!important;
+    backdrop-filter:blur(1.5px)!important;
+    -webkit-backdrop-filter:blur(1.5px)!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-panel {
+    width:min(86vw,352px)!important;
+    max-width:352px!important;
+    margin:0 auto!important;
+    padding:16px 16px 14px!important;
+    border:1px solid rgba(255,226,154,.20)!important;
+    border-radius:16px!important;
+    background:linear-gradient(180deg,rgba(35,78,70,.88),rgba(25,58,52,.86))!important;
+    box-shadow:0 14px 34px rgba(0,0,0,.28)!important;
+    backdrop-filter:blur(10px)!important;
+    -webkit-backdrop-filter:blur(10px)!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-tag {
+    margin-bottom:14px!important;
+    font-size:6px!important;
+    letter-spacing:1.7px!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-tag > span {
+    width:22px!important;
+  }
+  #cabinet .screen .overlay.state-overlay .game-title {
+    font-size:clamp(40px,10.5vw,54px)!important;
+    margin:0 0 12px!important;
+    line-height:.94!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-panel > p {
+    font-size:11px!important;
+    line-height:1.42!important;
+    margin:0 0 12px!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-panel > p.start-hint {
+    font-size:8px!important;
+    margin-top:8px!important;
+  }
+  #cabinet .screen .overlay.state-overlay .play-button {
+    min-width:176px!important;
+    min-height:46px!important;
+    margin-top:2px!important;
+  }
+  #cabinet .screen .overlay.state-overlay .meta-actions,
+  #cabinet .screen .overlay.state-overlay .button-row {
+    gap:8px!important;
+    margin-top:10px!important;
+  }
+}
+
+
+/* ========================================================================
+   PETAL POUNCE RC24 — BLACK / YELLOW POPUP THEME
+   Presentation only. Inherits compact layout from RC23 and gameplay from RC22.
+   The title/attract menu and floating button controls are unchanged.
+   ======================================================================== */
+@media (max-width:560px) {
+  /* Darken only the pause/game-state scrim. Keep the garden visible. */
+  #cabinet .screen .overlay.state-overlay {
+    background:rgba(0,0,0,.22)!important;
+    backdrop-filter:blur(2px)!important;
+    -webkit-backdrop-filter:blur(2px)!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-panel {
+    color:#fff8de!important;
+    background:linear-gradient(160deg,rgba(20,20,20,.96),rgba(4,4,4,.96))!important;
+    border:1.5px solid #f5c44f!important;
+    border-radius:15px!important;
+    box-shadow:0 13px 32px rgba(0,0,0,.42),0 0 0 1px rgba(255,223,113,.12) inset,0 0 16px rgba(255,209,72,.12)!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-tag {
+    color:#f4cc61!important;
+    text-shadow:none!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-tag>span {
+    background:#f4cc61a6!important;
+  }
+  #cabinet .screen .overlay.state-overlay .game-title,
+  #cabinet .screen .overlay.state-overlay .game-title .title-word {
+    color:#ffdb74!important;
+    -webkit-text-stroke:0!important;
+    text-shadow:0 3px 0 #704e14,0 0 13px #f3c44b18!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-panel>p,
+  #cabinet .screen .overlay.state-overlay .menu-panel>p strong {
+    color:#fff8e9!important;
+    text-shadow:none!important;
+  }
+  #cabinet .screen .overlay.state-overlay .play-button {
+    background:#f9c95e!important;
+    background-image:linear-gradient(180deg,#ffe183,#f4ba40)!important;
+    border:1.5px solid #fbe19a!important;
+    border-radius:8px!important;
+    color:#171207!important;
+    text-shadow:none!important;
+    box-shadow:0 4px 0 #9b6b1e,0 7px 13px #0007!important;
+  }
+  #cabinet .screen .overlay.state-overlay .play-button:active {
+    box-shadow:0 1px 0 #9b6b1e,0 2px 5px #0007!important;
+  }
+  #cabinet .screen .overlay.state-overlay .secondary-button {
+    color:#f7d26d!important;
+    background:transparent!important;
+    border:0!important;
+    border-radius:4px!important;
+    border-bottom:1px solid #e8ba4ca8!important;
+    box-shadow:none!important;
+    text-shadow:none!important;
+  }
+  #cabinet .screen .overlay.state-overlay .menu-panel>p.start-hint {
+    color:#d2b975!important;
+  }
+}
