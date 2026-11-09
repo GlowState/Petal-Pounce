@@ -1,0 +1,499 @@
+PETAL POUNCE — UPDATE 23: GARDEN ISLANDS AND BEETLE PATROLS
+
+This is a cumulative update. You do not need to install Updates 17–22 first.
+
+UPLOAD / REPLACE THESE FOUR FILES IN BOTH LOCATIONS:
+
+Repository root:
+  index.html
+  engine.mjs
+  game.mjs
+  sw.js
+
+dist folder:
+  dist/index.html
+  dist/engine.mjs
+  dist/game.mjs
+  dist/sw.js
+
+WHAT CHANGED
+
+LATEST REVISION
+
+• Fixed milestone celebrations not appearing reliably at 25 and 50 flowers.
+• Replaced the canvas-only notice with a dedicated full-playfield celebration
+  layer above the HUD, including a large bloom card and visible sparkle burst.
+• Added a second toast announcement as a fallback, plus assertive screen-reader
+  status text. The score bonus and permanent Best Flowers record are unchanged.
+• Milestone cards now stay visible for 2.6 seconds and can restart cleanly if
+  more than one milestone event is received.
+• Updated the offline cache to v51 so mobile browsers fetch the corrected UI.
+
+• Added flower milestones every 25 collected flowers. They celebrate without
+  pausing the endless run and do not restore lives.
+• Milestone score bonuses are +100 at 25 flowers, +200 at 50, +300 at 75,
+  +400 at 100 and +500 at 125 flowers and every 25-flower marker beyond it.
+• Added a brief hand-drawn milestone card, flower burst, arcade chime and
+  supported-device haptic. Reduced Motion keeps the celebration stationary.
+• Added a permanent Best Flowers in One Run record. The title and game-over
+  screens show it, including a special callout when a new flower record is set.
+• Increased maximum horizontal speed by exactly 3%: 216 to 222.48 pixels/sec.
+• Reduced maximum climbing speed from 230 to 220 pixels/sec and maximum falling
+  speed from 340 to 326 pixels/sec while preserving responsive acceleration.
+• Preserved the pacing director, player-controlled camera and safe revival.
+• Updated the offline cache to v50.
+
+• Added an invisible pacing director with four repeating beats: calm, build,
+  challenge and recovery. These are not levels and never interrupt the run.
+• Challenge beats concentrate longer, thicker garden islands, precision gates
+  and beetle patrol pressure. Recovery beats deliberately reduce all three.
+• Existing altitude difficulty still increases hazard pressure over the full run;
+  pacing now adds short-term rhythm so intensity does not feel constant.
+• Every generated obstacle still clears the verified flower-to-flower route.
+  Beetles keep permanent escape corridors and recovery sections reject new winds.
+• Reduced the bee's maximum horizontal speed from 235 to 216 pixels per second
+  (about 8%). Full-width leaf jumps receive extra vertical reaction space.
+• Preserved the player-controlled camera: there is still no automatic scrolling.
+• Updated the offline cache to v49.
+
+• Added Bloom Streak scoring. Flowers 1–4 score ×1, 5–11 score ×2,
+  12–24 score ×3 and 25+ score ×4. A miss or lost life resets the streak.
+• Multipliers affect run score only. Shop flower currency is unchanged.
+• Added one-time close-call bonuses: narrowly clearing an island or beetle
+  awards +5 points, a small sound, floating message and supported-device haptic.
+  Cooldowns and per-hazard flags prevent hovering beside danger to farm points.
+• Upgraded the game-over summary with final score, flowers, longest streak,
+  close-call count and either a new-best celebration or points-to-best message.
+• Preserved the player-paced camera, safe revival and double-life protections.
+• Updated the offline cache to v48.
+
+• Removed automatic screen scrolling completely. Hovering no longer moves the
+  course and the player controls the pace of the run again.
+• The camera now follows only the highest point the bee has actually reached,
+  eases smoothly upward after a climb and never drifts back down.
+• Falling below the already-climbed playfield can still cost a life, but the
+  camera itself never pushes the bee off screen.
+• Fixed a double-life bug: a hazard could revive the bee at an old leaf that
+  had already scrolled below the screen, immediately triggering a second loss.
+• Revivals now keep the last touched leaf when it is visible and safe. If it is
+  no longer usable, the game selects the nearest visible leaf with clearance
+  from rocks and beetles—or the clearest open point when no leaf is visible—
+  then grants 2.75 seconds of protection.
+• The bottom screen boundary respects revival protection.
+• Updated the offline cache to v47.
+
+• Removed the on-screen distance readout. The center HUD now shows a clean,
+  three-digit flower counter, and the duplicate flower display was removed.
+• Removed distance from the game-over summary while keeping altitude internally
+  for procedural difficulty, hazard density, winds and beetle progression.
+
+• Beetles now patrol about 25–30% faster, with a safe maximum horizontal
+  speed of 155 pixels per second. They still fly only horizontally and retain
+  their permanent escape corridors.
+
+• Lose 10 run points when an uncollected bloom scrolls below the playfield.
+  Each missed flower is counted once and removed from the run. The score can
+  go below zero. The flower bank is separate from the run score.
+• A brief on-screen notice shows the points lost. Personal best uses the score
+  at game over or when you return to the title.
+
+BEETLE PATROLS
+
+• Added hand-drawn rose-colored beetles with shell details, legs and flying wings.
+• Beetles patrol horizontally at fixed heights and reverse direction smoothly.
+• Patrol density increases with altitude. The first patrol is above 35 meters.
+• Every patrol reserves a 105-pixel escape corridor and clears rocks, flowers
+  and respawn leaves. Maximum horizontal patrol speed is 155 pixels per second.
+• Beetle collisions cost one life and use the existing automatic revival.
+
+• Replaced the purple thorn-bar artwork with hand-drawn floating garden islands.
+• Added irregular moss caps, layered soil and stone, hanging roots, rock cracks,
+  varied sharp points and tiny sprouts that fit the existing garden artwork.
+• Varied island thickness, rock sizes and detail spacing so formations feel
+  organic and hand-drawn instead of like repeating mechanical platforms.
+• Touching hazard pieces on the same row now render as one continuous island,
+  so dense sections look intentional instead of like separate bars.
+• Edge-grown hazards appear rooted beyond the screen instead of ending abruptly.
+• Added moving hazards to the island course for additional difficulty.
+• Updated game labels, accessibility text and instructions to say thorn islands.
+• Renamed the run HUD from HONEY to SCORE. Flowers add 10 score points each.
+• Moved every difficulty notice into the center HUD to keep the playfield clear.
+• Clipped island art to the original obstacle shapes and added a dashed ring
+  around the bee during temporary protection.
+• Used Flower Garden's smooth bee rendering across all gardens.
+
+GAMEPLAY SAFETY
+
+Patrols are checked against rocks, flowers and respawn leaves. Every patrol has
+an escape corridor. Neighboring patrols also allow time to steer between their
+escape openings. Beetle hits trigger automatic revival and brief protection.
+
+FALLBACK
+
+If this pacing pass does not feel right, reinstall the separately saved
+Petal-Pounce-Rollback-v48-Replay-Loop.zip. That rollback is the exact build
+from immediately before this update.
+
+After uploading, refresh the GitHub Pages site. If an older cached build appears,
+close the tab completely and reopen it once.
+
+LATEST UPDATE — RECORDS, ACHIEVEMENTS & BEE REWARDS (v52)
+
+• Added RECORDS and ACHIEVEMENTS buttons side by side directly below LET’S FLY.
+• Records now preserve personal best, most flowers, longest streak, most close
+  calls, lifetime flowers collected and total runs played on this device.
+• Added seven permanent achievements for flower milestones, clean collection,
+  no-damage flying, clean high-wind survival, close calls and a ×4 streak.
+• Each achievement unlocks a hand-drawn bee color or trail. Rewards are purely
+  cosmetic and never change speed, lift, collision size, score or difficulty.
+• Added in-game achievement banners, progress readouts and equip buttons.
+• The Classic bee remains available at all times.
+• Older saved accomplishments are recognized where existing records can prove
+  them; new challenge-specific progress begins with this update.
+• Updated the offline cache to v52.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v51-Milestone-Fix.zip is the exact approved build from
+immediately before this Records and Achievements update.
+
+LATEST UPDATE — RELEASE CANDIDATE POLISH (v53 / v1.0 RC)
+
+• Added a compact first-flight guide for genuinely new players. Returning
+  players with an existing score or flower history are not interrupted.
+• Added clearer visual feedback for life loss, close calls, wind warnings and
+  approaching beetle patrols without changing collision sizes or difficulty.
+• Added subtle beetle alert tones and low-volume high-wind ambience. Existing
+  sound controls and reduced-motion preferences remain respected.
+• Added session-safe record saving when the app closes or leaves the page.
+• Added a small Credits screen and visible v1.0 RC version marker.
+• Expanded the field guide with Records, Achievements and cosmetic reward info.
+• Preserved the exact approved bee speed, lift, hazards, pacing, scoring,
+  procedural generation, revival protection and three-life rules from v52.
+• Updated the offline cache to v53.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v52-Records-Achievements.zip is the exact approved build
+from immediately before this release-candidate polish pass.
+
+LATEST UPDATE — GARDEN BUBBLE NOTIFICATIONS (v54 / v1.0 RC2)
+
+• Moved flower milestones and achievement unlocks to the bottom-right corner
+  so the upper route stays visible while the bee is climbing.
+• Replaced both previous banners with one compact, fixed-size Garden Bubble:
+  a gold hand-drawn card, centered circular medallion and exactly two text lines.
+• Milestones use a flower medallion and show the bloom count plus score bonus.
+  Achievements use a star medallion and show the achievement plus bee reward.
+• Removed the redundant “Achievement Unlocked” and “Milestone Reached” labels.
+• Added automatic text fitting for long achievement and cosmetic names.
+• Added one shared notification queue. A 25-flower milestone and an achievement
+  earned together now play one after the other instead of overlapping.
+• Preserved every gameplay value from v53: movement, hazards, pacing, winds,
+  beetles, scoring, lives, revival protection and procedural generation.
+• Updated the offline cache to v54.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v53-Release-Candidate.zip is the exact approved build
+from immediately before this Garden Bubble notification update.
+
+LATEST UPDATE — iPHONE APP PARITY & FLASH FIX (v55 / v1.0 RC3)
+
+• Shortened the milestone and achievement Garden Bubble horizontally while
+  preserving its circular medallion, two-line layout and automatic text fit.
+• Reserved room for the lives display. On the narrowest phones the bubble
+  automatically rises above it, so the two interfaces can never overlap.
+• Fixed repeated iOS standalone canvas resets that could appear as a constant
+  full-screen flash. Tiny viewport changes no longer clear the canvas.
+• Removed the repeated full-screen beetle warning flash while keeping the
+  approach tones and every beetle gameplay behavior unchanged.
+• Changed the offline loader to fetch the live HTML, CSS and JavaScript first,
+  then use its saved copy only when offline. The Home Screen app now uses the
+  same current files as the website instead of lingering on an older mix.
+• Versioned the complete website asset set together as v55 so Safari and the
+  installed iPhone app load identical styles, controls, art and game modules.
+• Preserved movement, hazards, pacing, scoring, lives, revival protection,
+  procedural generation and all achievement/milestone rewards from v54.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v54-Garden-Bubble.zip is the exact approved build from
+immediately before this iPhone parity and flashing fix.
+
+LATEST UPDATE — iPHONE HOME SCREEN LAYOUT MATCH (v56 / v1.0 RC4)
+
+• Added an explicit iPhone Home Screen layout mode after reviewing the supplied
+  screenshot from the installed web app.
+• The garden no longer extends underneath the iPhone clock, signal and battery.
+  The system safe area is now separated from the playable camera window.
+• The utility bar and score HUD retain their website spacing instead of being
+  pushed apart by the standalone safe-area inset.
+• Reducing the standalone camera to the true playable area also keeps obstacle
+  visibility, camera follow and steering feel aligned with the Safari version.
+• Preserved the shorter non-overlapping Garden Bubble, canvas flash fix,
+  live-first offline loader and complete v55 gameplay behavior.
+• Versioned the synchronized website/Home Screen asset set as v56.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v55-iPhone-Parity.zip is the exact build from immediately
+before this screenshot-based Home Screen layout correction.
+
+LATEST UPDATE — EXACT BROWSER-PROPORTION HOME SCREEN (v57 / v1.0 RC5)
+
+• Re-measured the supplied side-by-side app and browser comparison instead of
+  treating the mismatch as only a status-bar problem.
+• The Home Screen app now lays out the cabinet strictly between the iPhone's
+  top and bottom safe areas, matching Safari's true content viewport.
+• Removed the extra bottom-safe-area height from the standalone control deck.
+  The joystick, Fly button and deck now use the same scale and spacing as the
+  browser version instead of the oversized app presentation.
+• Preserved the corrected browser-height garden window, HUD placement and
+  camera scale so identical obstacle spacing is visible in both versions.
+• Browser CSS remains untouched; these overrides activate only when Petal
+  Pounce is launched from the iPhone Home Screen.
+• Preserved the shorter Garden Bubble, flash fix, live-first cache loading and
+  every gameplay value from v56.
+• Versioned the synchronized asset set as v57.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v56-Home-Screen-Safe-Area.zip is the exact build from
+immediately before this browser-proportion correction.
+
+LATEST UPDATE — VERIFIED iPHONE/BROWSER GEOMETRY (v58 / v1.0 RC6)
+
+• Re-reviewed the supplied side-by-side image at matching screen widths and
+  measured the browser's complete game cabinet instead of only its controls.
+• Fixed the remaining root cause: Home Screen mode could still consume the
+  iPhone's entire taller viewport, while the browser is constrained by its
+  shorter visible content window.
+• Home Screen mode now caps the complete cabinet at the browser's measured
+  1.69:1 height-to-width proportion. The camera, utility bar, HUD, control
+  deck, joystick and Fly button therefore retain the browser composition.
+• The cap is width-driven, so it remains consistent across narrow and wide
+  iPhones instead of relying on one phone model's fixed pixel height.
+• The status-bar safe area remains outside the cabinet and the unused lower
+  area uses the same dark arcade background, preventing overlap or stretching.
+• Registered the service worker through an explicitly versioned URL with
+  update caching disabled, preventing iOS Home Screen mode from reusing an old
+  worker while the website has already moved to the new layout.
+• Browser-only layout rules remain unchanged. Gameplay, camera behavior,
+  hazards, pacing, scoring, achievements and controls are byte-for-byte the
+  same as v57.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v57-Browser-Proportion.zip is the exact build from
+immediately before this final iPhone/browser geometry correction.
+
+LATEST UPDATE — FULL-HEIGHT HOME SCREEN CONTROLS (v59 / v1.0 RC7)
+
+• Corrected the final interpretation after comparing the current browser view:
+  the browser's bottom “Ask Gemini / New Tab / All Tabs” toolbar is outside the
+  game and naturally disappears in Home Screen mode.
+• Removed RC6's 1.69:1 standalone cabinet cap. That cap incorrectly preserved
+  the missing browser toolbar as an empty strip in the installed app.
+• The Home Screen cabinet now extends from the iPhone's top safe area to the
+  bottom of the display, reclaiming the empty strip and pushing the joystick
+  and Fly button lower as requested.
+• Restored the control deck's normal iPhone bottom-safe-area padding so both
+  controls stay above the Home indicator while using the newly available room.
+• Added a thin green arcade rail beneath the iPhone status area, visually
+  matching the existing left and right playfield borders.
+• These rules activate only in installed Home Screen mode. The browser layout
+  shown in the supplied RC6 screenshot remains unchanged.
+• Gameplay, camera logic, art, hazards, scoring, achievements and control
+  response remain identical to RC6.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v58-iPhone-Viewport-Cap.zip is the exact RC6 build from
+immediately before this full-height Home Screen correction.
+
+LATEST UPDATE — TRUE iOS DISPLAY HEIGHT (v60 / v1.0 RC8)
+
+• Diagnosed the remaining strip from the current RC7 Home Screen screenshot.
+  RC7 reached the bottom of iOS's dynamic web viewport, but iOS still reserved
+  the final portion of the physical display outside that viewport.
+• Replaced the standalone bottom-position calculation with 100lvh, iOS's large
+  viewport height. The arcade cabinet now reaches the physical bottom of the
+  display instead of stopping at the shorter dynamic viewport boundary.
+• Because the complete cabinet grows, the entire control deck moves downward;
+  the gap is not merely recolored or covered by a decorative filler.
+• Preserved bottom-safe-area padding so the joystick and Fly button remain
+  comfortably above the Home indicator after moving down.
+• Added a one-time service-worker activation refresh with an appbuild marker.
+  This forces an installed app to load the matching current HTML and prevents
+  a new game module from running inside an older cached layout.
+• The thin top arcade rail and side rails remain aligned. Browser layout and
+  every gameplay behavior remain unchanged.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v59-Full-Height-Controls.zip is the exact RC7 build from
+immediately before this iOS large-viewport correction.
+
+LATEST UPDATE — PHYSICAL iPHONE SCREEN HEIGHT (v61 / v1.0 RC9)
+
+• Confirmed that iOS 26 Home Screen mode reports the same shortened usable
+  height for viewport-based units, including the large viewport used by RC8.
+• Stopped deriving standalone cabinet height from vh, dvh, lvh or fixed bottom
+  positioning. Home Screen mode now measures window.screen.height directly in
+  CSS pixels before the page renders.
+• The cabinet height is calculated from the physical screen measurement minus
+  only the top status safe area. This includes the lower strip that iOS omitted
+  from every prior viewport calculation.
+• The full control deck therefore moves into that lower space naturally while
+  retaining its Home-indicator padding and original joystick/Fly geometry.
+• The screen measurement refreshes on orientation changes and falls back to
+  the ordinary viewport only if screen.height is unavailable.
+• Retained the one-time service-worker HTML refresh, now marked appbuild 61,
+  so RC9's version label and RC9's layout must load together.
+• Browser layout and all gameplay remain unchanged.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v60-iOS-Large-Viewport.zip is the exact RC8 build from
+immediately before this physical-screen-height correction.
+
+LATEST UPDATE — NORMALIZED iPHONE SCREEN HEIGHT (v62 / v1.0 RC10)
+
+• Reverted RC9's raw screen-height calculation after the supplied screenshot
+  confirmed that this iPhone reports screen dimensions in physical pixels.
+  Treating those pixels as CSS pixels made the garden several times too tall
+  and pushed the joystick and Fly button below the visible display.
+• The Home Screen app now normalizes screen height against screen width and the
+  live CSS viewport width. It works whether iOS reports screen dimensions in
+  CSS pixels or physical pixels.
+• Added a strict 56–64 CSS-pixel maximum reclaim guard. Even if iOS supplies an
+  unexpected screen value, the cabinet can only grow by the measured lower
+  strip; the controls can never be sent far below the display again.
+• Restored the stable RC7/RC8 flex geometry. Only the missing lower strip is
+  reclaimed, so the playfield grows modestly and the complete control deck
+  moves down together without changing its proportions.
+• Kept the thin top arcade rail, Home-indicator padding and standalone-only
+  scope. The ordinary browser layout remains unchanged.
+• Retained the one-time service-worker HTML refresh, now marked appbuild 62,
+  so the RC10 label and RC10 layout load as one synchronized update.
+• Gameplay, camera behavior, obstacles, scoring, achievements and controls are
+  unchanged from RC9.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v61-Physical-Screen-Height.zip is the exact RC9 build
+from immediately before this normalized-height correction.
+
+LATEST UPDATE — iOS 26 WEBKIT VIEWPORT WORKAROUND (v63 / v1.0 RC11)
+
+• Identified the persistent lower strip as an iOS 26 standalone WebKit viewport
+  defect rather than a Petal Pounce flexbox or height-calculation error.
+• With viewport-fit=cover, affected iPhones expose a paintable web viewport that
+  is one status-bar height shorter than the physical display. The missing band
+  sits outside the DOM and cannot contain canvas pixels, buttons or controls.
+• Removed viewport-fit=cover, the verified iOS 26 workaround. The installed app
+  now begins immediately below the status bar and receives the full remaining
+  display down to the bottom edge.
+• Removed RC9/RC10's screen-height measurement and reclaim logic completely.
+  No guessed height, viewport-unit override or oversized off-screen cabinet
+  remains.
+• Anchored the standalone cabinet directly between the top and bottom of the
+  coherent app viewport. The thin top arcade rail remains in place and the
+  control deck occupies the true bottom of that viewport.
+• Browser gameplay, hazards, art, scoring, achievements and control response
+  remain unchanged.
+• IMPORTANT: iOS stores viewport behavior when a Home Screen web app is added.
+  After publishing v63, delete the existing Petal Pounce Home Screen icon and
+  add it again from Safari with “Open as Web App” enabled. Merely relaunching
+  the old icon cannot apply this install-time viewport change.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v62-Normalized-Screen-Height.zip is the exact RC10 build
+from immediately before this iOS 26 WebKit workaround.
+
+LATEST UPDATE — FLOATING GAME HUD (v64 / v1.0 RC12)
+
+• Removed the shared dark utility-bar background from the mobile game screen.
+  The garden now remains visible behind the utility controls.
+• Kept the Shop button floating at the upper-left and the Sound/Pause buttons
+  floating at the upper-right with subtle shadows for readability.
+• Removed the Personal Best label and number from the play screen. Personal
+  best data is still saved and remains available through Records and results.
+• Reduced the lives card by roughly ten percent while preserving its exact
+  bottom-left anchor. Its count, label and three bee-life icons remain intact.
+• Preserved RC11's iOS 26 viewport workaround exactly. This update does not
+  modify the viewport meta configuration, cabinet height or control deck.
+• Gameplay, difficulty, camera behavior, scoring, achievements, controls and
+  collision logic are unchanged.
+
+SAFE ROLLBACK
+
+Petal-Pounce-Rollback-v63-iOS-Viewport-Workaround.zip is the exact RC11 build
+from immediately before this floating-HUD update.
+LATEST UPDATE — HONEY-GOLD CONTROL PANEL (v65 / v1.0 RC13)
+-----------------------------------------------------------------
+• The supplied honey-gold bee artwork is now the complete lower control-panel
+  face behind the joystick and Fly button.
+• The pictured joystick and wing button remain fully functional: large,
+  invisible touch targets sit directly above the artwork, so there is no
+  duplicate joystick or button drawn over the image.
+• Added subtle golden engaged/pressed feedback while steering or holding Fly.
+• Kept the working iPhone Home Screen viewport fix from RC11 unchanged.
+• Kept the floating shop/sound/pause layout and compact lives box from RC12.
+• Added control-panel.jpg to both the upload folder and dist folder.
+
+UPLOAD NOTE
+Replace the same four code files as before, and upload the new
+control-panel.jpg beside index.html. If you use the dist folder, upload its
+control-panel.jpg beside its index.html too.
+
+LATEST UPDATE — NEON GARDEN CONTROL PANEL (v66 / v1.0 RC14)
+-----------------------------------------------------------------
+• Replaced the lower control-panel face with the supplied neon pink, honey-gold
+  and garden-green artwork.
+• Kept the functional joystick centered over the pictured left control and the
+  Fly touch target centered over the pictured wing button.
+• Bumped every cache key so the installed iPhone app loads the new artwork
+  instead of retaining RC13's previous panel image.
+• No gameplay, difficulty, viewport, HUD or revival behavior was changed.
+
+LATEST UPDATE — ANIMATED LAYERED CONTROLS (v67 / v1.0 RC15)
+-----------------------------------------------------------------
+• Split the neon garden control panel into three visual layers: an empty panel
+  background, a separate joystick sprite and a separate Fly button sprite.
+• The joystick now visibly follows the same --stick-x/--stick-y values already
+  calculated by the existing steering system and springs back on release.
+• The Fly button now visibly presses and brightens while the existing Fly input
+  is held.
+• Preserved the exact joystick touch zone, Fly touch target, steering math,
+  dead-zone behavior, horizontal/vertical speeds and all gameplay systems.
+• No changes to difficulty, hazards, flowers, beetles, wind, scoring, lives,
+  revival, collisions, camera movement, pacing or the iPhone viewport fix.
+• Added control-panel-base.png, joystick-classic.png and fly-classic.png to the
+  upload folder and dist folder.
+• Future downloadable release ZIPs use the active RC number in the filename.
+
+LATEST UPDATE — BEE GARDEN ARCADE CABINET (v68 / v1.0 RC16)
+-----------------------------------------------------------------
+• Replaced RC15's compressed neon panel with the approved dark forest-green
+  Bee Garden control deck, using restrained hot-pink and honey-gold trim.
+• Added matching honeycomb, flower, leaf and bee-emblem artwork to make the
+  lower controls feel like one manufactured arcade panel.
+• Added a thin continuous pink cabinet border, a fine gold inner accent,
+  honeycomb corner details and subtle gold flight-path details around the
+  complete game-and-control area.
+• Kept the joystick and Fly button as independent live layers. The joystick
+  still follows the existing steering values and the Fly button still shows
+  its existing pressed state.
+• Enlarged the visible joystick and Fly button to fit the new illustrated
+  sockets without changing either touch target or any input calculation.
+• No gameplay, difficulty, hazards, flowers, beetles, wind, scoring, lives,
+  revival, collisions, camera movement, pacing or viewport logic was changed.
+
+UPLOAD NOTE
+Upload index.html, game.mjs, engine.mjs, sw.js, control-panel-base.png,
+joystick-classic.png and fly-classic.png. Upload the matching files from the
+dist folder as well if your repository uses dist for the Android/web build.
+
