@@ -20,11 +20,11 @@
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=64">
-  <link rel="stylesheet" href="./shop.css?v=64">
-  <link rel="stylesheet" href="./retro-arcade.css?v=64">
-  <link rel="stylesheet" href="./zoom-B.css?v=64">
-  <link rel="stylesheet" href="./joystick.css?v=64">
+  <link rel="stylesheet" href="./style.css?v=66">
+  <link rel="stylesheet" href="./shop.css?v=66">
+  <link rel="stylesheet" href="./retro-arcade.css?v=66">
+  <link rel="stylesheet" href="./zoom-B.css?v=66">
+  <link rel="stylesheet" href="./joystick.css?v=66">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -49,6 +49,47 @@
       .lives .lives-count{font-size:17px}
       .lives>span{font-size:7px;letter-spacing:.8px;margin-right:2px}
       .lives img{width:16px;height:16px}
+    }
+    /* RC14: the supplied neon garden artwork is the complete control-panel face.
+       The existing controls remain real, accessible touch targets above it. */
+    .control-deck{
+      position:relative;
+      isolation:isolate;
+      overflow:hidden;
+      padding:0!important;
+      gap:0!important;
+      border:0!important;
+      background:#10251d url('./control-panel.jpg?v=66') center/100% 100% no-repeat!important;
+      box-shadow:inset 0 1px 0 #fff2a3,0 -3px 12px #07100baa!important;
+    }
+    .control-deck::before,.control-deck::after{content:none!important}
+    .control-deck .move-controls,
+    .control-deck .fly-controls{position:absolute!important;z-index:2;top:0;bottom:0;margin:0!important;background:transparent!important}
+    .control-deck .move-controls{left:0;width:55%}
+    .control-deck .fly-controls{right:0;width:45%;display:grid!important;place-items:center!important}
+    .control-deck .joystick-touch-zone{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+    .control-deck .joystick-control{opacity:0!important;pointer-events:none!important}
+    .control-deck .joystick-touch-zone::after{
+      content:"";position:absolute;left:10%;top:9%;width:78%;aspect-ratio:1;border-radius:50%;
+      opacity:0;pointer-events:none;background:radial-gradient(circle,#ffd45d24 0 40%,#ffc22b1c 58%,transparent 72%);
+      box-shadow:0 0 28px #ffc02b00;transition:opacity .12s ease,box-shadow .12s ease
+    }
+    .control-deck .joystick-touch-zone.engaged::after{opacity:1;box-shadow:0 0 28px #ffc02b55}
+    .control-deck .fly-button{
+      width:78%!important;height:78%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
+      border:0!important;border-radius:50%!important;background:transparent!important;color:transparent!important;box-shadow:none!important;
+      -webkit-tap-highlight-color:transparent
+    }
+    .control-deck .fly-button .wing-icon{opacity:0!important}
+    .control-deck .fly-button:active{
+      transform:translateY(2px) scale(.985)!important;
+      background:radial-gradient(circle,#fff4b42e 0 48%,#ffc02b22 62%,transparent 72%)!important;
+      box-shadow:0 0 28px #ffc02b66!important
+    }
+    @media(max-width:560px){
+      .control-deck{min-height:0!important}
+      .control-deck .joystick-touch-zone::after{left:9%;top:8%;width:80%}
+      .control-deck .fly-button{width:82%!important;height:82%!important}
     }
     @media(max-width:560px){
       html.ios-standalone body{background:#171e20}
@@ -104,7 +145,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC12 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC14 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -192,11 +233,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC12</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC14</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=64"></script>
+  <script type="module" src="./game.mjs?v=66"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -204,7 +245,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=64';
+      const swUrl='./sw.js?v=66';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
