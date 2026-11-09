@@ -20,11 +20,11 @@
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=66">
-  <link rel="stylesheet" href="./shop.css?v=66">
-  <link rel="stylesheet" href="./retro-arcade.css?v=66">
-  <link rel="stylesheet" href="./zoom-B.css?v=66">
-  <link rel="stylesheet" href="./joystick.css?v=66">
+  <link rel="stylesheet" href="./style.css?v=67">
+  <link rel="stylesheet" href="./shop.css?v=67">
+  <link rel="stylesheet" href="./retro-arcade.css?v=67">
+  <link rel="stylesheet" href="./zoom-B.css?v=67">
+  <link rel="stylesheet" href="./joystick.css?v=67">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -50,8 +50,8 @@
       .lives>span{font-size:7px;letter-spacing:.8px;margin-right:2px}
       .lives img{width:16px;height:16px}
     }
-    /* RC14: the supplied neon garden artwork is the complete control-panel face.
-       The existing controls remain real, accessible touch targets above it. */
+    /* RC15: layered control art. Gameplay input geometry is unchanged; only the
+       already-calculated joystick position and Fly pressed state are visualized. */
     .control-deck{
       position:relative;
       isolation:isolate;
@@ -59,7 +59,7 @@
       padding:0!important;
       gap:0!important;
       border:0!important;
-      background:#10251d url('./control-panel.jpg?v=66') center/100% 100% no-repeat!important;
+      background:#10251d url('./control-panel-base.png?v=67') center/100% 100% no-repeat!important;
       box-shadow:inset 0 1px 0 #fff2a3,0 -3px 12px #07100baa!important;
     }
     .control-deck::before,.control-deck::after{content:none!important}
@@ -68,7 +68,16 @@
     .control-deck .move-controls{left:0;width:55%}
     .control-deck .fly-controls{right:0;width:45%;display:grid!important;place-items:center!important}
     .control-deck .joystick-touch-zone{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
-    .control-deck .joystick-control{opacity:0!important;pointer-events:none!important}
+    .control-deck .joystick-control{opacity:1!important;pointer-events:none!important;background:transparent!important}
+    .control-deck .joystick-panel{background:transparent!important;box-shadow:none!important}
+    .control-deck .joystick-well{opacity:0!important}
+    .control-deck .joystick-stick{
+      border:0!important;background:transparent url('./joystick-classic.png?v=67') center/contain no-repeat!important;
+      box-shadow:none!important;filter:drop-shadow(0 5px 5px #07100b99);will-change:transform,filter;
+      transition:transform .11s cubic-bezier(.2,.85,.3,1),filter .11s ease!important
+    }
+    .control-deck .joystick-stick>*{display:none!important}
+    .control-deck .joystick-touch-zone.engaged .joystick-stick{filter:brightness(1.08) drop-shadow(0 6px 7px #07100bb3);transition:none!important}
     .control-deck .joystick-touch-zone::after{
       content:"";position:absolute;left:10%;top:9%;width:78%;aspect-ratio:1;border-radius:50%;
       opacity:0;pointer-events:none;background:radial-gradient(circle,#ffd45d24 0 40%,#ffc22b1c 58%,transparent 72%);
@@ -76,15 +85,21 @@
     }
     .control-deck .joystick-touch-zone.engaged::after{opacity:1;box-shadow:0 0 28px #ffc02b55}
     .control-deck .fly-button{
+      position:relative!important;display:grid!important;place-items:center!important;
       width:78%!important;height:78%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
       border:0!important;border-radius:50%!important;background:transparent!important;color:transparent!important;box-shadow:none!important;
       -webkit-tap-highlight-color:transparent
     }
+    .control-deck .fly-button::before{
+      content:"";position:absolute;inset:9%;pointer-events:none;border-radius:50%;
+      background:transparent url('./fly-classic.png?v=67') center/100% 100% no-repeat;
+      filter:drop-shadow(0 6px 6px #07100b99);will-change:transform,filter;
+      transition:transform .09s ease-out,filter .09s ease-out
+    }
     .control-deck .fly-button .wing-icon{opacity:0!important}
-    .control-deck .fly-button:active{
-      transform:translateY(2px) scale(.985)!important;
-      background:radial-gradient(circle,#fff4b42e 0 48%,#ffc02b22 62%,transparent 72%)!important;
-      box-shadow:0 0 28px #ffc02b66!important
+    .control-deck .fly-button:active,.control-deck .fly-button.pressed{transform:none!important;background:transparent!important;box-shadow:none!important}
+    .control-deck .fly-button:active::before,.control-deck .fly-button.pressed::before{
+      transform:translateY(4px) scale(.94);filter:brightness(1.12) drop-shadow(0 2px 3px #07100baa)
     }
     @media(max-width:560px){
       .control-deck{min-height:0!important}
@@ -145,7 +160,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC14 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC15 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -233,11 +248,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC14</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC15</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=66"></script>
+  <script type="module" src="./game.mjs?v=67"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -245,7 +260,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=66';
+      const swUrl='./sw.js?v=67';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
