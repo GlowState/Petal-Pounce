@@ -432,3 +432,30 @@ SAFE ROLLBACK
 
 Petal-Pounce-Rollback-v63-iOS-Viewport-Workaround.zip is the exact RC11 build
 from immediately before this floating-HUD update.
+LATEST UPDATE — HONEY-GOLD CONTROL PANEL (v65 / v1.0 RC13)
+-----------------------------------------------------------------
+• The supplied honey-gold bee artwork is now the complete lower control-panel
+  face behind the joystick and Fly button.
+• The pictured joystick and wing button remain fully functional: large,
+  invisible touch targets sit directly above the artwork, so there is no
+  duplicate joystick or button drawn over the image.
+• Added subtle golden engaged/pressed feedback while steering or holding Fly.
+• Kept the working iPhone Home Screen viewport fix from RC11 unchanged.
+• Kept the floating shop/sound/pause layout and compact lives box from RC12.
+• Added control-panel.jpg to both the upload folder and dist folder.
+
+UPLOAD NOTE
+Replace the same four code files as before, and upload the new
+control-panel.jpg beside index.html. If you use the dist folder, upload its
+control-panel.jpg beside its index.html too.
+
+LATEST UPDATE — NEON GARDEN CONTROL PANEL (v66 / v1.0 RC14)
+-----------------------------------------------------------------
+• Replaced the lower control-panel face with the supplied neon pink, honey-gold
+  and garden-green artwork.
+• Kept the functional joystick centered over the pictured left control and the
+  Fly touch target centered over the pictured wing button.
+• Bumped every cache key so the installed iPhone app loads the new artwork
+  instead of retaining RC13's previous panel image.
+• No gameplay, difficulty, viewport, HUD or revival behavior was changed.
+
