@@ -1,6 +1,6 @@
-const BUILD='66';
-const CACHE='petal-pounce-v66-neon-garden-panel';
-const SHELL=['./','./index.html','./privacy.html','./style.css?v=66','./retro-arcade.css?v=66','./zoom-B.css?v=66','./joystick.css?v=66','./petal-arcade.woff2','./shop.css?v=66','./game.mjs?v=66','./engine.mjs?v=66','./scenery.mjs?v=66','./flowers.mjs?v=66','./hold-controls.mjs?v=66','./profile.mjs?v=66','./bee.svg','./control-panel.jpg?v=66','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const BUILD='67';
+const CACHE='petal-pounce-v67-rc15-animated-controls';
+const SHELL=['./','./index.html','./privacy.html','./style.css?v=67','./retro-arcade.css?v=67','./zoom-B.css?v=67','./joystick.css?v=67','./petal-arcade.woff2','./shop.css?v=67','./game.mjs?v=67','./engine.mjs?v=67','./scenery.mjs?v=67','./flowers.mjs?v=67','./hold-controls.mjs?v=67','./profile.mjs?v=67','./bee.svg','./control-panel-base.png?v=67','./joystick-classic.png?v=67','./fly-classic.png?v=67','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(

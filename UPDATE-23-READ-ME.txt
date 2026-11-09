@@ -459,3 +459,19 @@ LATEST UPDATE — NEON GARDEN CONTROL PANEL (v66 / v1.0 RC14)
   instead of retaining RC13's previous panel image.
 • No gameplay, difficulty, viewport, HUD or revival behavior was changed.
 
+LATEST UPDATE — ANIMATED LAYERED CONTROLS (v67 / v1.0 RC15)
+-----------------------------------------------------------------
+• Split the neon garden control panel into three visual layers: an empty panel
+  background, a separate joystick sprite and a separate Fly button sprite.
+• The joystick now visibly follows the same --stick-x/--stick-y values already
+  calculated by the existing steering system and springs back on release.
+• The Fly button now visibly presses and brightens while the existing Fly input
+  is held.
+• Preserved the exact joystick touch zone, Fly touch target, steering math,
+  dead-zone behavior, horizontal/vertical speeds and all gameplay systems.
+• No changes to difficulty, hazards, flowers, beetles, wind, scoring, lives,
+  revival, collisions, camera movement, pacing or the iPhone viewport fix.
+• Added control-panel-base.png, joystick-classic.png and fly-classic.png to the
+  upload folder and dist folder.
+• Future downloadable release ZIPs use the active RC number in the filename.
+
