@@ -78,97 +78,211 @@
   .screen-frame::after  { right:0; border-left:1px solid #9cab8a66; }
 }
 
-/* Petal Pounce RC18 — visual-only cabinet refinement.
-   DO NOT change steering hit areas, joystick position variables, fly-button
-   geometry, canvas size, game engine, or obstacle logic. */
+/* Petal Pounce RC20 — full-bleed garden and floating controls.
+   VISUAL CSS ONLY. JS movement, collision, difficulty and pointer handlers
+   are not modified. Retain the existing left/right control touch zones. */
+
+/* Hide all legacy trim, frame rails, decorative control plates and masks. */
+#cabinet .cabinet-trim-art { display:none!important; }
+#cabinet .screen-frame::before,
+#cabinet .screen-frame::after { content:none!important; display:none!important; }
+#cabinet .control-deck,
+#cabinet .control-deck::before,
+#cabinet .control-deck::after { background-image:none!important; }
+#cabinet .control-deck::before,
+#cabinet .control-deck::after { content:none!important; display:none!important; }
+#cabinet .control-deck .move-controls::before,
+#cabinet .control-deck .move-controls::after,
+#cabinet .control-deck .fly-controls::before,
+#cabinet .control-deck .fly-controls::after { content:none!important; display:none!important; }
+
+/* Mobile: render the actual screen all the way to the viewport edges.
+   The controls now overlay its lower area rather than reserving a deck row. */
 @media (max-width:560px) {
-  /* Remove pink HTML cabinet edge and iOS top rail. */
-  #cabinet {
-    border:3px solid #214632!important;
-    box-shadow:inset 0 0 0 1px #d8ae47,
-               0 0 0 1px #0c2619,0 20px 54px #0006,
-               0 0 12px #a7a04422!important;
+  html,body { margin:0; width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
+
+  #cabinet,
+  html.ios-standalone #cabinet {
+    position:fixed!important;
+    inset:0!important;
+    display:block!important;
+    width:100%!important;
+    height:100dvh!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    isolation:isolate!important;
   }
-  html.ios-standalone #cabinet::before {
-    background:linear-gradient(180deg,#325c3b,#173b29 52%,#0b281c)!important;
-    box-shadow:0 1px 0 #d8ae47aa,0 2px 5px #07110e77!important;
+  /* Remove the iPhone Home Screen rail as well as the cabinet surround. */
+  html.ios-standalone #cabinet::before,
+  #cabinet::before { content:none!important; display:none!important; box-shadow:none!important; }
+
+  #cabinet .screen-frame {
+    position:absolute!important;
+    inset:0!important;
+    display:block!important;
+    flex:none!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:none!important;
+    overflow:hidden!important;
   }
-  /* Replace old rails/trim art with a single, clear, touch-through screen frame.
-     The screen-frame ends BEFORE control-deck by DOM design. */
-  .cabinet-trim-art {display:none!important;}
-  .screen-frame {position:relative;}
-  .screen-frame::before {
-    content:""!important;
+  #cabinet .screen-frame .screen {
     position:absolute!important;
     inset:0!important;
     width:100%!important;
     height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+  }
+  #cabinet .screen-vignette { border-radius:0!important; }
+
+  /* Utility bar stays readable, floating at the top of the garden. */
+  #cabinet .cabinet-bar { z-index:50!important; pointer-events:none!important; }
+  #cabinet .cabinet-bar button { pointer-events:auto!important; }
+
+  /* Transparent overlay, not a painted panel or a reserved bottom row. */
+  #cabinet .control-deck {
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    top:auto!important;
+    bottom:calc(14px + env(safe-area-inset-bottom,0px))!important;
+    z-index:40!important;
+    display:block!important;
+    flex:none!important;
+    width:100%!important;
+    max-width:none!important;
+    height:clamp(126px,20dvh,160px)!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    gap:0!important;
     border:0!important;
     border-radius:0!important;
     box-shadow:none!important;
-    background:transparent url('./Petal_Pounce_RC18_screen_trim_gold.webp?v=70') center / 100% 100% no-repeat!important;
-    opacity:1!important;
-    z-index:8!important;
+    background:none!important;
+    background-color:transparent!important;
+    background-image:none!important;
+    overflow:visible!important;
+    isolation:auto!important;
     pointer-events:none!important;
   }
-  .screen-frame::after {content:none!important;}
-
-  /* Keep the floral panel art but crop off its baked-in pink outside rim.
-     The rim is part of the bitmap, so changing just CSS border-color is not enough.
-     Background is *decoration only* and cannot receive input. */
-  #cabinet .control-deck {
+  #cabinet .control-deck .move-controls,
+  #cabinet .control-deck .fly-controls {
+    position:absolute!important;
+    top:0!important;
+    bottom:0!important;
+    background:transparent!important;
     border:0!important;
-    background:#0a291a!important;
-    overflow:hidden!important;
-    isolation:isolate!important;
-  }
-  #cabinet .control-deck::before {
-    content:""!important;
-    position:absolute!important;
-    inset:0!important;
-    display:block!important;
-    z-index:0!important;
+    box-shadow:none!important;
+    isolation:auto!important;
     pointer-events:none!important;
-    background:url('./control-panel-base.png?v=68') center / calc(100% + 18px) calc(100% + 18px) no-repeat!important;
-    border-radius:12px;
   }
-  #cabinet .control-deck::after {content:none!important;}
+  #cabinet .control-deck .move-controls { left:0!important; width:55%!important; }
+  #cabinet .control-deck .fly-controls { right:0!important; width:45%!important; display:grid!important; place-items:center!important; }
 
-  /* The original artwork's button wells become stretched when drawn 100% x 100%.
-     Mask those old elliptical wells under each *existing* input zone and draw
-     fresh, truly circular bezels centered on those SAME zones.
-     The graphics are non-interactive and don't move or resize the touch areas. */
-  .control-deck .move-controls,
-  .control-deck .fly-controls { isolation:isolate; }
-  .control-deck .move-controls::before,
-  .control-deck .fly-controls::before,
-  .control-deck .move-controls::after,
-  .control-deck .fly-controls::after {
-    content:""!important;
-    display:block!important;
-    position:absolute!important;
-    left:50%; top:50%;
-    transform:translate(-50%,-50%);
-    border-radius:50%!important;
-    aspect-ratio:1 / 1;
+  /* Keep the existing full-size joystick touch zone and pointer tracking. */
+  #cabinet .control-deck .joystick-touch-zone {
+    width:100%!important;
+    height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+    pointer-events:auto!important;
+  }
+  /* Structural elements remain for unchanged game.mjs movement selectors. */
+  #cabinet .control-deck .joystick-control,
+  #cabinet .control-deck .joystick-panel {
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  #cabinet .control-deck .joystick-well { opacity:0!important; }
+  #cabinet .control-deck .joystick-touch-zone::after { content:none!important; }
+
+  /* ~24% smaller visible stick. Its movement transform variables still work. */
+  #cabinet .control-deck .joystick-stick {
+    width:88px!important;
+    height:88px!important;
+    margin:-44px 0 0 -44px!important;
+    border:0!important;
+    background:transparent url('./joystick-classic.png?v=68') center/contain no-repeat!important;
+    box-shadow:none!important;
+    filter:drop-shadow(0 4px 5px #00130c9a);
     pointer-events:none!important;
-    z-index:-1!important;
   }
-  /* Opaque green mask covers the old out-of-shape rings. */
-  .control-deck .move-controls::before,
-  .control-deck .fly-controls::before {
-    height:calc(100% - 6px);
-    background:radial-gradient(circle,#0e3021 54%,#103523 72%,#092b1c 90%,#092a1c 100%);
-    box-shadow:0 0 0 2px #08281b55!important;
+
+  /* Smaller circular Fly control; preserve button ID, handlers and hold feel. */
+  #cabinet .control-deck .fly-button {
+    width:108px!important;
+    height:108px!important;
+    max-width:none!important;
+    min-width:0!important;
+    min-height:0!important;
+    aspect-ratio:1!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    pointer-events:auto!important;
   }
-  /* New concentric rings maintain a perfect 1:1 circle at any viewport size. */
-  .control-deck .move-controls::after,
-  .control-deck .fly-controls::after {
-    height:min(85%,130px);
-    background:radial-gradient(circle,#0c2c1e 62%,#194330 85%,#071f15);
-    border:2px solid #d2a748!important;
-    box-shadow:inset 0 0 0 3px #375a3e,
-               0 0 0 4px #355b3f,0 0 0 6px #102719,
-               0 6px 14px #010a0688!important;
+  #cabinet .control-deck .fly-button::before {
+    inset:9%!important;
+    background:transparent url('./fly-classic.png?v=68') center/contain no-repeat!important;
   }
+
+  /* Keep the on-screen life counter and temporary notices above the buttons. */
+  #cabinet .screen .lives { bottom:calc(194px + env(safe-area-inset-bottom,0px))!important; }
+  #cabinet .screen .toast { bottom:calc(210px + env(safe-area-inset-bottom,0px))!important; }
+  #cabinet .screen .garden-notification { bottom:calc(205px + env(safe-area-inset-bottom,0px))!important; }
+  #cabinet .screen .garden-label { bottom:calc(185px + env(safe-area-inset-bottom,0px))!important; }
+
+  /* Menus fit above the floating controls rather than being covered by them. */
+  #cabinet .screen .overlay {
+    bottom:calc(180px + env(safe-area-inset-bottom,0px))!important;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  #cabinet .screen .overlay .menu-panel {
+    max-height:100%;
+    overflow-y:auto;
+    scrollbar-width:none;
+  }
+  #cabinet .screen .overlay .menu-panel::-webkit-scrollbar { display:none; }
+}
+
+/* Clean out the old decorative imagery on desktop too, without changing
+   the desktop input mechanics or game size. */
+@media (min-width:561px) {
+  #cabinet { border:0!important; box-shadow:none!important; }
+  #cabinet .control-deck {
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  #cabinet .control-deck .move-controls::before,
+  #cabinet .control-deck .move-controls::after,
+  #cabinet .control-deck .fly-controls::before,
+  #cabinet .control-deck .fly-controls::after { content:none!important; display:none!important; }
 }
