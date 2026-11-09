@@ -1,5 +1,5 @@
-const BUILD='76';
-const CACHE='petal-pounce-v76-rc24-black-yellow-popup';
+const BUILD='77';
+const CACHE='petal-pounce-v77-rc25-menu-display-fix';
 const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=68','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=68','./engine.mjs?v=68','./scenery.mjs?v=68','./flowers.mjs?v=68','./hold-controls.mjs?v=68','./profile.mjs?v=68','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));

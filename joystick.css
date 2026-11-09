@@ -572,129 +572,203 @@
 }
 
 
-/* ========================================================================
-   PETAL POUNCE RC23 — SMALLER PAUSE POPUP
-   Visual-only overlay refinement built on RC22.
-   ======================================================================== */
+/* ============================================================================
+   PETAL POUNCE RC25 — MENU VISIBILITY / RESPONSIVE BLACK & YELLOW OVERLAY
+   Visual presentation ONLY. No changes to movement, pause logic, or input events.
+   State CSS deliberately respects the `hidden` attribute set by game.mjs.
+   ============================================================================ */
 @media (max-width:560px) {
-  /* Turn the full-screen pause/restate view into a smaller centered popup. */
-  #cabinet .screen .overlay.state-overlay {
-    inset:0!important;
-    bottom:calc(176px + env(safe-area-inset-bottom,0px))!important;
+  /* CRITICAL: the previous popup used display:flex!important when the game set
+     overlay.hidden=true. That made the overlay stay visible during gameplay. */
+  #cabinet .screen #overlay[hidden],
+  #cabinet .screen #overlay.state-overlay[hidden],
+  #cabinet .screen #overlay.title-overlay[hidden] {
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  /* The title, pause and game-over screens are ONLY shown when not hidden. */
+  #cabinet .screen #overlay:not([hidden]) {
+    position:absolute!important;
+    inset:0 0 calc(176px + env(safe-area-inset-bottom,0px)) 0!important;
+    box-sizing:border-box!important;
+    padding:clamp(10px,3vw,20px)!important;
     display:flex!important;
     align-items:center!important;
     justify-content:center!important;
-    padding:18px 16px!important;
-    background:rgba(11,32,28,.18)!important;
-    backdrop-filter:blur(1.5px)!important;
-    -webkit-backdrop-filter:blur(1.5px)!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-panel {
-    width:min(86vw,352px)!important;
-    max-width:352px!important;
-    margin:0 auto!important;
-    padding:16px 16px 14px!important;
-    border:1px solid rgba(255,226,154,.20)!important;
-    border-radius:16px!important;
-    background:linear-gradient(180deg,rgba(35,78,70,.88),rgba(25,58,52,.86))!important;
-    box-shadow:0 14px 34px rgba(0,0,0,.28)!important;
-    backdrop-filter:blur(10px)!important;
-    -webkit-backdrop-filter:blur(10px)!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-tag {
-    margin-bottom:14px!important;
-    font-size:6px!important;
-    letter-spacing:1.7px!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-tag > span {
-    width:22px!important;
-  }
-  #cabinet .screen .overlay.state-overlay .game-title {
-    font-size:clamp(40px,10.5vw,54px)!important;
-    margin:0 0 12px!important;
-    line-height:.94!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-panel > p {
-    font-size:11px!important;
-    line-height:1.42!important;
-    margin:0 0 12px!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-panel > p.start-hint {
-    font-size:8px!important;
-    margin-top:8px!important;
-  }
-  #cabinet .screen .overlay.state-overlay .play-button {
-    min-width:176px!important;
-    min-height:46px!important;
-    margin-top:2px!important;
-  }
-  #cabinet .screen .overlay.state-overlay .meta-actions,
-  #cabinet .screen .overlay.state-overlay .button-row {
-    gap:8px!important;
-    margin-top:10px!important;
-  }
-}
-
-
-/* ========================================================================
-   PETAL POUNCE RC24 — BLACK / YELLOW POPUP THEME
-   Presentation only. Inherits compact layout from RC23 and gameplay from RC22.
-   The title/attract menu and floating button controls are unchanged.
-   ======================================================================== */
-@media (max-width:560px) {
-  /* Darken only the pause/game-state scrim. Keep the garden visible. */
-  #cabinet .screen .overlay.state-overlay {
-    background:rgba(0,0,0,.22)!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    background:rgba(0,0,0,.17)!important;
     backdrop-filter:blur(2px)!important;
     -webkit-backdrop-filter:blur(2px)!important;
   }
-  #cabinet .screen .overlay.state-overlay .menu-panel {
-    color:#fff8de!important;
-    background:linear-gradient(160deg,rgba(20,20,20,.96),rgba(4,4,4,.96))!important;
-    border:1.5px solid #f5c44f!important;
+  #cabinet .screen #overlay:not([hidden]) .menu-panel {
+    display:block!important;
+    position:relative!important;
+    flex:none!important;
+    box-sizing:border-box!important;
+    width:min(90vw,360px)!important;
+    max-width:calc(100vw - 28px)!important;
+    min-width:0!important;
+    max-height:calc(100% - 4px)!important;
+    height:auto!important;
+    margin:auto!important;
+    padding:clamp(14px,3.6vw,19px) clamp(11px,3vw,17px)!important;
+    border:1.5px solid #f3c44e!important;
     border-radius:15px!important;
-    box-shadow:0 13px 32px rgba(0,0,0,.42),0 0 0 1px rgba(255,223,113,.12) inset,0 0 16px rgba(255,209,72,.12)!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-tag {
-    color:#f4cc61!important;
-    text-shadow:none!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-tag>span {
-    background:#f4cc61a6!important;
-  }
-  #cabinet .screen .overlay.state-overlay .game-title,
-  #cabinet .screen .overlay.state-overlay .game-title .title-word {
-    color:#ffdb74!important;
-    -webkit-text-stroke:0!important;
-    text-shadow:0 3px 0 #704e14,0 0 13px #f3c44b18!important;
-  }
-  #cabinet .screen .overlay.state-overlay .menu-panel>p,
-  #cabinet .screen .overlay.state-overlay .menu-panel>p strong {
     color:#fff8e9!important;
-    text-shadow:none!important;
+    background:linear-gradient(160deg,#171717f5,#090909f6)!important;
+    box-shadow:0 12px 29px #0008,0 0 0 1px #ffe08c20 inset!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch;
   }
-  #cabinet .screen .overlay.state-overlay .play-button {
-    background:#f9c95e!important;
-    background-image:linear-gradient(180deg,#ffe183,#f4ba40)!important;
-    border:1.5px solid #fbe19a!important;
+  #cabinet .screen #overlay .menu-panel::-webkit-scrollbar,
+  #cabinet .screen #overlay::-webkit-scrollbar { display:none!important; }
+
+  #cabinet .screen #overlay .menu-tag {
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0 auto 12px!important;
+    font-size:clamp(5px,1.4vw,7px)!important;
+    letter-spacing:clamp(.3px,.22vw,1.1px)!important;
+    line-height:1.5!important;
+    color:#ffdb7a!important;
+    text-shadow:none!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+    justify-content:center!important;
+  }
+  #cabinet .screen #overlay .menu-tag > span { flex:0 0 14px!important;width:14px!important;background:#f3c44e8c!important; }
+
+  /* Respect the natural line breaks in PETAL POUNCE and the pause heading.
+     Never force long words beyond the popup width. */
+  #cabinet .screen #overlay .menu-panel .game-title {
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 0 12px!important;
+    padding:0!important;
+    font-size:clamp(29px,8.7vw,44px)!important;
+    line-height:1.05!important;
+    letter-spacing:0!important;
+    text-align:center!important;
+    color:#ffda72!important;
+    -webkit-text-stroke:0!important;
+    text-shadow:0 3px 0 #775118!important;
+    white-space:normal!important;
+    overflow-wrap:break-word!important;
+    word-break:normal!important;
+    overflow-x:hidden!important;
+    transform:none!important;
+  }
+  #cabinet .screen #overlay.title-overlay .game-title .title-word,
+  #cabinet .screen #overlay .game-title .title-word {
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    font-size:inherit!important;
+    line-height:1.08!important;
+    letter-spacing:0!important;
+    overflow-wrap:break-word!important;
+  }
+  #cabinet .screen #overlay.title-overlay .game-title .title-word:first-child {
+    font-size:.64em!important;
+    letter-spacing:1px!important;
+    margin-bottom:3px!important;
+  }
+  #cabinet .screen #overlay.title-overlay .game-title .title-word-last {
+    font-size:clamp(29px,8.7vw,44px)!important;
+    margin-top:1px!important;
+    color:#ffdc78!important;
+    text-shadow:0 3px 0 #775118!important;
+  }
+  #cabinet .screen #overlay .menu-panel > p,
+  #cabinet .screen #overlay .menu-panel > p strong {
+    max-width:100%!important;
+    min-width:0!important;
+    font-size:clamp(10px,2.6vw,12px)!important;
+    line-height:1.5!important;
+    letter-spacing:0!important;
+    color:#fff9eb!important;
+    text-shadow:none!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+    word-break:normal!important;
+  }
+  #cabinet .screen #overlay .menu-panel > p { margin:0 auto 13px!important; }
+  #cabinet .screen #overlay .menu-panel > p.start-hint {
+    margin:7px auto 0!important;
+    font-size:7px!important;
+    color:#cdbb8a!important;
+  }
+  #cabinet .screen #overlay .play-button {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-around!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:45px!important;
+    margin:8px auto 0!important;
+    padding:9px 13px!important;
+    border:1px solid #ffde8d!important;
     border-radius:8px!important;
-    color:#171207!important;
+    background:linear-gradient(180deg,#ffe18a,#f4bd49)!important;
+    box-shadow:0 4px 0 #a47520,0 7px 14px #0007!important;
+    color:#1b190e!important;
     text-shadow:none!important;
-    box-shadow:0 4px 0 #9b6b1e,0 7px 13px #0007!important;
+    font-size:clamp(9px,2.5vw,12px)!important;
+    letter-spacing:.4px!important;
+    white-space:normal!important;
   }
-  #cabinet .screen .overlay.state-overlay .play-button:active {
-    box-shadow:0 1px 0 #9b6b1e,0 2px 5px #0007!important;
-  }
-  #cabinet .screen .overlay.state-overlay .secondary-button {
-    color:#f7d26d!important;
-    background:transparent!important;
+  #cabinet .screen #overlay .secondary-button {
+    max-width:100%!important;
+    padding:5px 9px!important;
+    color:#f8d375!important;
     border:0!important;
-    border-radius:4px!important;
     border-bottom:1px solid #e8ba4ca8!important;
+    background:transparent!important;
     box-shadow:none!important;
-    text-shadow:none!important;
+    font-size:9px!important;
+    white-space:normal!important;
   }
-  #cabinet .screen .overlay.state-overlay .menu-panel>p.start-hint {
-    color:#d2b975!important;
+  #cabinet .screen #overlay .meta-actions {
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:6px!important;
+    margin:10px auto 0!important;
   }
+  #cabinet .screen #overlay .meta-actions[hidden] {display:none!important;}
+  #cabinet .screen #overlay .meta-button {
+    box-sizing:border-box!important;
+    min-width:0!important;
+    width:100%!important;
+    padding:10px 4px!important;
+    min-height:42px!important;
+    font-size:clamp(7px,2.15vw,9px)!important;
+    letter-spacing:0!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  /* Keep the original viewport-wide game visible behind the popup and controls. */
+  #cabinet .screen #overlay.state-overlay .menu-panel {max-width:min(90vw,352px)!important;}
+}
+@media (max-width:365px) {
+  #cabinet .screen #overlay .menu-panel .game-title,
+  #cabinet .screen #overlay.title-overlay .game-title .title-word-last {
+    font-size:clamp(28px,8.3vw,33px)!important;
+  }
+  #cabinet .screen #overlay:not([hidden]) .menu-panel { padding:11px 10px!important; }
 }
