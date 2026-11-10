@@ -5,9 +5,9 @@ import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=68';
 import { paintFlower } from './flowers.mjs?v=68';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC26';
+const APP_VERSION = '1.0 RC27';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
-const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog'];
+const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog','options-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
 const canvas = $('game');
 canvas.style.imageRendering = 'auto'; // Use Flower Garden's smooth scaling in every garden.
@@ -508,6 +508,7 @@ function openRecords() { renderRecords(); $('records-dialog').showModal(); }
 function openAchievements() { renderAchievements(); $('achievements-dialog').showModal(); }
 function openCredits() { $('credits-version').textContent = `PETAL POUNCE · ${APP_VERSION}`; $('credits-dialog').showModal(); }
 $('open-records').addEventListener('click', openRecords);
+$('main-menu-records').addEventListener('click', openRecords);
 $('open-achievements').addEventListener('click', openAchievements);
 $('close-records').addEventListener('click', () => $('records-dialog').close());
 $('records-done').addEventListener('click', () => $('records-dialog').close());
@@ -515,6 +516,24 @@ $('close-achievements').addEventListener('click', () => $('achievements-dialog')
 $('achievements-done').addEventListener('click', () => $('achievements-dialog').close());
 $('equip-classic').addEventListener('click', () => equipBeeStyle('classic'));
 $('open-credits').addEventListener('click', openCredits);
+function syncOptionsSound() {
+  const soundButton = $('options-sound');
+  soundButton.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON';
+  soundButton.setAttribute('aria-pressed', String(!muted));
+}
+function openOptions() {
+  clearInput();
+  syncOptionsSound();
+  $('options-dialog').showModal();
+}
+$('main-menu-options').addEventListener('click', openOptions);
+$('close-options').addEventListener('click', () => $('options-dialog').close());
+$('options-done').addEventListener('click', () => $('options-dialog').close());
+$('options-sound').addEventListener('click', () => { $('sound').click(); syncOptionsSound(); });
+$('options-shop').addEventListener('click', () => { $('options-dialog').close(); openShop(); });
+$('options-achievements').addEventListener('click', () => { $('options-dialog').close(); openAchievements(); });
+$('options-credits').addEventListener('click', () => { $('options-dialog').close(); openCredits(); });
+
 $('close-credits').addEventListener('click', () => $('credits-dialog').close());
 $('credits-done').addEventListener('click', () => $('credits-dialog').close());
 for (const achievement of ACHIEVEMENTS) {
@@ -546,6 +565,7 @@ function primaryAction() {
 }
 
 $('play').addEventListener('click', () => primaryAction());
+$('main-menu-play').addEventListener('click', () => primaryAction());
 $('close-first-flight').addEventListener('click', () => $('first-flight-dialog').close());
 $('first-flight-go').addEventListener('click', () => {
   firstFlightSeen = true;
@@ -579,6 +599,7 @@ function openHelp() {
   $('help-dialog').showModal();
 }
 $('help').addEventListener('click', openHelp);
+$('main-menu-help').addEventListener('click', openHelp);
 $('close-help').addEventListener('click', () => $('help-dialog').close());
 $('got-it').addEventListener('click', () => $('help-dialog').close());
 $('help-dialog').addEventListener('close', () => {
@@ -684,6 +705,7 @@ function updateUI() {
     $('garden-label').textContent = garden.name.toUpperCase() + ' ✦';
   }
   $('best').textContent = fmtScore(game.best);
+  $('main-menu-best').textContent = fmtScore(game.best);
   $('score').textContent = fmtScore(game.score);
   $('remaining').textContent = game.flowersCollected;
   $('timer').textContent = String(game.flowersCollected).padStart(3, '0');
@@ -721,7 +743,9 @@ function updateUI() {
     $('lives').classList.toggle('low', game.lives <= 1);
     $('lives').setAttribute('aria-label', `${game.lives} lives remaining`);
   }
-  const showMenu = !['playing', 'reviving'].includes(mode);
+  const showMenu = ['paused', 'over'].includes(mode);
+  $('main-menu').hidden = mode !== 'title';
+  cabinet.dataset.view = mode;
   $('overlay').hidden = !showMenu;
   if (mode === displayedMode) return;
   displayedMode = mode;

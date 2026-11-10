@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="./shop.css?v=68">
   <link rel="stylesheet" href="./retro-arcade.css?v=68">
   <link rel="stylesheet" href="./zoom-B.css?v=68">
-  <link rel="stylesheet" href="./joystick.css?v=78">
+  <link rel="stylesheet" href="./joystick.css?v=79">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -151,7 +151,7 @@
     <main>
       <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge thorn islands.</p></div>
 
-      <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
+      <section class="cabinet" id="cabinet" data-view="title" aria-label="Petal Pounce arcade game">
         <div class="cabinet-trim-art" aria-hidden="true">
           <svg class="trim-honey trim-honey-left" viewBox="0 0 48 30"><path d="M3 15 9 5h12l6 10-6 10H9Zm18-10h12l6 10-6 10H21l-6-10Z"/></svg>
           <svg class="trim-honey trim-honey-right" viewBox="0 0 48 30"><path d="M3 15 9 5h12l6 10-6 10H9Zm18-10h12l6 10-6 10H21l-6-10Z"/></svg>
@@ -171,7 +171,7 @@
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
-          <div class="overlay title-overlay" id="overlay" data-mode="title">
+          <div class="overlay title-overlay" id="overlay" data-mode="title" hidden>
             <div class="menu-panel" id="menu-panel">
               <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
@@ -179,7 +179,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC26 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC27 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -201,6 +201,18 @@
           </div>
           <div class="fly-controls"><button id="fly" class="fly-button" aria-label="Hold to fly upward" title="Hold to fly"><svg class="wing-icon" aria-hidden="true"><use href="#i-wings"/></svg></button></div>
         </div>
+        <!-- RC27: independent full-cabinet title screen. The pixel-art is a background asset;
+             all buttons and the personal best are live HTML, never baked into the image. -->
+        <section id="main-menu" class="main-menu" aria-label="Petal Pounce main menu">
+          <strong id="main-menu-best" class="main-menu-best" aria-label="Personal best score">000000</strong>
+          <nav class="main-menu-actions" aria-label="Main menu actions">
+            <button id="main-menu-play" class="arcade-menu-button arcade-menu-play" type="button"><span class="arcade-icon arcade-play-icon" aria-hidden="true">▶</span><span>PLAY</span></button>
+            <button id="main-menu-help" class="arcade-menu-button" type="button"><svg class="arcade-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 7h11l2 3 2-3h11v19H18l-2 2-2-2H3Z" fill="#fff0c5" stroke="#100921" stroke-width="3" stroke-linejoin="miter"/><path d="M16 10v17M6 12h7M19 12h7M6 17h7M19 17h7M6 22h7M19 22h7" fill="none" stroke="#8c4597" stroke-width="2"/></svg><span>HOW TO PLAY</span></button>
+            <button id="main-menu-records" class="arcade-menu-button" type="button"><svg class="arcade-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16v6h5v7l-5 4h-5v4h5v4H8v-4h5v-4H8l-5-4v-7h5Z" fill="#ffd23c" stroke="#100921" stroke-width="3"/><path d="M10 7h12v9l-6 4-6-4Z" fill="#ffe97b"/><path d="M8 12H6v4l3 2m15-6h2v4l-3 2" fill="none" stroke="#100921" stroke-width="2"/></svg><span>HIGH SCORES</span></button>
+            <button id="main-menu-options" class="arcade-menu-button" type="button"><svg class="arcade-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M12 2h8l1 5 4 2 4-2 3 7-4 3v4l2 4-6 5-4-3h-7l-4 3-5-5 2-4v-5L2 13l4-6 5 2 2-2Z" fill="#fff2d4" stroke="#110c24" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="#50216d" stroke="#110c24" stroke-width="2"/></svg><span>OPTIONS</span></button>
+          </nav>
+          <span class="main-menu-build" aria-label="Release version">RC27</span>
+        </section>
       </section>
 
       <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Follow the scattered leaves through the garden.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Thorn islands grow longer and denser with distance.</span></p></div><div><span class="guide-number">03</span><p><strong>Watch the forecast.</strong><span>High winds can push from either side.</span></p></div></div>
@@ -208,6 +220,18 @@
     </main>
   </div>
 
+  <dialog id="options-dialog" class="progress-dialog arcade-options-dialog" aria-labelledby="options-title">
+    <button id="close-options" class="dialog-close" type="button" aria-label="Close options">×</button>
+    <p class="eyebrow">THE HIVE CONTROLS</p><h2 id="options-title">Options.</h2>
+    <p class="progress-intro">Your settings and flowers stay on this device.</p>
+    <div class="arcade-options-grid">
+      <button type="button" id="options-sound" class="arcade-options-action">SOUND: OFF</button>
+      <button type="button" id="options-shop" class="arcade-options-action">GARDEN SHOP</button>
+      <button type="button" id="options-achievements" class="arcade-options-action">ACHIEVEMENTS</button>
+      <button type="button" id="options-credits" class="arcade-options-action">CREDITS</button>
+    </div>
+    <div class="progress-footer"><button type="button" id="options-done" class="play-button">BACK TO MAIN MENU <span>↗</span></button></div>
+  </dialog>
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
@@ -267,11 +291,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC26</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC27</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=78"></script>
+  <script type="module" src="./game.mjs?v=79"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -279,7 +303,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=78';
+      const swUrl='./sw.js?v=79';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
