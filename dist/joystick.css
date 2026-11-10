@@ -1020,3 +1020,18 @@
     background:linear-gradient(180deg,#024db5 0%,#0352bf 100%)!important;
   }
 }
+
+
+/* PETAL POUNCE RC29 — iPhone Home Screen bottom-chin blend.
+   iOS 26 can reserve an OS-painted strip beneath the web viewport, where
+   CSS cannot place actual app elements. Match its launch/page fallback to
+   the bottom of the Twilight garden instead of the old nearly black #171e20.
+   Do not extend the game canvas or move controls: gameplay/UI hit zones stay
+   exactly as they are in RC28. See WebKit bug 301994. */
+@media (max-width:560px) {
+  html.ios-standalone,
+  html.ios-standalone body {
+    background-color:#2c424d!important;
+    background-image:none!important;
+  }
+}
