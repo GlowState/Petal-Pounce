@@ -1,6 +1,6 @@
-const BUILD='83';
-const CACHE='petal-pounce-v83-rc31-compact-notices';
-const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=83','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=83','./engine.mjs?v=68','./scenery.mjs?v=68','./flowers.mjs?v=68','./hold-controls.mjs?v=68','./profile.mjs?v=68','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./petal-pounce-main-menu.png','./manifest.webmanifest?v=81','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const BUILD='84';
+const CACHE='petal-pounce-v84-rc32-neon-live-menu';
+const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=84','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=84','./engine.mjs?v=68','./scenery.mjs?v=68','./flowers.mjs?v=68','./hold-controls.mjs?v=68','./profile.mjs?v=68','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./petal-pounce-main-menu.png?v=84','./manifest.webmanifest?v=81','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(

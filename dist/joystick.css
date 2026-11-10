@@ -1402,3 +1402,167 @@
 @media (prefers-reduced-motion:reduce) {
   #cabinet .screen #garden-notification.show {animation:none!important;}
 }
+
+
+/* ============================================================================
+   PETAL POUNCE RC32 — NEON MAIN MENU, NATIVE INTERACTIVE BUTTONS
+   Only #main-menu / its buttons; gameplay buttons, Pause and HUD are unchanged.
+   The background artwork has NO painted-on buttons. The score is live DOM text.
+   ============================================================================ */
+#cabinet #main-menu {
+  background:#05001b url('./petal-pounce-main-menu.png?v=84') center/100% 100% no-repeat!important;
+}
+#cabinet .neon-main-best {
+  position:absolute;
+  top:5.4%;left:35%;right:35%;
+  z-index:2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;
+  border-radius:8px;
+  padding:5px 2px;
+  background:rgba(3,1,31,.65);
+  border:1px solid rgba(0,229,255,.22);
+  box-shadow:0 0 14px rgba(0,226,255,.12);
+  pointer-events:none;
+}
+#cabinet .neon-main-best > span {
+  font:800 clamp(7px,1.8vw,10px)/1.1 var(--mono,'Courier New',monospace);
+  color:#9df9ff;
+  letter-spacing:.06em;
+  white-space:nowrap;
+}
+#cabinet .neon-main-best .main-menu-best {
+  position:static!important;
+  display:block!important;
+  text-align:center!important;
+  width:auto!important;
+  left:auto!important;top:auto!important;
+  color:#fff3ac!important;
+  font:900 clamp(12px,3.3vw,21px)/1.1 var(--mono,'Courier New',monospace)!important;
+  letter-spacing:0!important;
+  text-shadow:0 0 7px rgba(250,238,113,.63),1px 1px 0 #170735!important;
+  -webkit-text-stroke:0!important;
+}
+#cabinet .main-menu-actions {
+  position:absolute!important;
+  left:23.5%!important;
+  right:23.5%!important;
+  top:49.75%!important;
+  bottom:22.5%!important;
+  display:grid!important;
+  grid-template-rows:1.33fr repeat(3,1fr)!important;
+  gap:clamp(6px,1.2dvh,12px)!important;
+  min-height:0!important;
+  z-index:4;
+}
+#cabinet .arcade-menu-button {
+  --rc32-neon:#ff35f8;
+  width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+  display:flex!important;
+  align-items:center!important;justify-content:center!important;
+  position:relative!important;
+  isolation:isolate!important;
+  margin:0!important;padding:0 8px!important;
+  border:0!important;border-radius:0!important;
+  outline:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#fff4ff!important;
+  text-shadow:0 0 7px var(--rc32-neon),1px 1px 0 #040018!important;
+  -webkit-text-stroke:0!important;
+  font:900 clamp(12px,3.6vw,22px)/1.1 var(--mono,'Courier New',monospace)!important;
+  letter-spacing:.03em!important;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  filter:drop-shadow(0 0 7px var(--rc32-neon));
+  transition:filter .12s ease,transform .12s ease;
+}
+#cabinet .arcade-menu-button::before,
+#cabinet .arcade-menu-button::after {
+  content:"";position:absolute;pointer-events:none;
+  clip-path:polygon(7% 0%,93% 0%,100% 25%,100% 75%,93% 100%,7% 100%,0% 75%,0% 25%);
+}
+#cabinet .arcade-menu-button::before {
+  inset:0;
+  background:var(--rc32-neon);
+  z-index:-2;
+}
+#cabinet .arcade-menu-button::after {
+  inset:3px;
+  background:linear-gradient(180deg,rgba(17,6,48,.94),rgba(2,1,27,.96));
+  z-index:-1;
+}
+#cabinet .arcade-menu-play,
+#cabinet .arcade-menu-settings {--rc32-neon:#00eaff;}
+#cabinet .arcade-menu-play {
+  color:#c8faff!important;
+  font-size:clamp(21px,6.7vw,39px)!important;
+}
+#cabinet .arcade-menu-shop,
+#cabinet .arcade-menu-credits {--rc32-neon:#ff35f8;}
+#cabinet .neon-button-content {
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(10px,3vw,16px);position:relative;z-index:3;
+  min-width:0;width:100%;
+  white-space:nowrap;
+}
+#cabinet .arcade-menu-button .arcade-icon {
+  width:clamp(17px,5vw,27px)!important;
+  height:clamp(17px,5vw,27px)!important;
+  flex:none!important;
+  color:inherit!important;
+  filter:drop-shadow(0 0 4px var(--rc32-neon))!important;
+}
+#cabinet .arcade-menu-button .arcade-play-icon {
+  display:inline-block!important;
+  width:auto!important;height:auto!important;
+  color:#ff4df3!important;
+  font-size:clamp(22px,6.5vw,36px)!important;
+  text-shadow:0 0 7px #ff3bf8!important;
+}
+#cabinet .arcade-menu-button:active {
+  transform:scale(.98)!important;
+  filter:drop-shadow(0 0 4px var(--rc32-neon)) brightness(1.2)!important;
+  box-shadow:none!important;
+}
+#cabinet .arcade-menu-button:focus-visible {
+  outline:2px solid white!important;
+  outline-offset:4px!important;
+}
+#cabinet .main-menu-build {
+  color:#96eefe!important;
+  text-shadow:0 0 5px #00dfff!important;
+  bottom:1.2%!important;
+  opacity:.7;
+}
+/* Match the iOS Home Screen status-safe strip to the neon navy instead of the old blue. */
+@media(max-width:560px) {
+  html.ios-standalone #cabinet[data-view="title"]::after {
+    background:linear-gradient(180deg,#03001b,#0b0331)!important;
+  }
+}
+@media(max-width:360px) {
+  #cabinet .main-menu-actions {left:21%!important;right:21%!important;gap:5px!important;}
+  #cabinet .arcade-menu-button {font-size:clamp(11px,3.3vw,14px)!important;}
+  #cabinet .arcade-menu-play {font-size:clamp(17px,6vw,24px)!important;}
+  #cabinet .arcade-menu-button .arcade-icon {width:18px!important;height:18px!important;}
+  #cabinet .neon-button-content {gap:9px;}
+}
+@media(max-height:660px) {
+  #cabinet .main-menu-actions {top:48.5%!important;bottom:18%!important;gap:5px!important;}
+}
+
+/* RC32 pause stacking: game controls are placed BEHIND the paused screen,
+   avoiding the joystick/Fly and utility buttons painting over the popup.
+   The pause dialog's own Keep Flying / End Run buttons remain interactive. */
+@media (max-width:560px) {
+  #cabinet[data-view="paused"] .screen-frame {
+    z-index:120!important;
+  }
+  #cabinet[data-view="paused"] .control-deck,
+  #cabinet[data-view="paused"] .cabinet-bar {
+    z-index:20!important;
+    pointer-events:none!important;
+  }
+}
