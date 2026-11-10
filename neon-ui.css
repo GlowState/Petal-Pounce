@@ -25,7 +25,7 @@ dialog,
   background-color:var(--neon-night)!important;
   background-image:
     linear-gradient(rgba(5,0,27,.55),rgba(5,0,27,.77)),
-    url('./neon-ui-backdrop.png?v=85')!important;
+    url('./neon-ui-backdrop.png?v=87')!important;
   background-position:center!important;
   background-size:cover!important;
   background-repeat:no-repeat!important;
@@ -221,7 +221,7 @@ dialog .dialog-close {
 #cabinet .screen #overlay[data-mode="over"]:not([hidden]) {
   background:
     linear-gradient(rgba(5,0,27,.48),rgba(5,0,27,.72)),
-    url('./neon-ui-backdrop.png?v=85') center/cover no-repeat!important;
+    url('./neon-ui-backdrop.png?v=87') center/cover no-repeat!important;
 }
 
 #cabinet .screen #overlay:not([data-mode="title"]) .menu-panel {
@@ -281,5 +281,95 @@ dialog *::-webkit-scrollbar-thumb {
 @media(prefers-reduced-motion:reduce) {
   dialog *,
   #cabinet .screen #overlay:not([data-mode="title"]) * {transition:none!important;animation:none!important}
+}
+
+/* RC36 — gameplay HUD joins the same neon arcade family.
+   Appearance only: no positions, dimensions, hit areas, or state rules change. */
+#cabinet:not([data-view="title"]) .screen #hud .hud-left,
+#cabinet:not([data-view="title"]) .screen #hud .hud-center,
+#cabinet:not([data-view="title"]) .screen #lives {
+  background:linear-gradient(145deg,rgba(11,5,49,.92),rgba(2,1,26,.88))!important;
+  color:var(--neon-copy)!important;
+  backdrop-filter:blur(5px) saturate(1.22)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud .hud-left {
+  border-color:rgba(0,234,255,.88)!important;
+  box-shadow:0 0 10px rgba(0,234,255,.34),inset 0 0 11px rgba(0,234,255,.07)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud .hud-center {
+  border-color:rgba(255,53,248,.88)!important;
+  box-shadow:0 0 10px rgba(255,53,248,.32),inset 0 0 11px rgba(255,53,248,.07)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud .hud-left .hud-caption {
+  color:var(--neon-cyan-soft)!important;
+  text-shadow:0 0 6px rgba(0,234,255,.78)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud .hud-center .hud-caption {
+  color:var(--neon-pink-soft)!important;
+  text-shadow:0 0 6px rgba(255,53,248,.78)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud .hud-left strong,
+#cabinet:not([data-view="title"]) .screen #hud .hud-center strong {
+  color:#fffbe0!important;
+  text-shadow:0 0 4px #fff,0 0 9px rgba(255,232,120,.56)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud #open-shop {
+  border-color:rgba(0,234,255,.9)!important;
+  background:linear-gradient(145deg,rgba(7,4,43,.95),rgba(2,1,25,.92))!important;
+  color:var(--neon-pink-soft)!important;
+  text-shadow:0 0 7px rgba(255,53,248,.86)!important;
+  box-shadow:0 0 10px rgba(0,234,255,.34),inset 0 0 11px rgba(255,53,248,.10)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #hud #open-shop svg {
+  color:var(--neon-gold)!important;
+  filter:drop-shadow(0 0 5px rgba(255,232,120,.72))!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #lives {
+  border-color:rgba(0,234,255,.88)!important;
+  box-shadow:0 0 10px rgba(0,234,255,.34),0 0 16px rgba(255,53,248,.14),inset 0 0 10px rgba(255,53,248,.07)!important;
+}
+
+#cabinet:not([data-view="title"]) .screen #lives img {
+  filter:drop-shadow(0 0 4px rgba(255,232,120,.58))!important;
+}
+
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #sound,
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #pause {
+  background:linear-gradient(145deg,rgba(11,5,49,.96),rgba(2,1,26,.92))!important;
+  color:#f8feff!important;
+  backdrop-filter:blur(5px) saturate(1.2)!important;
+}
+
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #sound {
+  border-color:rgba(0,234,255,.9)!important;
+  box-shadow:0 0 11px rgba(0,234,255,.48),inset 0 0 9px rgba(0,234,255,.09)!important;
+}
+
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #pause {
+  border-color:rgba(255,53,248,.9)!important;
+  box-shadow:0 0 11px rgba(255,53,248,.46),inset 0 0 9px rgba(255,53,248,.09)!important;
+}
+
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #sound svg {
+  color:var(--neon-cyan-soft)!important;
+  filter:drop-shadow(0 0 4px rgba(0,234,255,.82))!important;
+}
+
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #pause svg {
+  color:var(--neon-pink-soft)!important;
+  filter:drop-shadow(0 0 4px rgba(255,53,248,.82))!important;
+}
+
+#cabinet:not([data-view="title"]) .cabinet-bar .tools #pause:disabled {
+  opacity:.48!important;
+  box-shadow:0 0 6px rgba(255,53,248,.22)!important;
 }
 
