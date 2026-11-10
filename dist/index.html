@@ -26,7 +26,9 @@
   <link rel="stylesheet" href="./shop.css?v=68">
   <link rel="stylesheet" href="./retro-arcade.css?v=68">
   <link rel="stylesheet" href="./zoom-B.css?v=68">
-  <link rel="stylesheet" href="./joystick.css?v=84">
+  <link rel="stylesheet" href="./joystick.css?v=85">
+  <link rel="stylesheet" href="./neon-ui.css?v=87">
+  <link rel="stylesheet" href="./rc37.css?v=88">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -159,7 +161,7 @@
           <svg class="trim-honey trim-honey-right" viewBox="0 0 48 30"><path d="M3 15 9 5h12l6 10-6 10H9Zm18-10h12l6 10-6 10H21l-6-10Z"/></svg>
           <span class="trim-flight trim-flight-left"></span><span class="trim-flight trim-flight-right"></span>
         </div>
-        <div class="cabinet-bar"><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
+        <div class="cabinet-bar"><div class="best-label">HIGH SCORE <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
           <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. The camera follows the bee's highest climb. Collect flowers and avoid mossy floating islands with sharp rocks and patrolling beetles."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
@@ -179,11 +181,11 @@
               <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
               <p id="menu-description">Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong></p>
-              <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
+              <button id="play" class="play-button">LET’S FLY <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC32 · CREDITS</button>
-              <button id="secondary" class="secondary-button" hidden>Back to title</button>
+              <button id="open-credits" class="title-version">v1.0 RC37 · CREDITS</button>
+              <button id="secondary" class="secondary-button" hidden>Main Menu</button>
             </div>
           </div>
           <div class="toast" id="toast" role="status"></div>
@@ -207,14 +209,15 @@
         <!-- RC27: independent full-cabinet title screen. The pixel-art is a background asset;
              all buttons and the personal best are live HTML, never baked into the image. -->
         <section id="main-menu" class="main-menu" aria-label="Petal Pounce main menu">
-          <div class="neon-main-best" aria-label="Saved personal best"><span>BEST SCORE</span><strong id="main-menu-best" class="main-menu-best">000000</strong></div>
+          <div class="neon-main-best" aria-label="Saved personal best"><span>HIGH SCORE</span><strong id="main-menu-best" class="main-menu-best">000000</strong></div>
           <nav class="main-menu-actions" aria-label="Main menu actions">
             <button id="main-menu-play" class="arcade-menu-button arcade-menu-play" type="button"><span class="neon-button-content"><span class="arcade-icon arcade-play-icon" aria-hidden="true">▶</span><span>PLAY</span></span></button>
-            <button id="main-menu-shop" class="arcade-menu-button arcade-menu-shop" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M2 5h5l3.5 17h15l3-12H9"/><path d="M11 22h14"/><circle cx="13" cy="27" r="2"/><circle cx="24" cy="27" r="2"/></svg><span>SHOP</span></span></button>
-            <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M12 3h8l1 4 4 2 4-1 2 7-4 2v4l3 3-5 5-4-2h-8l-4 2-5-5 3-3v-5l-3-2 2-7 4 2 3-2z"/><circle cx="16" cy="16" r="5"/></svg><span>SETTINGS</span></span></button>
-            <button id="main-menu-credits" class="arcade-menu-button arcade-menu-credits" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.7" aria-hidden="true"><circle cx="16" cy="16" r="12"/><path d="M16 14v10M16 9v2"/></svg><span>CREDITS</span></span></button>
+            <button id="main-menu-customize" class="arcade-menu-button arcade-menu-customize" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">✿</span><span>CUSTOMIZE</span></span></button>
+            <button id="main-menu-shop" class="arcade-menu-button arcade-menu-shop" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">❀</span><span>FLOWER SHOP</span></span></button>
+            <button id="main-menu-records" class="arcade-menu-button arcade-menu-records" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">★</span><span>HIGH SCORES</span></span></button>
+            <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">⚙</span><span>OPTIONS</span></span></button>
           </nav>
-          <span class="main-menu-build" aria-label="Release version">RC32</span>
+          <span class="main-menu-build" aria-label="Release version">RC37</span>
         </section>
       </section>
 
@@ -223,19 +226,49 @@
     </main>
   </div>
 
-  <dialog id="options-dialog" class="progress-dialog arcade-options-dialog" aria-labelledby="options-title">
-    <button id="close-options" class="dialog-close" type="button" aria-label="Close options">×</button>
-    <p class="eyebrow">THE HIVE CONTROLS</p><h2 id="options-title">Options.</h2>
-    <p class="progress-intro">Your settings and flowers stay on this device.</p>
-    <div class="arcade-options-grid">
+  <dialog id="customize-dialog" class="progress-dialog rc37-dialog rc37-customize" aria-labelledby="customize-title">
+    <button class="dialog-close" id="close-customize" type="button" aria-label="Close Customize">×</button>
+    <h2 id="customize-title" class="rc37-dialog-title">Customize</h2>
+    <div class="rc37-tabs" role="tablist" aria-label="Customize category">
+      <button id="custom-tab-bees" class="rc37-tab active" data-category="bees" role="tab" aria-selected="true">BEES</button>
+      <button id="custom-tab-gardens" class="rc37-tab" data-category="gardens" role="tab" aria-selected="false">GARDENS</button>
+      <button id="custom-tab-fly" class="rc37-tab" data-category="fly" role="tab" aria-selected="false">FLY</button>
+      <button id="custom-tab-joystick" class="rc37-tab" data-category="joystick" role="tab" aria-selected="false">JOYSTICK</button>
+    </div>
+    <section id="custom-bees" class="rc37-custom-panel" aria-label="Bee selection">
+      <div class="rc37-bee-gallery">
+        <button id="custom-prev-bee" class="rc37-gallery-arrow" type="button" aria-label="Previous bee">❮</button>
+        <canvas id="custom-bee-canvas" width="360" height="260" role="img" aria-label="Selected bee preview"></canvas>
+        <button id="custom-next-bee" class="rc37-gallery-arrow" type="button" aria-label="Next bee">❯</button>
+      </div>
+      <h3 id="custom-bee-name" class="rc37-bee-name">Garden Bee</h3>
+      <p id="custom-bee-story" class="rc37-bee-story"></p>
+      <p id="custom-bee-unlock" class="rc37-bee-unlock" role="status"></p>
+      <button id="custom-equip-bee" type="button" class="rc37-main-action">EQUIP BEE</button>
+    </section>
+    <section id="custom-gardens" class="rc37-custom-panel" aria-label="Garden selection" hidden>
+      <p class="rc37-panel-hint">Choose an unlocked garden. Visit Flower Shop to unlock more.</p>
+      <div id="custom-garden-grid" class="rc37-custom-grid"></div>
+    </section>
+    <section id="custom-fly" class="rc37-custom-panel" aria-label="Fly button styles" hidden>
+      <p class="rc37-panel-hint">Change the look without changing the Fly button's touch area.</p>
+      <div id="custom-fly-grid" class="rc37-control-styles"></div>
+    </section>
+    <section id="custom-joystick" class="rc37-custom-panel" aria-label="Joystick styles" hidden>
+      <p class="rc37-panel-hint">All styles use the same steering response and touch area.</p>
+      <div id="custom-joystick-grid" class="rc37-control-styles"></div>
+    </section>
+    <div class="progress-footer"><button id="customize-done" type="button" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button></div>
+  </dialog>
+  <dialog id="options-dialog" class="progress-dialog arcade-options-dialog rc37-dialog" aria-labelledby="options-title">
+    <button id="close-options" class="dialog-close" type="button" aria-label="Close Options">×</button>
+    <h2 id="options-title" class="rc37-dialog-title">Options</h2>
+    <div class="arcade-options-grid rc37-options-grid">
       <button type="button" id="options-sound" class="arcade-options-action">SOUND: OFF</button>
-      <button type="button" id="options-shop" class="arcade-options-action">GARDEN SHOP</button>
       <button type="button" id="options-help" class="arcade-options-action">HOW TO PLAY</button>
-      <button type="button" id="options-records" class="arcade-options-action">HIGH SCORES</button>
-      <button type="button" id="options-achievements" class="arcade-options-action">ACHIEVEMENTS</button>
       <button type="button" id="options-credits" class="arcade-options-action">CREDITS</button>
     </div>
-    <div class="progress-footer"><button type="button" id="options-done" class="play-button">BACK TO MAIN MENU <span>↗</span></button></div>
+    <div class="progress-footer"><button type="button" id="options-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button></div>
   </dialog>
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
@@ -250,35 +283,40 @@
     <div class="help-row"><span>CLOSE CALL</span><p><strong>Brush past danger</strong>Pass just outside an island or beetle hitbox for a one-time +5 bonus. The same hazard cannot be farmed repeatedly.</p></div>
     <div class="help-row"><span>CLIMB</span><p><strong>You set the pace</strong>The screen follows only the highest point you reach and never moves upward on its own. The garden naturally shifts through calmer stretches, building pressure, short challenges and recovery space. If you fall completely below the screen after climbing, you lose one life and revive automatically at a visible safe point.</p></div>
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
-    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
+    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60, Glowwood for 120, or Neon Garden for 180 flowers. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>RECORDS</span><p><strong>Build your garden legacy</strong>Records, achievements, unlocked bee styles and equipped rewards are saved on this device. Cosmetic bee rewards never change gameplay.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Tuckered out?</strong>The game pauses when you switch away.</p></div>
     <p class="help-note">Pick a flower for at least 10 points. Bloom Streak multipliers raise run score only. If a bloom slips below the screen as you climb, you lose 10 points, the streak resets and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
-    <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
+    <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button>
   </dialog>
-  <dialog id="shop-dialog" class="garden-shop" aria-labelledby="shop-title">
-    <button class="dialog-close" id="close-shop" aria-label="Close garden shop">×</button>
-    <div class="shop-heading"><div><p class="eyebrow">YOUR LITTLE GREENHOUSE</p><h2 id="shop-title">Garden shop.</h2></div><div class="shop-wallet"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="shop-balance">0</strong><span>FLOWERS</span></div></div>
-    <p class="shop-intro">Collect flowers. Unlock a new view. Keep the garden you love.</p>
-    <div id="shop-grid" class="shop-grid"></div>
-    <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
-    <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
+  <dialog id="shop-dialog" class="garden-shop rc37-dialog rc37-shop" aria-labelledby="shop-title">
+    <button class="dialog-close" id="close-shop" aria-label="Close Flower Shop">×</button>
+    <h2 id="shop-title" class="rc37-dialog-title">Flower Shop</h2>
+    <div class="shop-wallet rc37-wallet"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="shop-balance">0</strong></div>
+    <div id="shop-grid" class="shop-grid rc37-shop-grid" aria-label="Choose garden"></div>
+    <div id="shop-selection" class="rc37-shop-selection" aria-live="polite">
+      <strong id="shop-selected-name">Twilight Garden</strong>
+      <span id="shop-selected-description">Moonstars</span>
+      <button id="shop-selected-action" class="garden-action rc37-main-action" type="button">EQUIPPED</button>
+    </div>
+    <div class="shop-footer rc37-footer"><button id="shop-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button></div>
   </dialog>
-  <dialog id="records-dialog" class="progress-dialog" aria-labelledby="records-title">
-    <button class="dialog-close" id="close-records" aria-label="Close records">×</button>
-    <p class="eyebrow">YOUR GARDEN LEGACY</p><h2 id="records-title">Records.</h2>
-    <p class="progress-intro">Every run adds to your story. These records stay saved on this device.</p>
-    <div class="records-grid" id="records-grid"></div>
-    <div class="progress-footer"><button id="records-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
-  </dialog>
-  <dialog id="achievements-dialog" class="progress-dialog" aria-labelledby="achievements-title">
-    <button class="dialog-close" id="close-achievements" aria-label="Close achievements">×</button>
-    <p class="eyebrow">BLOOM BADGES</p><h2 id="achievements-title">Achievements.</h2>
-    <p class="progress-intro">Master the garden to unlock hand-drawn bee colors and trails. Rewards are cosmetic only.</p>
-    <div class="achievement-summary"><strong id="achievement-count">0 / 7 UNLOCKED</strong><button id="equip-classic" class="classic-equip">EQUIP CLASSIC BEE</button></div>
-    <div class="achievements-list" id="achievements-list"></div>
-    <div class="progress-footer"><button id="achievements-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  <dialog id="records-dialog" class="progress-dialog rc37-dialog rc37-records" aria-labelledby="records-title">
+    <button class="dialog-close" id="close-records" aria-label="Close High Scores">×</button>
+    <h2 id="records-title" class="rc37-dialog-title">High Scores</h2>
+    <div class="rc37-tabs" role="tablist" aria-label="High scores and achievements">
+      <button id="scores-tab-records" class="rc37-tab active" role="tab" aria-controls="scores-records-panel" aria-selected="true">RECORDS</button>
+      <button id="scores-tab-achievements" class="rc37-tab" role="tab" aria-controls="scores-achievements-panel" aria-selected="false">ACHIEVEMENTS</button>
+    </div>
+    <section id="scores-records-panel" class="rc37-score-panel" role="tabpanel">
+      <div class="records-grid" id="records-grid"></div>
+    </section>
+    <section id="scores-achievements-panel" class="rc37-score-panel" role="tabpanel" hidden>
+      <div class="achievement-summary"><strong id="achievement-count">0 / 7 UNLOCKED</strong><button id="equip-classic" class="classic-equip">EQUIP GARDEN BEE</button></div>
+      <div class="achievements-list" id="achievements-list"></div>
+    </section>
+    <div class="progress-footer"><button id="records-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button></div>
   </dialog>
   <dialog id="first-flight-dialog" class="progress-dialog" aria-labelledby="first-flight-title">
     <button class="dialog-close" id="close-first-flight" aria-label="Close first flight guide">×</button>
@@ -290,17 +328,18 @@
       <div class="quick-start-card"><span>3 · SURVIVE</span><p>You have three lives. Leaves become safe revival points after you touch them.</p></div>
       <div class="quick-start-card"><span>4 · COLLECT</span><p>Flowers build score and streaks. Letting one pass costs 10 points and breaks the streak.</p></div>
     </div>
-    <div class="progress-footer"><button id="first-flight-go" class="play-button">I’M READY. LET’S FLY <span>↗</span></button></div>
+    <div class="progress-footer"><button id="first-flight-go" class="play-button">I’M READY. LET’S FLY <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button></div>
   </dialog>
-  <dialog id="credits-dialog" class="progress-dialog" aria-labelledby="credits-title">
-    <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
-    <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
-    <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC32</strong></div></div>
-    <p class="progress-intro">Thank you for taking one more flight.</p>
-    <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  <dialog id="credits-dialog" class="progress-dialog rc37-dialog rc37-credits" aria-labelledby="credits-title">
+    <button class="dialog-close" id="close-credits" aria-label="Close Credits">×</button>
+    <h2 id="credits-title" class="rc37-dialog-title">Credits</h2>
+    <p class="progress-intro">An original endless garden arcade game created by GlowState.</p>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute neon garden arcade</strong></div></div>
+    <p class="progress-intro rc37-thanks">Thank you for pouncing these pedals!</p>
+    <div class="rc37-credit-bee"><img src="./bee.svg" alt="Petal Pounce bee life emblem"></div>
+    <div class="progress-footer"><button id="credits-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=84"></script>
+  <script type="module" src="./game.mjs?v=88"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -308,7 +347,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=84';
+      const swUrl='./sw.js?v=88';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())

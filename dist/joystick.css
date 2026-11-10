@@ -1566,3 +1566,28 @@
     pointer-events:none!important;
   }
 }
+
+/* RC34 · Neon Garden — appearance only. Existing hit zones and layout unchanged. */
+#cabinet[data-garden="neon"] .screen .hud strong,
+#cabinet[data-garden="neon"] .screen .hud-center strong { color:#d7f9ff!important;text-shadow:0 0 6px #00ceff95,1px 2px #081123!important; }
+#cabinet[data-garden="neon"] .screen .streak-meter {
+  color:#f7dfff!important;background:rgba(16,12,44,.79)!important;
+  border:1px solid #dd55ed!important;box-shadow:0 0 7px #db27ed55!important;
+}
+#cabinet[data-garden="neon"] .screen .lives {
+  border-color:#41d8f9!important;background:rgba(8,14,37,.83)!important;
+  box-shadow:0 0 9px #22dcff48!important;
+}
+#cabinet[data-garden="neon"] .cabinet-bar #open-shop {
+  border-color:#ef43df!important;background:#100e27e6!important;color:#fff0ff!important;
+  box-shadow:0 0 8px #e629da69!important;
+}
+#cabinet[data-garden="neon"] .control-deck .joystick-control {
+  filter:drop-shadow(0 0 7px #1edcffe0)!important;
+}
+#cabinet[data-garden="neon"] .control-deck .fly-button {
+  filter:drop-shadow(0 0 7px #ff3cddbb)!important;
+}
+#cabinet[data-garden="neon"] .screen .garden-notification.show {
+  border-color:#db70e7!important;box-shadow:0 0 9px #eb44eb44!important;
+}

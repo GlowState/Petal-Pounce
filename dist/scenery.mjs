@@ -8,7 +8,9 @@ export const GARDENS = [
   { id:'glowwood', name:'Glowwood Forest', price:120, night:true, sky:['#081d35','#154450','#2d696b'],
     flower:{name:'Glowbells',shape:'bell',petal:'#67d8ee',light:'#c9ffff',glow:'#62e4ff',center:'#adfff1',spark:'#f0fff9',stem:'#6fc6b0'}, hint:'#a8e9da' },
   { id:'classic', name:'Classic Garden', price:0, night:false, sky:['#75bab7','#91cfbf','#c3d9ad'],
-    flower:{name:'White daisies',shape:'classic',petal:'#eff2d7',light:'#fff9e4',glow:null,center:'#f8c555',spark:'#ffe99c',stem:'#456f38'}, hint:'#3c7356' }
+    flower:{name:'White daisies',shape:'classic',petal:'#eff2d7',light:'#fff9e4',glow:null,center:'#f8c555',spark:'#ffe99c',stem:'#456f38'}, hint:'#3c7356' },
+  { id:'neon', name:'Neon Garden', price:180, night:true, sky:['#070b23','#121333','#18183a'],
+    flower:{name:'Neon blossoms',shape:'daisy',petal:'#ff55da',light:'#ffbcf1',glow:'#eb48f6',center:'#ffe270',spark:'#fff6da',stem:'#34ddf8'}, hint:'#96f4ff' }
 ];
 
 export const gardenById = id => GARDENS.find(garden=>garden.id===id)??GARDENS[0];
@@ -75,8 +77,18 @@ export class GardenScenery {
     c.save();c.drawImage(this.cache.get(theme.id),0,0);
     this.ambient(c,theme,w,h,this.reducedMotion?0:clock,camera);
     if(groundY<h+100){
-      const colors=theme.id==='twilight'?['#356075','#284953']:theme.id==='glowwood'?['#367577','#205451']:theme.id==='blossom'?['#8cb69a','#668e7b']:['#9bb788','#70956e'];
-      hills(c,w,h,groundY-10,17,1,colors[0]);hills(c,w,h,groundY+8,12,3,colors[1]);
+      if(theme.id==='neon'){
+        hills(c,w,h,groundY-10,14,1,'#101e44');
+        hills(c,w,h,groundY+8,10,3,'#25133c');
+        c.save();c.shadowColor='#20dfff';c.shadowBlur=7;c.strokeStyle='#1dddf6';c.lineWidth=2;
+        c.beginPath();for(let x=0;x<=w+20;x+=16){
+          const y=groundY-10+Math.sin(x/125+1)*14+Math.cos(x/230+1)*7;
+          x?c.lineTo(x,y):c.moveTo(x,y);
+        }c.stroke();c.restore();
+      }else{
+        const colors=theme.id==='twilight'?['#356075','#284953']:theme.id==='glowwood'?['#367577','#205451']:theme.id==='blossom'?['#8cb69a','#668e7b']:['#9bb788','#70956e'];
+        hills(c,w,h,groundY-10,17,1,colors[0]);hills(c,w,h,groundY+8,12,3,colors[1]);
+      }
     }
     c.restore();
   }
@@ -87,7 +99,37 @@ export class GardenScenery {
     if(theme.id==='twilight')this.twilight(c,w,h,theme);
     else if(theme.id==='blossom')this.blossom(c,w,h);
     else if(theme.id==='glowwood')this.glowwood(c,w,h);
+    else if(theme.id==='neon')this.neon(c,w,h);
     else this.classic(c,w,h);
+  }
+
+  // A spare, readable neon sky. Static clouds/moon are far behind moving hazards.
+  neon(c,w,h) {
+    glow(c,w*.78,h*.19,110,'#672dcb','13');
+    glow(c,w*.2,h*.75,165,'#0074d8','0a');
+    const rng=random(3419);
+    for(let i=0;i<23;i++){
+      const x=rng()*w,y=20+rng()*h*.82,r=.6+rng()*.8;
+      c.fillStyle=i%3===0?'#ff79fa70':'#6edfff60';
+      ellipse(c,x,y,r,r,c.fillStyle);
+    }
+    // A small, low-contrast magenta crescent (not a collectible).
+    c.save();c.strokeStyle='#e65ce3';c.shadowColor='#9e32d9';c.shadowBlur=7;c.lineWidth=1.7;
+    c.beginPath();c.arc(w*.8,h*.22,18,-1.1,1.35);c.stroke();c.restore();
+    for(const [rx,ry,r] of [[.17,.16,1],[.65,.35,.72],[.2,.54,.61],[.79,.69,.55]]){
+      const x=w*rx,y=h*ry,sz=22*r;
+      c.save();c.lineWidth=1.4;c.lineCap='round';
+      c.strokeStyle='#31c6ff88';c.shadowColor='#2dd6ff';c.shadowBlur=4;
+      c.beginPath();c.moveTo(x-sz,y);c.bezierCurveTo(x-sz*.9,y-sz*.4,x-sz*.48,y-sz*.45,x-sz*.25,y-sz*.35);
+      c.bezierCurveTo(x-sz*.03,y-sz*1.05,x+sz*.48,y-sz*.8,x+sz*.6,y-sz*.25);
+      c.quadraticCurveTo(x+sz*1.05,y-sz*.25,x+sz,y);c.lineTo(x-sz,y);c.stroke();
+      c.shadowBlur=0;c.strokeStyle='#f043d861';c.beginPath();c.moveTo(x-sz,y+1);c.lineTo(x+sz,y+1);c.stroke();c.restore();
+    }
+    // Dark layered distance; decorative lines are kept away from the center.
+    hills(c,w,h,h*.94,17,1,'#171531a8');
+    hills(c,w,h,h*.99,13,3,'#111930');
+    c.save();c.lineWidth=1.7;c.strokeStyle='#33c5ee66';c.shadowColor='#00dfff';c.shadowBlur=5;
+    c.beginPath();for(let x=0;x<=w+20;x+=14){const y=h*.94+Math.sin(x/125+1)*17+Math.cos(x/230+1)*8.5;x?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();c.restore();
   }
 
   twilight(c,w,h,theme) {
@@ -168,6 +210,16 @@ export class GardenScenery {
 
   ambient(c,theme,w,h,time,camera) {
     if(theme.id==='classic')return;
+    if(theme.id==='neon'){
+      c.save();
+      for(let i=0;i<9;i++){
+        const x=(i*97+42)%w;
+        const y=((i*83+(time*2)-camera*.027)%(h+50)+h+50)%(h+50)-25;
+        c.globalAlpha=.22+(this.reducedMotion?0:.10*Math.sin(time*1.4+i));
+        c.fillStyle=i%2?'#7ce8ff':'#ff8fe7';
+        ellipse(c,x,y,1.3,1.3,c.fillStyle);
+      }c.restore();return;
+    }
     const count=theme.id==='glowwood'?23:15;
     for(let i=0;i<count;i++){
       const speed=theme.id==='blossom'?12:3;
