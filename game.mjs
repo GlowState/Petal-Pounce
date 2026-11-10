@@ -1,11 +1,12 @@
 import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=68';
-import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=68';
+import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=85';
 import { HoldControls } from './hold-controls.mjs?v=68';
-import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=68';
+import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=85';
 import { paintFlower } from './flowers.mjs?v=68';
+import { paintNeonLeaf, paintNeonThorn, paintNeonBeetle, paintNeonBeeGlow } from './neon-art.mjs?v=85';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC32';
+const APP_VERSION = '1.0 RC34';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog','options-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -703,6 +704,7 @@ function updateUI() {
   if (displayedGarden !== garden.id) {
     displayedGarden = garden.id;
     screen.dataset.garden = garden.id;
+    cabinet.dataset.garden = garden.id;
     screen.dataset.night = String(garden.night);
     $('garden-label').textContent = garden.name.toUpperCase() + ' ✦';
   }
@@ -805,6 +807,7 @@ function drawSky(attract) {
 function drawLeaf(p, offset = camera) {
   const y = Math.round(p.y - offset);
   if (y < -65 || y > viewH + 50) return;
+  if(currentGarden().id==='neon'){paintNeonLeaf(ctx,p,y);return;}
   ctx.save();
   ctx.translate(Math.round(p.x + p.w / 2), y);
   if (p.flip) ctx.scale(-1, 1);
@@ -877,6 +880,7 @@ function drawThorn(t) {
   const h=Math.max(9,t.h);
   const heavy=!!t.heavy;
   const night=currentGarden().night;
+  if(currentGarden().id==='neon'){paintNeonThorn(ctx,t,camera);return;}
   const seed=((Math.round(t.x)*31)^(Math.round(t.y)*131)^(w*17))>>>0;
   const noise=salt=>islandNoise(seed,salt);
   const bodyHalf=Math.max(5,Math.min(h-2,h*(heavy?.59:.50)));
@@ -1004,6 +1008,7 @@ function drawThorn(t) {
 function drawBeetle(beetle) {
   const y = beetle.y - camera;
   if (y < -35 || y > viewH + 35) return;
+  if(currentGarden().id==='neon'){paintNeonBeetle(ctx,beetle,camera,clock,reducedMotion);return;}
   ctx.save();
   ctx.translate(Math.round(beetle.x), Math.round(y));
   ctx.scale(Math.cos(beetle.phase) < 0 ? -1 : 1, 1);
@@ -1069,6 +1074,7 @@ function drawBee(b, offset = camera, attract = false) {
   if (!attract && game.mode === 'reviving') return;
   const y = b.y - offset;
   if (y < -50 || y > viewH + 60) return;
+  if(currentGarden().id==='neon')paintNeonBeeGlow(ctx,b,offset);
   ctx.save();
   ctx.translate(Math.round(b.x), Math.round(y));
   if (!attract && game.invulnerable > 0) {

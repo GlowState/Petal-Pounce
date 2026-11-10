@@ -26,8 +26,7 @@
   <link rel="stylesheet" href="./shop.css?v=68">
   <link rel="stylesheet" href="./retro-arcade.css?v=68">
   <link rel="stylesheet" href="./zoom-B.css?v=68">
-  <link rel="stylesheet" href="./joystick.css?v=84">
-  <link rel="stylesheet" href="./neon-ui.css?v=85">
+  <link rel="stylesheet" href="./joystick.css?v=85">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -183,7 +182,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC32 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC34 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -215,7 +214,7 @@
             <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M12 3h8l1 4 4 2 4-1 2 7-4 2v4l3 3-5 5-4-2h-8l-4 2-5-5 3-3v-5l-3-2 2-7 4 2 3-2z"/><circle cx="16" cy="16" r="5"/></svg><span>SETTINGS</span></span></button>
             <button id="main-menu-credits" class="arcade-menu-button arcade-menu-credits" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.7" aria-hidden="true"><circle cx="16" cy="16" r="12"/><path d="M16 14v10M16 9v2"/></svg><span>CREDITS</span></span></button>
           </nav>
-          <span class="main-menu-build" aria-label="Release version">RC32</span>
+          <span class="main-menu-build" aria-label="Release version">RC34</span>
         </section>
       </section>
 
@@ -251,7 +250,7 @@
     <div class="help-row"><span>CLOSE CALL</span><p><strong>Brush past danger</strong>Pass just outside an island or beetle hitbox for a one-time +5 bonus. The same hazard cannot be farmed repeatedly.</p></div>
     <div class="help-row"><span>CLIMB</span><p><strong>You set the pace</strong>The screen follows only the highest point you reach and never moves upward on its own. The garden naturally shifts through calmer stretches, building pressure, short challenges and recovery space. If you fall completely below the screen after climbing, you lose one life and revive automatically at a visible safe point.</p></div>
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
-    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
+    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60, Glowwood for 120, or Neon Garden for 180 flowers. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>RECORDS</span><p><strong>Build your garden legacy</strong>Records, achievements, unlocked bee styles and equipped rewards are saved on this device. Cosmetic bee rewards never change gameplay.</p></div>
     <div class="help-row"><span>P / ESC</span><p><strong>Tuckered out?</strong>The game pauses when you switch away.</p></div>
     <p class="help-note">Pick a flower for at least 10 points. Bloom Streak multipliers raise run score only. If a bloom slips below the screen as you climb, you lose 10 points, the streak resets and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
@@ -297,11 +296,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC32</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC34</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=84"></script>
+  <script type="module" src="./game.mjs?v=85"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -309,7 +308,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=84';
+      const swUrl='./sw.js?v=85';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
