@@ -5,7 +5,7 @@ import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=68';
 import { paintFlower } from './flowers.mjs?v=68';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC16';
+const APP_VERSION = '1.0 RC26';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -721,12 +721,13 @@ function updateUI() {
     $('lives').classList.toggle('low', game.lives <= 1);
     $('lives').setAttribute('aria-label', `${game.lives} lives remaining`);
   }
-  if (mode === displayedMode) return;
-  displayedMode = mode;
   const showMenu = !['playing', 'reviving'].includes(mode);
   $('overlay').hidden = !showMenu;
+  if (mode === displayedMode) return;
+  displayedMode = mode;
   $('overlay').classList.toggle('state-overlay', mode !== 'title');
   $('overlay').classList.toggle('title-overlay', mode === 'title');
+  $('overlay').dataset.mode = mode;
   $('secondary').hidden = !['paused', 'over'].includes(mode);
   $('meta-actions').hidden = mode !== 'title';
   $('open-credits').hidden = mode !== 'title';
@@ -743,7 +744,7 @@ function updateUI() {
       : `<strong class="best-gap-callout">${pointsFromBest} ${pointsFromBest === 1 ? 'POINT' : 'POINTS'} FROM YOUR BEST</strong>`;
   const titles = {
     title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', `Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>${game.bestFlowers ? `<br>BEST RUN: ${game.bestFlowers} FLOWERS` : ''}`, 'LET’S FLY'],
-    paused: ['WINGS AT REST', 'TAKE A<br>BREATHER.', 'Your garden will be right here.<br>Ready when you are.', 'KEEP FLYING'],
+    paused: ['WINGS AT REST', 'TUCKERED<br>OUT?', 'Your garden will bee right here when you get back.', 'KEEP FLYING'],
     over: ['NO LIVES REMAINING', 'GAME<br>OVER.', `${resultCallout}<br>${game.score} points · ${game.flowersCollected} flowers<br>Best flowers: ${game.bestFlowers} · Milestone: ${game.highestMilestone || '—'}<br>Best streak: ${game.bestStreak} · Close calls: ${game.nearMisses}<br>Your flower bank and unlocked gardens are safe.`, 'PLAY AGAIN']
   };
   if (showMenu) {
