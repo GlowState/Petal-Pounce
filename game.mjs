@@ -6,9 +6,9 @@ import { paintFlower } from './flowers.mjs?v=68';
 import { paintNeonLeaf, paintNeonThorn, paintNeonBeetle, paintNeonBeeGlow } from './neon-art.mjs?v=85';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC36';
+const APP_VERSION = '1.0 RC37';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
-const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog','options-dialog'];
+const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','first-flight-dialog','credits-dialog','options-dialog','customize-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
 const canvas = $('game');
 canvas.style.imageRendering = 'auto'; // Use Flower Garden's smooth scaling in every garden.
@@ -35,6 +35,16 @@ const BEE_STYLES = Object.freeze({
     wingEdge:'#7a596e', wing:'#f6e8ed', wingShade:'#d9b5c7', trail:'petal' },
   star: { id:'star', name:'Starlight Wings', body:'#353044', stripe:'#d7b85d', highlight:'#fff0a6',
     wingEdge:'#655d8b', wing:'#f0edff', wingShade:'#c7bdf3', trail:'star' }
+});
+const BEE_STORIES = Object.freeze({
+  'classic':'An adventurous little bee with a big heart. Every new flower is another reason to explore.',
+  'rose':'A cheerful gardener who paints the meadow pink, one blossom at a time.',
+  'royal':'The hive’s gentle protector, always bringing calm to even the wildest garden.',
+  'mint':'Quiet and quick, Mintwing knows the secret paths through every leafy maze.',
+  'gold':'Brave and steady, the Golden Guardian always watches out for the little bees.',
+  'sky':'A wind-loving wanderer who can read a storm before the first leaf moves.',
+  'petal':'A playful performer whose flight leaves a trail of dancing petals.',
+  'star':'The midnight explorer who finds wonder even in the darkest garden sky.'
 });
 const ACHIEVEMENTS = Object.freeze([
   { id:'first-bouquet', icon:'✿', name:'First Bouquet', description:'Collect 25 flowers in one run.', reward:'Rose Stripe bee', styleId:'rose', target:25, metric:'bestFlowers' },
@@ -69,6 +79,22 @@ const styleUnlocked = styleId => styleId === 'classic' || ACHIEVEMENTS.some(achi
   achievement.styleId === styleId && progress.unlocked[achievement.id]);
 if (!styleUnlocked(progress.equippedStyle)) progress.equippedStyle = 'classic';
 const currentBeeStyle = () => BEE_STYLES[progress.equippedStyle] || BEE_STYLES.classic;
+const CONTROL_STYLE_KEY = 'petal-pounce-control-looks-v1';
+const controlLooks = (() => {
+  let raw={};try{raw=JSON.parse(safeGet(CONTROL_STYLE_KEY,'{}'))||{};}catch{}
+  const allowed=['classic','neon','minimal'];
+  return {fly:allowed.includes(raw.fly)?raw.fly:'classic',joystick:allowed.includes(raw.joystick)?raw.joystick:'classic'};
+})();
+function applyControlLooks(){
+  cabinet.dataset.flyLook=controlLooks.fly;
+  cabinet.dataset.joystickLook=controlLooks.joystick;
+}
+function setControlLook(kind,look){
+  if(!['fly','joystick'].includes(kind)||!['classic','neon','minimal'].includes(look))return;
+  controlLooks[kind]=look;safeSet(CONTROL_STYLE_KEY,JSON.stringify(controlLooks));
+  applyControlLooks();renderControlLooks(kind);
+}
+applyControlLooks();
 let savedProfile;
 try { savedProfile = JSON.parse(safeGet(PROFILE_KEY, 'null')); } catch {}
 const profile = new FlowerProfile({ raw: savedProfile, save: value => safeSet(PROFILE_KEY,value) });
@@ -218,6 +244,7 @@ window.addEventListener('resize', () => { if (!joystickActive) drawJoystick(stee
 let viewH = 480;
 let camera = 0;
 let cameraInitialized = false;
+let reviveCameraHold = false;
 let clock = 0;
 let accumulator = 0;
 let lastFrame = 0;
@@ -415,7 +442,7 @@ function unlockAchievement(id, { announce = true } = {}) {
     queueGardenNotice({ kind:'achievement', icon:'★', title:achievement.name.toUpperCase(),
       detail:`${BEE_STYLES[achievement.styleId].name.toUpperCase()} UNLOCKED` });
   }
-  if ($('achievements-dialog').open) renderAchievements();
+  if ($('records-dialog').open && scoreTab === 'achievements') renderAchievements();
   return true;
 }
 
@@ -426,7 +453,7 @@ function checkAchievement(id, value) {
 
 function renderRecords() {
   const records = [
-    ['PERSONAL BEST', fmtScore(game.best)],
+    ['HIGH SCORE', fmtScore(game.best)],
     ['MOST FLOWERS', String(Math.max(game.bestFlowers, game.flowersCollected))],
     ['LONGEST STREAK', String(progress.records.bestStreak)],
     ['MOST CLOSE CALLS', String(progress.records.bestCloseCalls)],
@@ -452,6 +479,7 @@ function equipBeeStyle(styleId) {
   progress.equippedStyle = styleId;
   saveProgress();
   renderAchievements();
+  if($('customize-dialog')?.open)renderBeeChoice();
   notify(`${BEE_STYLES[styleId].name.toUpperCase()} EQUIPPED`, 1800);
   tone(523,.09,'triangle');tone(784,.14,'sine',.08);
 }
@@ -505,19 +533,31 @@ function renderAchievements() {
   }
 }
 
-function openRecords() { renderRecords(); $('records-dialog').showModal(); }
-function openAchievements() { renderAchievements(); $('achievements-dialog').showModal(); }
-function openCredits() { $('credits-version').textContent = `PETAL POUNCE · ${APP_VERSION}`; $('credits-dialog').showModal(); }
-$('open-records').addEventListener('click', openRecords);
-$('options-records').addEventListener('click', () => { $('options-dialog').close(); openRecords(); });
-$('main-menu-credits').addEventListener('click', openCredits);
-$('open-achievements').addEventListener('click', openAchievements);
-$('close-records').addEventListener('click', () => $('records-dialog').close());
-$('records-done').addEventListener('click', () => $('records-dialog').close());
-$('close-achievements').addEventListener('click', () => $('achievements-dialog').close());
-$('achievements-done').addEventListener('click', () => $('achievements-dialog').close());
-$('equip-classic').addEventListener('click', () => equipBeeStyle('classic'));
-$('open-credits').addEventListener('click', openCredits);
+let scoreTab='records';
+function selectScoreTab(tab) {
+  scoreTab=tab==='achievements'?'achievements':'records';
+  $('scores-records-panel').hidden=scoreTab!=='records';
+  $('scores-achievements-panel').hidden=scoreTab!=='achievements';
+  for(const target of ['records','achievements']){
+    const button=$(`scores-tab-${target}`);
+    const selected=target===scoreTab;
+    button.classList.toggle('active',selected);
+    button.setAttribute('aria-selected',String(selected));
+  }
+  if(scoreTab==='records')renderRecords();else renderAchievements();
+}
+function openRecords(tab='records') {selectScoreTab(tab);$('records-dialog').showModal();}
+function openAchievements() {openRecords('achievements');}
+function openCredits() { $('credits-dialog').showModal(); }
+$('open-records').addEventListener('click',()=>openRecords('records'));
+$('main-menu-records').addEventListener('click',()=>openRecords('records'));
+$('open-achievements').addEventListener('click',openAchievements);
+$('scores-tab-records').addEventListener('click',()=>selectScoreTab('records'));
+$('scores-tab-achievements').addEventListener('click',()=>selectScoreTab('achievements'));
+$('close-records').addEventListener('click',()=> $('records-dialog').close());
+$('records-done').addEventListener('click',()=> $('records-dialog').close());
+$('equip-classic').addEventListener('click',()=>equipBeeStyle('classic'));
+$('open-credits').addEventListener('click',openCredits);
 function syncOptionsSound() {
   const soundButton = $('options-sound');
   soundButton.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON';
@@ -532,8 +572,6 @@ $('main-menu-options').addEventListener('click', openOptions);
 $('close-options').addEventListener('click', () => $('options-dialog').close());
 $('options-done').addEventListener('click', () => $('options-dialog').close());
 $('options-sound').addEventListener('click', () => { $('sound').click(); syncOptionsSound(); });
-$('options-shop').addEventListener('click', () => { $('options-dialog').close(); openShop(); });
-$('options-achievements').addEventListener('click', () => { $('options-dialog').close(); openAchievements(); });
 $('options-credits').addEventListener('click', () => { $('options-dialog').close(); openCredits(); });
 
 $('close-credits').addEventListener('click', () => $('credits-dialog').close());
@@ -549,6 +587,7 @@ function startRun() {
   game.start();
   particles.length = 0;
   camera = game.bee.y - viewH * .6;
+  reviveCameraHold = false;
   cameraInitialized = true;
   notify(`${currentGarden().name.toUpperCase()} · HOLD WINGS TO FLY`, 4000);
   updateUI();
@@ -581,6 +620,7 @@ $('secondary').addEventListener('click', () => {
   safeSet('nectar-tangle-best-v1', String(game.best));
   safeSet('petal-pounce-best-flowers-v1', String(game.bestFlowers));
   game.mode = 'title';
+  reviveCameraHold = false;
   $('toast').classList.remove('show');
   updateUI();
 });
@@ -610,33 +650,48 @@ $('help-dialog').addEventListener('close', () => {
   updateUI();
 });
 
-function renderShop() {
+let selectedGardenId='twilight';
+function renderShop(selection=selectedGardenId) {
   $('shop-balance').textContent=profile.data.flowers;
-  $('shop-grid').replaceChildren();
+  selectedGardenId=GARDENS.some(g=>g.id===selection)?selection:profile.data.equipped;
+  const grid=$('shop-grid');grid.replaceChildren();
   for(const garden of GARDENS){
-    const owned=profile.data.owned.includes(garden.id),equipped=profile.data.equipped===garden.id,affordable=profile.data.flowers>=garden.price;
-    const card=document.createElement('article');card.className='shop-card'+(equipped?' equipped':'');
-    card.style.setProperty('--garden-color',garden.flower.petal);
-    card.innerHTML=`<canvas width="320" height="160" aria-hidden="true"></canvas><div class="shop-card-body"><div class="shop-card-heading"><h3>${garden.name}</h3>${equipped?'<span class="equipped-badge">IN USE</span>':''}</div><p class="flower-variety">${garden.flower.name}</p><button class="garden-action" ${equipped||(!owned&&!affordable)?'disabled':''}>${equipped?'EQUIPPED ✓':owned?'USE GARDEN':`UNLOCK · ${garden.price} FLOWERS`}</button><p class="garden-price-note">${owned?'Yours to keep':affordable?'Unlock once. Keep forever.':`${garden.price-profile.data.flowers} more flowers to unlock`}</p></div>`;
-    $('shop-grid').append(card);
-    const preview=card.querySelector('canvas'),brush=preview.getContext('2d');
-    shopScenery.draw(brush,{theme:garden,width:320,height:160,clock:0,camera:0,groundY:200});
-    paintFlower(brush,{x:69,y:84,phase:0},{palette:garden.flower,reducedMotion:true,scale:1.5});
-    paintFlower(brush,{x:125,y:112,phase:0},{palette:garden.flower,reducedMotion:true,scale:.85});
-    card.querySelector('button').addEventListener('click',()=>{
-      const result=owned?profile.equip(garden.id):profile.buy(garden.id);
-      if(!result.ok){$('shop-status').textContent=result.reason==='funds'?'Collect a few more flowers first.':'This garden is already unlocked.';renderShop();return;}
-      $('shop-status').textContent=result.saved?`${garden.name} equipped. ${owned?'':'Unlocked permanently on this device.'}`:'Equipped for this session. Saving is unavailable on this device.';
-      tone(660,.1);tone(880,.13,'sine',.08);
-      updateUI();renderShop();
-    });
+    const owned=profile.data.owned.includes(garden.id),equipped=profile.data.equipped===garden.id;
+    const tile=document.createElement('button');tile.type='button';
+    tile.className='rc37-garden-tile'+(selectedGardenId===garden.id?' selected':'')+(equipped?' equipped':'');
+    tile.setAttribute('aria-label',`${garden.name}, ${owned?'unlocked':'locked'}, ${garden.price} flowers`);
+    tile.setAttribute('aria-pressed',String(selectedGardenId===garden.id));
+    const picture=document.createElement('span');picture.className='rc37-garden-picture';
+    const canvas=document.createElement('canvas');canvas.width=320;canvas.height=160;canvas.setAttribute('aria-hidden','true');
+    picture.append(canvas);
+    if(!owned){const lock=document.createElement('span');lock.className='rc37-lock';lock.textContent='🔒';lock.setAttribute('aria-hidden','true');picture.append(lock);}
+    const name=document.createElement('strong');name.textContent=garden.name;
+    tile.append(picture,name);grid.append(tile);
+    const c=canvas.getContext('2d');
+    shopScenery.draw(c,{theme:garden,width:320,height:160,clock:0,camera:0,groundY:210});
+    paintFlower(c,{x:75,y:89,phase:0},{palette:garden.flower,reducedMotion:true,scale:1.3});
+    tile.addEventListener('click',()=>renderShop(garden.id));
   }
+  const garden=gardenById(selectedGardenId);
+  const owned=profile.data.owned.includes(garden.id),equipped=profile.data.equipped===garden.id;
+  $('shop-selected-name').textContent=garden.name;
+  $('shop-selected-description').textContent=garden.flower.name;
+  const action=$('shop-selected-action');
+  action.disabled=equipped||(!owned&&profile.data.flowers<garden.price);
+  action.textContent=equipped?'EQUIPPED ✓':owned?'USE GARDEN':profile.data.flowers>=garden.price?`UNLOCK · ${garden.price} FLOWERS`:`🔒 ${garden.price} FLOWERS`;
+  action.onclick=()=>{
+    const result=owned?profile.equip(garden.id):profile.buy(garden.id);
+    if(!result.ok)return;
+    tone(660,.1);tone(880,.13,'sine',.08);
+    displayedGarden='';displayedFlowers=-1;updateUI();renderShop(garden.id);
+  };
 }
-
 function openShop() {
   shopWasPlaying=game.pause();clearInput();updateUI();
-  $('shop-status').textContent='Your chosen garden stays equipped for every run.';
-  renderShop();$('shop-dialog').showModal();
+  renderShop(profile.data.equipped);$('shop-dialog').showModal();
+  $('shop-done').textContent=shopWasPlaying?'RESUME GAME':'MAIN MENU';
+  const emblem=document.createElement('span');emblem.className='neon-bee-life';emblem.setAttribute('aria-hidden','true');
+  const bee=document.createElement('img');bee.src='./bee.svg';bee.alt='';emblem.append(bee);$('shop-done').append(emblem);
 }
 $('open-shop').addEventListener('click',openShop);
 $('main-menu-shop').addEventListener('click', openShop);
@@ -645,6 +700,96 @@ $('shop-done').addEventListener('click',()=>$('shop-dialog').close());
 $('shop-dialog').addEventListener('close',()=>{
   clearInput();if(shopWasPlaying)game.resume();shopWasPlaying=false;updateUI();
 });
+
+
+// RC37: Appearance-only Customize page, preserving achievement-locked bee rewards.
+const beeOrder=Object.keys(BEE_STYLES);
+let viewedBeeIndex=beeOrder.indexOf(progress.equippedStyle);
+let customTab='bees';
+function drawBeeCard(style){
+  // Enlarged faithful colour preview of the existing bee cosmetics.
+  const canvas=$('custom-bee-canvas'),c=canvas.getContext('2d');
+  const w=canvas.width,h=canvas.height;c.clearRect(0,0,w,h);
+  const aura=c.createRadialGradient(w/2,h/2,5,w/2,h/2,134);
+  aura.addColorStop(0,style.highlight+'66');aura.addColorStop(1,'#100c3700');
+  c.fillStyle=aura;c.fillRect(0,0,w,h);
+  c.save();c.translate(w/2,h*.52);c.scale(3.3,3.3);
+  const ellipse=(x,y,rx,ry,color,rotation=0)=>{c.beginPath();c.ellipse(x,y,rx,ry,rotation,0,Math.PI*2);c.fillStyle=color;c.fill()};
+  c.shadowColor=style.wingEdge;c.shadowBlur=5;
+  ellipse(-12,-13,16,11,style.wingEdge,-.5);ellipse(12,-13,16,11,style.wingEdge,.5);
+  c.shadowBlur=0;ellipse(-13,-14,13,9,style.wing,-.5);ellipse(13,-14,13,9,style.wing,.5);
+  ellipse(-18,-10,5,2.5,style.wingShade,-.5);ellipse(18,-10,5,2.5,style.wingShade,.5);
+  ellipse(0,2,17,20,style.body);
+  c.save();c.beginPath();c.ellipse(0,2,16,19,0,0,Math.PI*2);c.clip();
+  c.fillStyle=style.stripe;c.fillRect(-17,-12,34,8);c.fillRect(-17,5,34,8);
+  c.fillStyle=style.highlight;c.fillRect(-9,-10,5,3);c.fillRect(-10,7,6,3);c.restore();
+  c.strokeStyle=style.wingEdge;c.lineWidth=1.8;c.lineCap='round';
+  c.beginPath();c.moveTo(-8,-15);c.quadraticCurveTo(-14,-29,-19,-28);c.moveTo(8,-15);c.quadraticCurveTo(14,-29,19,-28);c.stroke();
+  ellipse(-19,-28,2.5,2.5,style.stripe);ellipse(19,-28,2.5,2.5,style.stripe);
+  ellipse(-5.5,-15,4,5,'#fffaf1');ellipse(5.5,-15,4,5,'#fffaf1');
+  ellipse(-4.2,-14.5,1.6,2.6,'#192030');ellipse(6.5,-14.5,1.6,2.6,'#192030');
+  ellipse(-12,-6,3,2.5,'#f2a5aa88');ellipse(12,-6,3,2.5,'#f2a5aa88');
+  c.strokeStyle='#fff5c8';c.lineWidth=1.2;c.beginPath();c.arc(0,-7,3.2,.10,Math.PI-.10);c.stroke();
+  c.restore();
+}
+function renderBeeChoice(){
+  const id=beeOrder[viewedBeeIndex],bee=BEE_STYLES[id],unlocked=styleUnlocked(id);
+  drawBeeCard(bee);
+  $('custom-bee-name').textContent=bee.name;
+  $('custom-bee-story').textContent=BEE_STORIES[id];
+  const needed=ACHIEVEMENTS.find(a=>a.styleId===id);
+  $('custom-bee-unlock').textContent=unlocked?'':'🔒 '+(needed?.description||'Unlock through an achievement');
+  const button=$('custom-equip-bee');button.disabled=!unlocked||progress.equippedStyle===id;
+  button.textContent=!unlocked?'LOCKED':progress.equippedStyle===id?'EQUIPPED ✓':'EQUIP BEE';
+  $('custom-bee-canvas').setAttribute('aria-label',`${bee.name} preview`);
+}
+function renderCustomGardens(){
+  const grid=$('custom-garden-grid');grid.replaceChildren();
+  for(const garden of GARDENS){
+    const owned=profile.data.owned.includes(garden.id),equipped=profile.data.equipped===garden.id;
+    const b=document.createElement('button');b.className='rc37-custom-option'+(equipped?' selected':'');
+    b.innerHTML=`<span class="rc37-swatch" style="--swatch:${garden.flower.petal}"></span><strong>${garden.name}</strong><small>${equipped?'EQUIPPED':owned?'USE GARDEN':'🔒 SHOP'}</small>`;
+    b.addEventListener('click',()=>{
+      if(!owned){$('customize-dialog').close();openShop();return;}
+      profile.equip(garden.id);displayedGarden='';updateUI();renderCustomGardens();
+    });grid.append(b);
+  }
+}
+function renderControlLooks(kind){
+  const grid=$(`custom-${kind}-grid`);grid.replaceChildren();
+  for(const look of ['classic','neon','minimal']){
+    const b=document.createElement('button');b.className='rc37-look-option'+(controlLooks[kind]===look?' selected':'');
+    b.type='button';b.dataset.look=look;
+    const art=document.createElement('span');art.className=`rc37-look-art look-${look}`;
+    art.textContent=kind==='fly'?'✦':'✛';
+    const title=document.createElement('strong');title.textContent=look.toUpperCase();
+    const note=document.createElement('small');note.textContent=controlLooks[kind]===look?'IN USE':'SELECT';
+    b.append(art,title,note);
+    b.addEventListener('click',()=>setControlLook(kind,look));grid.append(b);
+  }
+}
+function selectCustomTab(tab){
+  customTab=['bees','gardens','fly','joystick'].includes(tab)?tab:'bees';
+  for(const section of ['bees','gardens','fly','joystick']){
+    const on=section===customTab;
+    $(`custom-${section}`).hidden=!on;
+    const button=$(`custom-tab-${section}`);
+    button.classList.toggle('active',on);button.setAttribute('aria-selected',String(on));
+  }
+  if(customTab==='bees')renderBeeChoice();
+  else if(customTab==='gardens')renderCustomGardens();else renderControlLooks(customTab);
+}
+$('main-menu-customize').addEventListener('click',()=>{
+  viewedBeeIndex=Math.max(0,beeOrder.indexOf(progress.equippedStyle));
+  selectCustomTab('bees');$('customize-dialog').showModal();
+});
+$('close-customize').addEventListener('click',()=> $('customize-dialog').close());
+$('customize-done').addEventListener('click',()=> $('customize-dialog').close());
+for(const tab of ['bees','gardens','fly','joystick'])
+  $(`custom-tab-${tab}`).addEventListener('click',()=>selectCustomTab(tab));
+$('custom-prev-bee').addEventListener('click',()=>{viewedBeeIndex=(viewedBeeIndex-1+beeOrder.length)%beeOrder.length;renderBeeChoice();});
+$('custom-next-bee').addEventListener('click',()=>{viewedBeeIndex=(viewedBeeIndex+1)%beeOrder.length;renderBeeChoice();});
+$('custom-equip-bee').addEventListener('click',()=>{equipBeeStyle(beeOrder[viewedBeeIndex]);renderBeeChoice();});
 
 addEventListener('keydown', event => {
   if (blockingDialogOpen() || event.target instanceof HTMLInputElement) return;
@@ -699,7 +844,7 @@ function updateUI() {
   if(displayedFlowers!==profile.data.flowers){
     displayedFlowers=profile.data.flowers;
     $('flower-balance').textContent=profile.data.flowers;
-    $('open-shop').setAttribute('aria-label',`Open garden shop. ${profile.data.flowers} flowers saved`);
+    $('open-shop').setAttribute('aria-label',`Open Flower Shop. ${profile.data.flowers} flowers saved`);
   }
   if (displayedGarden !== garden.id) {
     displayedGarden = garden.id;
@@ -764,11 +909,11 @@ function updateUI() {
   const resultCallout = game.newBest && game.newBestFlowers
     ? '<strong class="new-best-callout">NEW SCORE & FLOWER RECORD!</strong>'
     : game.newBest
-      ? '<strong class="new-best-callout">NEW PERSONAL BEST!</strong>'
+      ? '<strong class="new-best-callout">NEW HIGH SCORE!</strong>'
       : game.newBestFlowers
         ? '<strong class="new-best-callout">NEW FLOWER RECORD!</strong>'
     : game.score === game.runPreviousBest
-      ? '<strong class="best-gap-callout">PERSONAL BEST MATCHED</strong>'
+      ? '<strong class="best-gap-callout">HIGH SCORE MATCHED</strong>'
       : `<strong class="best-gap-callout">${pointsFromBest} ${pointsFromBest === 1 ? 'POINT' : 'POINTS'} FROM YOUR BEST</strong>`;
   const titles = {
     title: ['THE ENDLESS GARDEN RUN', '<span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span>', `Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong>${game.bestFlowers ? `<br>BEST RUN: ${game.bestFlowers} FLOWERS` : ''}`, 'LET’S FLY'],
@@ -780,8 +925,8 @@ function updateUI() {
     $('menu-tag').innerHTML = `<span></span>${tag}<span></span>`;
     $('menu-title').innerHTML = title;
     $('menu-description').innerHTML = description;
-    $('play').innerHTML = `${label} <span>↗</span>`;
-    $('secondary').textContent = mode === 'paused' ? 'End run' : 'Back to title';
+    $('play').innerHTML = `${label} <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span>`;
+    $('secondary').textContent = mode === 'paused' ? 'End run' : 'Main Menu';
     $('start-hint').textContent = mode === 'title' ? 'PRESS ENTER TO START' : 'PRESS ENTER TO CONTINUE';
     // Prevent an old focused pause button from intercepting the next Enter press.
     if (document.activeElement instanceof HTMLButtonElement && !blockingDialogOpen()) document.activeElement.blur();
@@ -1352,10 +1497,26 @@ function frame(timestamp) {
     accumulator+=dt;
     while(accumulator>=FIXED_STEP){game.step(FIXED_STEP,input);accumulator-=FIXED_STEP;}
   } else accumulator=0;
+  const reviveBegan = game.mode === 'reviving' && !game.revivePrepared;
+  if (reviveBegan) {
+    // Show the real last leaf to the visibility check whenever it's safe.
+    const target=game.checkpoint;
+    if (target && game.respawnClearance(target.x,target.y) >= 0)
+      camera = target.y - viewH * .42;
+  }
   if (game.mode === 'reviving') game.prepareRevive(camera, camera + viewH);
+  if (reviveBegan && game.checkpoint) {
+    // Reframe any fallback checkpoint too, always above the control buttons.
+    camera = game.checkpoint.y - viewH * .42;
+    reviveCameraHold = true;
+  }
   if (game.mode === 'playing') {
     const previousBottom = camera + viewH;
-    camera = advanceCamera(camera, game.highestY, viewH, dt);
+    // After respawn, follow the bee's *current* height until it actually
+    // reaches its old altitude. The old high-water mark otherwise snaps the
+    // camera upwards and hides the bee under the controls.
+    camera = advanceCamera(camera, reviveCameraHold ? game.bee.y : game.highestY, viewH, dt);
+    if (reviveCameraHold && game.bee.y <= game.highestY + 12) reviveCameraHold=false;
     if (previousMode === 'playing') game.missFlowers(previousBottom, camera + viewH);
     game.enforceCameraWindow(camera, camera + viewH);
   }
