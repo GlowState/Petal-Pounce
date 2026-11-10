@@ -6,7 +6,7 @@ import { paintFlower } from './flowers.mjs?v=68';
 import { paintNeonLeaf, paintNeonThorn, paintNeonBeetle, paintNeonBeeGlow } from './neon-art.mjs?v=85';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC37';
+const APP_VERSION = '1.0 RC38';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','first-flight-dialog','credits-dialog','options-dialog','customize-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -34,8 +34,26 @@ const BEE_STYLES = Object.freeze({
   petal: { id:'petal', name:'Petal Parade', body:'#423d29', stripe:'#edb445', highlight:'#ffda75',
     wingEdge:'#7a596e', wing:'#f6e8ed', wingShade:'#d9b5c7', trail:'petal' },
   star: { id:'star', name:'Starlight Wings', body:'#353044', stripe:'#d7b85d', highlight:'#fff0a6',
-    wingEdge:'#655d8b', wing:'#f0edff', wingShade:'#c7bdf3', trail:'star' }
+    wingEdge:'#655d8b', wing:'#f0edff', wingShade:'#c7bdf3', trail:'star' },
+  scout: { id:'scout', name:'Neon Scout', body:'#191538', stripe:'#00eaff', highlight:'#b7fbff',
+    wingEdge:'#ff36ee', wing:'#c6fcff', wingShade:'#a967e8', trail:null },
+  candy: { id:'candy', name:'Candywing', body:'#472543', stripe:'#ff63d4', highlight:'#ffe5f7',
+    wingEdge:'#ef9bff', wing:'#fff4ff', wingShade:'#eca7cb', trail:null }
 });
+const SHOP_BEE_PRICES=Object.freeze({scout:90,candy:150});
+const SHOP_TRAILS=Object.freeze([
+ {id:'default',name:'Bee Default',price:0,description:'Follow the natural trail of your selected bee.'},
+ {id:'neon',name:'Neon Sparks',price:75,description:'A cool cyan-and-pink neon sparkle trail.'},
+ {id:'petals',name:'Pink Pollen',price:125,description:'A drifting trail of glowing pink flower petals.'}
+]);
+const SHOP_COSMETICS_KEY='petal-pounce-shop-cosmetics-v1';
+const shopCosmetics=(()=>{
+ let raw={};try{raw=JSON.parse(safeGet(SHOP_COSMETICS_KEY,'{}'))||{};}catch{}
+ const ownedBees=Array.isArray(raw.ownedBees)?raw.ownedBees.filter(id=>id in SHOP_BEE_PRICES):[];
+ const ownedTrails=Array.isArray(raw.ownedTrails)?raw.ownedTrails.filter(id=>SHOP_TRAILS.some(t=>t.id===id&&t.price>0)):[];
+ return {ownedBees:[...new Set(ownedBees)],ownedTrails:[...new Set(ownedTrails)],equippedTrail:raw.equippedTrail==='default'||ownedTrails.includes(raw.equippedTrail)?raw.equippedTrail:'default'};
+})();
+const saveShopCosmetics=()=>safeSet(SHOP_COSMETICS_KEY,JSON.stringify(shopCosmetics));
 const BEE_STORIES = Object.freeze({
   'classic':'An adventurous little bee with a big heart. Every new flower is another reason to explore.',
   'rose':'A cheerful gardener who paints the meadow pink, one blossom at a time.',
@@ -44,7 +62,9 @@ const BEE_STORIES = Object.freeze({
   'gold':'Brave and steady, the Golden Guardian always watches out for the little bees.',
   'sky':'A wind-loving wanderer who can read a storm before the first leaf moves.',
   'petal':'A playful performer whose flight leaves a trail of dancing petals.',
-  'star':'The midnight explorer who finds wonder even in the darkest garden sky.'
+  'star':'The midnight explorer who finds wonder even in the darkest garden sky.',
+  'scout':'A little night explorer who follows glowing lights to find hidden flowers.',
+  'candy':'Sweet and fearless, Candywing brings bright color to every corner of the garden.'
 });
 const ACHIEVEMENTS = Object.freeze([
   { id:'first-bouquet', icon:'✿', name:'First Bouquet', description:'Collect 25 flowers in one run.', reward:'Rose Stripe bee', styleId:'rose', target:25, metric:'bestFlowers' },
@@ -75,10 +95,11 @@ function loadProgress() {
 }
 const progress = loadProgress();
 const saveProgress = () => safeSet(PROGRESS_KEY, JSON.stringify(progress));
-const styleUnlocked = styleId => styleId === 'classic' || ACHIEVEMENTS.some(achievement =>
+const styleUnlocked = styleId => styleId === 'classic' || shopCosmetics.ownedBees.includes(styleId) || ACHIEVEMENTS.some(achievement =>
   achievement.styleId === styleId && progress.unlocked[achievement.id]);
 if (!styleUnlocked(progress.equippedStyle)) progress.equippedStyle = 'classic';
 const currentBeeStyle = () => BEE_STYLES[progress.equippedStyle] || BEE_STYLES.classic;
+const currentTrailStyle=()=>shopCosmetics.equippedTrail==='default'?currentBeeStyle().trail:shopCosmetics.equippedTrail;
 const CONTROL_STYLE_KEY = 'petal-pounce-control-looks-v1';
 const controlLooks = (() => {
   let raw={};try{raw=JSON.parse(safeGet(CONTROL_STYLE_KEY,'{}'))||{};}catch{}
@@ -686,12 +707,106 @@ function renderShop(selection=selectedGardenId) {
     displayedGarden='';displayedFlowers=-1;updateUI();renderShop(garden.id);
   };
 }
+
+// RC38: shared garden/bee/trail storefront. Existing achievement rewards remain
+// achievement-gated; shop-exclusive cosmetics have separately saved ownership.
+let shopTab='levels',selectedShopBeeId='classic',selectedShopTrailId='default';
+function shopSelectTab(category){
+  shopTab=['levels','bees','trails'].includes(category)?category:'levels';
+  for(const id of ['levels','bees','trails']){
+    const active=shopTab===id;
+    $('shop-tab-'+id).classList.toggle('active',active);
+    $('shop-tab-'+id).setAttribute('aria-selected',String(active));
+  }
+  $('shop-grid').hidden=shopTab!=='levels';
+  $('shop-bee-grid').hidden=shopTab!=='bees';
+  $('shop-trail-grid').hidden=shopTab!=='trails';
+  if(shopTab==='levels')renderShop(selectedGardenId);
+  if(shopTab==='bees')renderShopBees();
+  if(shopTab==='trails')renderShopTrails();
+}
+for(const tab of ['levels','bees','trails'])$('shop-tab-'+tab).addEventListener('click',()=>shopSelectTab(tab));
+function buyCosmetic(kind,id,price){
+  const ownedKey=kind==='bees'?'ownedBees':'ownedTrails';
+  if(!Number.isInteger(price)||price<=0||profile.data.flowers<price||shopCosmetics[ownedKey].includes(id))return false;
+  profile.data.flowers-=price;
+  shopCosmetics[ownedKey].push(id);
+  if(!profile.persist()||!saveShopCosmetics()){
+    shopCosmetics[ownedKey]=shopCosmetics[ownedKey].filter(value=>value!==id);
+    profile.data.flowers+=price;profile.persist();saveShopCosmetics();return false;
+  }
+  displayedFlowers=-1;updateUI();return true;
+}
+function renderShopBees(){
+  $('shop-balance').textContent=profile.data.flowers;
+  const grid=$('shop-bee-grid');grid.replaceChildren();
+  for(const id of beeOrder){
+    const bee=BEE_STYLES[id],unlocked=styleUnlocked(id),equipped=progress.equippedStyle===id;
+    const tile=document.createElement('button');tile.type='button';tile.className='rc38-shop-product'+(selectedShopBeeId===id?' selected':'')+(equipped?' equipped':'');
+    tile.setAttribute('aria-pressed',String(selectedShopBeeId===id));
+    const image=document.createElement('span');image.className='rc38-product-picture';
+    const canvas=document.createElement('canvas');canvas.width=240;canvas.height=170;image.append(canvas);drawBeeCard(bee,canvas);
+    if(!unlocked){const lock=document.createElement('span');lock.className='rc38-product-lock';lock.textContent='🔒';image.append(lock);}
+    const name=document.createElement('strong');name.textContent=bee.name;
+    tile.append(image,name);tile.addEventListener('click',()=>{selectedShopBeeId=id;renderShopBees()});grid.append(tile);
+  }
+  const id=selectedShopBeeId,bee=BEE_STYLES[id],unlocked=styleUnlocked(id),equipped=progress.equippedStyle===id;
+  const reward=ACHIEVEMENTS.find(a=>a.styleId===id),price=SHOP_BEE_PRICES[id];
+  $('shop-selected-name').textContent=bee.name;
+  $('shop-selected-description').textContent=BEE_STORIES[id]+(!unlocked&&reward?' Unlock: '+reward.description:'');
+  const button=$('shop-selected-action');
+  button.disabled=equipped||(!unlocked&&(!price||profile.data.flowers<price));
+  button.textContent=equipped?'EQUIPPED ✓':unlocked?'USE BEE':price?(profile.data.flowers>=price?`UNLOCK · ${price} FLOWERS`:`🔒 ${price} FLOWERS`):'🔒 ACHIEVEMENT REWARD';
+  button.onclick=()=>{
+    if(!styleUnlocked(id)&&!buyCosmetic('bees',id,price))return;
+    equipBeeStyle(id);renderShopBees();
+  };
+}
+function paintShopTrailPreview(canvas,id){
+  const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height;
+  c.clearRect(0,0,w,h);const sky=c.createLinearGradient(0,0,w,h);sky.addColorStop(0,'#070728');sky.addColorStop(1,'#251044');c.fillStyle=sky;c.fillRect(0,0,w,h);
+  const colors=id==='neon'?['#00eaff','#ff35f8']:id==='petals'?['#ff35f8','#ffbadf']:['#d6faff','#ffcaff'];
+  for(let i=0;i<7;i++){
+    const x=26+i*30,y=125-i*13;
+    c.save();c.translate(x,y);c.globalAlpha=.42+i*.07;c.shadowBlur=9;c.shadowColor=colors[i%2];c.strokeStyle=colors[i%2];c.fillStyle=colors[i%2];
+    if(id==='petals'){
+      for(let j=0;j<4;j++){c.save();c.rotate(Math.PI/2*j);c.beginPath();c.ellipse(0,-5,3,7,0,0,Math.PI*2);c.fill();c.restore()}
+    }else{
+      c.lineWidth=3;c.beginPath();c.moveTo(-7,0);c.lineTo(7,0);c.moveTo(0,-7);c.lineTo(0,7);c.stroke();
+    }
+    c.restore();
+  }
+}
+function renderShopTrails(){
+  $('shop-balance').textContent=profile.data.flowers;
+  const grid=$('shop-trail-grid');grid.replaceChildren();
+  for(const trail of SHOP_TRAILS){
+    const owned=trail.price===0||shopCosmetics.ownedTrails.includes(trail.id),equipped=shopCosmetics.equippedTrail===trail.id;
+    const tile=document.createElement('button');tile.type='button';tile.className='rc38-shop-product'+(selectedShopTrailId===trail.id?' selected':'')+(equipped?' equipped':'');
+    tile.setAttribute('aria-pressed',String(selectedShopTrailId===trail.id));
+    const picture=document.createElement('span');picture.className='rc38-product-picture';
+    const canvas=document.createElement('canvas');canvas.width=240;canvas.height=170;picture.append(canvas);paintShopTrailPreview(canvas,trail.id);
+    if(!owned){const lock=document.createElement('span');lock.className='rc38-product-lock';lock.textContent='🔒';picture.append(lock)}
+    const name=document.createElement('strong');name.textContent=trail.name;
+    tile.append(picture,name);tile.addEventListener('click',()=>{selectedShopTrailId=trail.id;renderShopTrails()});grid.append(tile);
+  }
+  const trail=SHOP_TRAILS.find(t=>t.id===selectedShopTrailId)||SHOP_TRAILS[0],owned=trail.price===0||shopCosmetics.ownedTrails.includes(trail.id),equipped=shopCosmetics.equippedTrail===trail.id;
+  $('shop-selected-name').textContent=trail.name;
+  $('shop-selected-description').textContent=trail.description;
+  const button=$('shop-selected-action');button.disabled=equipped||(!owned&&profile.data.flowers<trail.price);
+  button.textContent=equipped?'EQUIPPED ✓':owned?'USE TRAIL':profile.data.flowers>=trail.price?`UNLOCK · ${trail.price} FLOWERS`:`🔒 ${trail.price} FLOWERS`;
+  button.onclick=()=>{
+    if(!owned&&!buyCosmetic('trails',trail.id,trail.price))return;
+    shopCosmetics.equippedTrail=trail.id;saveShopCosmetics();tone(660,.1);renderShopTrails();
+  };
+}
+
 function openShop() {
   shopWasPlaying=game.pause();clearInput();updateUI();
-  renderShop(profile.data.equipped);$('shop-dialog').showModal();
+  selectedGardenId=profile.data.equipped;shopSelectTab('levels');$('shop-dialog').showModal();
   $('shop-done').textContent=shopWasPlaying?'RESUME GAME':'MAIN MENU';
   const emblem=document.createElement('span');emblem.className='neon-bee-life';emblem.setAttribute('aria-hidden','true');
-  const bee=document.createElement('img');bee.src='./bee.svg';bee.alt='';emblem.append(bee);$('shop-done').append(emblem);
+  const bee=document.createElement('img');bee.src='./bee-life-neon.svg';bee.alt='';emblem.append(bee);$('shop-done').append(emblem);
 }
 $('open-shop').addEventListener('click',openShop);
 $('main-menu-shop').addEventListener('click', openShop);
@@ -706,14 +821,14 @@ $('shop-dialog').addEventListener('close',()=>{
 const beeOrder=Object.keys(BEE_STYLES);
 let viewedBeeIndex=beeOrder.indexOf(progress.equippedStyle);
 let customTab='bees';
-function drawBeeCard(style){
+function drawBeeCard(style,canvas=$('custom-bee-canvas')){
   // Enlarged faithful colour preview of the existing bee cosmetics.
-  const canvas=$('custom-bee-canvas'),c=canvas.getContext('2d');
+  const c=canvas.getContext('2d');
   const w=canvas.width,h=canvas.height;c.clearRect(0,0,w,h);
   const aura=c.createRadialGradient(w/2,h/2,5,w/2,h/2,134);
   aura.addColorStop(0,style.highlight+'66');aura.addColorStop(1,'#100c3700');
   c.fillStyle=aura;c.fillRect(0,0,w,h);
-  c.save();c.translate(w/2,h*.52);c.scale(3.3,3.3);
+  c.save();c.translate(w/2,h*.52);c.scale(3.3*Math.min(w/360,h/260),3.3*Math.min(w/360,h/260));
   const ellipse=(x,y,rx,ry,color,rotation=0)=>{c.beginPath();c.ellipse(x,y,rx,ry,rotation,0,Math.PI*2);c.fillStyle=color;c.fill()};
   c.shadowColor=style.wingEdge;c.shadowBlur=5;
   ellipse(-12,-13,16,11,style.wingEdge,-.5);ellipse(12,-13,16,11,style.wingEdge,.5);
@@ -748,7 +863,11 @@ function renderCustomGardens(){
   for(const garden of GARDENS){
     const owned=profile.data.owned.includes(garden.id),equipped=profile.data.equipped===garden.id;
     const b=document.createElement('button');b.className='rc37-custom-option'+(equipped?' selected':'');
-    b.innerHTML=`<span class="rc37-swatch" style="--swatch:${garden.flower.petal}"></span><strong>${garden.name}</strong><small>${equipped?'EQUIPPED':owned?'USE GARDEN':'🔒 SHOP'}</small>`;
+    b.type='button';
+    b.innerHTML=`<span class="rc38-level-preview"><canvas width="320" height="180" aria-hidden="true"></canvas></span><strong>${garden.name}</strong><small>${equipped?'EQUIPPED':owned?'USE LEVEL':'🔒 SHOP'}</small>`;
+    const c=b.querySelector('canvas').getContext('2d');
+    shopScenery.draw(c,{theme:garden,width:320,height:180,clock:0,camera:0,groundY:230});
+    paintFlower(c,{x:238,y:106,phase:0},{palette:garden.flower,reducedMotion:true,scale:1.6});
     b.addEventListener('click',()=>{
       if(!owned){$('customize-dialog').close();openShop();return;}
       profile.equip(garden.id);displayedGarden='';updateUI();renderCustomGardens();
@@ -760,8 +879,9 @@ function renderControlLooks(kind){
   for(const look of ['classic','neon','minimal']){
     const b=document.createElement('button');b.className='rc37-look-option'+(controlLooks[kind]===look?' selected':'');
     b.type='button';b.dataset.look=look;
-    const art=document.createElement('span');art.className=`rc37-look-art look-${look}`;
-    art.textContent=kind==='fly'?'✦':'✛';
+    const art=document.createElement('span');art.className=`rc37-look-art rc38-actual-control look-${look}`;
+    const image=document.createElement('img');image.src=kind==='fly'?'./fly-classic.png?v=68':'./joystick-classic.png?v=68';
+    image.alt=`${look} ${kind} visual preview`;image.loading='lazy';art.append(image);
     const title=document.createElement('strong');title.textContent=look.toUpperCase();
     const note=document.createElement('small');note.textContent=controlLooks[kind]===look?'IN USE':'SELECT';
     b.append(art,title,note);
@@ -884,7 +1004,7 @@ function updateUI() {
     $('lives').append(count, label);
     for (let i = 0; i < MAX_LIVES; i++) {
       const icon = document.createElement('img');
-      icon.src = './bee.svg';
+      icon.src = './bee-life-neon.svg';
       icon.alt = '';
       if (i >= game.lives) icon.className = 'lost';
       $('lives').append(icon);
@@ -925,7 +1045,7 @@ function updateUI() {
     $('menu-tag').innerHTML = `<span></span>${tag}<span></span>`;
     $('menu-title').innerHTML = title;
     $('menu-description').innerHTML = description;
-    $('play').innerHTML = `${label} <span class="neon-bee-life" aria-hidden="true"><img src="./bee.svg" alt=""></span>`;
+    $('play').innerHTML = `${label} <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span>`;
     $('secondary').textContent = mode === 'paused' ? 'End run' : 'Main Menu';
     $('start-hint').textContent = mode === 'title' ? 'PRESS ENTER TO START' : 'PRESS ENTER TO CONTINUE';
     // Prevent an old focused pause button from intercepting the next Enter press.
@@ -1186,8 +1306,8 @@ function drawBeetle(beetle) {
 }
 
 function drawBeeTrail(b, offset = camera) {
-  const style = currentBeeStyle();
-  if (!style.trail || reducedMotion || game.mode === 'reviving') return;
+  const trail = currentTrailStyle();
+  if (!trail || reducedMotion || game.mode === 'reviving') return;
   const baseY = b.y - offset;
   ctx.save();
   for (let i = 1; i <= 5; i++) {
@@ -1197,16 +1317,18 @@ function drawBeeTrail(b, offset = camera) {
     ctx.globalAlpha = Math.max(0, .58 - age * .33);
     ctx.translate(Math.round(x), Math.round(y));
     ctx.rotate(clock + i * 1.1);
-    if (style.trail === 'petal') {
-      ctx.fillStyle = i % 2 ? '#f1b5df' : '#fff0a5';
+    if (trail === 'petal' || trail === 'petals') {
+      ctx.fillStyle = trail === 'petals' ? (i % 2 ? '#ff44ed' : '#ffb0ef') : (i % 2 ? '#f1b5df' : '#fff0a5');
       ctx.beginPath();
       ctx.ellipse(-3,0,4,2,-.5,0,Math.PI*2);
       ctx.ellipse(3,0,4,2,.5,0,Math.PI*2);
       ctx.ellipse(0,-3,2,4,0,0,Math.PI*2);
       ctx.fill();
     } else {
-      ctx.strokeStyle = i % 2 ? '#fff3ae' : '#d8d0ff';
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = trail === 'neon' ? (i % 2 ? '#00eaff' : '#ff35f8') : (i % 2 ? '#fff3ae' : '#d8d0ff');
+      ctx.shadowColor = trail === 'neon' ? ctx.strokeStyle : 'transparent';
+      ctx.shadowBlur = trail === 'neon' ? 7 : 0;
+      ctx.lineWidth = trail === 'neon' ? 2.4 : 1.5;
       ctx.beginPath();ctx.moveTo(-4,0);ctx.lineTo(4,0);ctx.moveTo(0,-4);ctx.lineTo(0,4);ctx.stroke();
     }
     ctx.rotate(-(clock + i * 1.1));
