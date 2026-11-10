@@ -1,0 +1,1 @@
+Petal Pounce RC33: menu artwork only. Original neon title, clouds and flowers preserved. Side hexagons removed, bee shrunk to fit between title and functional HTML Play button. Background has no baked-in buttons. Upload petal-pounce-main-menu.png to the repository root and dist/petal-pounce-main-menu.png into dist. The existing RC32 menu button code is unchanged.
