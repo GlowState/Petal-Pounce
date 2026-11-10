@@ -994,3 +994,29 @@
 @media(prefers-reduced-motion:reduce) {
   #cabinet .arcade-menu-button {scroll-behavior:auto;}
 }
+
+/* PETAL POUNCE RC28 — iPhone status-area bleed.
+   Apple controls the clock, battery and signal indicators. This permits
+   the app to paint behind them, and keeps interactive elements below.
+   No gameplay input / collision / control behavior changes. */
+@media (max-width:560px) {
+  html.ios-standalone #cabinet .cabinet-bar {
+    top:env(safe-area-inset-top,0px)!important;
+  }
+  /* Avoid placing the score label/artwork beneath the iPhone cutout. */
+  html.ios-standalone #cabinet #main-menu {
+    inset:env(safe-area-inset-top,0px) 0 0 0!important;
+    height:calc(100% - env(safe-area-inset-top,0px))!important;
+  }
+  /* Continue the arcade menu's sky behind the system status icons. */
+  html.ios-standalone #cabinet[data-view="title"]::after {
+    content:""!important;
+    display:block!important;
+    position:absolute!important;
+    left:0;right:0;top:0;
+    height:calc(env(safe-area-inset-top,0px) + 2px)!important;
+    z-index:155!important;
+    pointer-events:none!important;
+    background:linear-gradient(180deg,#024db5 0%,#0352bf 100%)!important;
+  }
+}
