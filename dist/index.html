@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="./shop.css?v=68">
   <link rel="stylesheet" href="./retro-arcade.css?v=68">
   <link rel="stylesheet" href="./zoom-B.css?v=68">
-  <link rel="stylesheet" href="./joystick.css?v=68">
+  <link rel="stylesheet" href="./joystick.css?v=78">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -171,15 +171,15 @@
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
-          <div class="overlay title-overlay" id="overlay">
+          <div class="overlay title-overlay" id="overlay" data-mode="title">
             <div class="menu-panel" id="menu-panel">
               <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
-              <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge thorn islands. Go farther.</strong></p>
+              <p id="menu-description">Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong></p>
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC16 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC26 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -223,7 +223,7 @@
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
     <div class="help-row"><span>RECORDS</span><p><strong>Build your garden legacy</strong>Records, achievements, unlocked bee styles and equipped rewards are saved on this device. Cosmetic bee rewards never change gameplay.</p></div>
-    <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
+    <div class="help-row"><span>P / ESC</span><p><strong>Tuckered out?</strong>The game pauses when you switch away.</p></div>
     <p class="help-note">Pick a flower for at least 10 points. Bloom Streak multipliers raise run score only. If a bloom slips below the screen as you climb, you lose 10 points, the streak resets and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
@@ -267,11 +267,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC16</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC26</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=68"></script>
+  <script type="module" src="./game.mjs?v=78"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -279,7 +279,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=68';
+      const swUrl='./sw.js?v=78';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
