@@ -839,3 +839,158 @@
     max-inline-size:100%;
   }
 }
+
+
+/* ======================================================================
+   PETAL POUNCE RC27 — REAL MAIN MENU
+   Pixel background is decorative; all buttons and the saved best are DOM.
+   Does not touch control hit areas, gameplay, collision or physics.
+   ====================================================================== */
+#cabinet #main-menu[hidden] { display:none!important; visibility:hidden!important; pointer-events:none!important; }
+#cabinet #main-menu {
+  position:absolute!important;
+  inset:0!important;
+  z-index:160!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#1289e5 url('./petal-pounce-main-menu.png') center/100% 100% no-repeat!important;
+  isolation:isolate;
+  touch-action:manipulation;
+}
+#cabinet[data-view="title"] .cabinet-bar,
+#cabinet[data-view="title"] .control-deck,
+#cabinet[data-view="title"] .screen .hud,
+#cabinet[data-view="title"] .screen .lives,
+#cabinet[data-view="title"] .screen .altitude,
+#cabinet[data-view="title"] .screen .garden-label {
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+#cabinet .main-menu-best {
+  position:absolute;
+  left:6%;
+  top:5.75%;
+  width:35%;
+  text-align:center;
+  color:#fff04e;
+  font-family:var(--mono,'Courier New',monospace);
+  font-size:clamp(14px, 5vw, 26px);
+  line-height:1.1;
+  letter-spacing:.03em;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  -webkit-text-stroke:.35px #0b0922;
+  text-shadow:2px 2px 0 #090718,-1px -1px 0 #090718,1px -1px 0 #090718,-1px 1px 0 #090718;
+  white-space:nowrap;
+  pointer-events:none;
+}
+#cabinet .main-menu-actions {
+  position:absolute;
+  left:12%;right:12%;
+  top:54.7%;bottom:10.1%;
+  display:grid;
+  grid-template-rows:1.23fr repeat(3,1fr);
+  gap:clamp(6px,1.1dvh,11px);
+  min-height:0;
+  align-items:stretch;
+}
+#cabinet .arcade-menu-button {
+  width:100%; min-width:0; height:100%; min-height:0;
+  box-sizing:border-box;
+  margin:0; padding:0 clamp(6px,2vw,16px);
+  display:flex; justify-content:center; align-items:center;
+  gap:clamp(7px,3vw,16px);
+  color:#fff4df;
+  font-family:var(--mono,'Courier New',monospace);
+  font-size:clamp(11px,3.3vw,22px);
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:0;
+  text-align:center;
+  white-space:nowrap;
+  -webkit-text-stroke:.25px #1b0c28;
+  text-shadow:2px 2px 0 #1b0734;
+  background:linear-gradient(#8526a8 0 9%,#742198 10% 25%,#57207f 26% 74%,#420e68 75% 100%);
+  border:clamp(3px,.8vw,5px) solid #ffc822;
+  border-radius:12px;
+  outline:2px solid #160b2d;
+  box-shadow:0 4px 0 #18072c, inset 0 3px 0 #eeb5ff5c, inset 0 -3px 0 #200736;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  user-select:none;
+  -webkit-user-select:none;
+  position:relative;
+  z-index:1;
+}
+#cabinet .arcade-menu-button .arcade-icon {
+  width:clamp(19px,5.7vw,33px);height:clamp(19px,5.7vw,33px);
+  flex:none;display:inline-block;
+  shape-rendering:crispEdges;
+  filter:drop-shadow(1px 2px 0 #150825);
+}
+#cabinet .arcade-menu-button .arcade-play-icon {
+  width:auto; height:auto;
+  font-size:clamp(18px,5.5vw,33px);
+  line-height:1;
+  color:#4d1172;
+  text-shadow:1px 1px 0 #ffe69a;
+  filter:none;
+}
+#cabinet .arcade-menu-play {
+  color:#351064;
+  font-size:clamp(22px,7vw,38px);
+  text-shadow:1px 2px 0 #f7d268;
+  border-color:#fff1ac;
+  background:linear-gradient(#fff2a5 0 8%,#ffe144 10% 47%,#ffc71b 49% 82%,#efa321 83% 100%);
+  box-shadow:0 5px 0 #18072c, inset 0 3px 0 #ffffff90, inset 0 -4px 0 #de8b1c;
+}
+#cabinet .arcade-menu-button:focus-visible { outline:3px solid #fff!important;outline-offset:5px; }
+#cabinet .arcade-menu-button:active { transform:translateY(3px); box-shadow:0 1px 0 #18072c;filter:brightness(1.07); }
+#cabinet .main-menu-build {
+  position:absolute;
+  right:3%;bottom:2.2%;
+  color:#ffffe6c7;
+  text-shadow:1px 1px #18393d;
+  font:700 clamp(8px,2vw,12px) var(--mono,monospace);
+  pointer-events:none;
+}
+/* Settings is a real native dialog, reused controls stay wired to the game. */
+.arcade-options-dialog .arcade-options-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;margin:14px 0;
+}
+.arcade-options-dialog .arcade-options-action {
+  min-height:54px;min-width:0;
+  padding:12px 6px;
+  border:2px solid #ffda67;border-radius:7px;
+  background:linear-gradient(#52276e,#32184e);
+  color:#fff4da;
+  font:900 clamp(10px,2.7vw,14px) var(--mono,monospace);
+  cursor:pointer;touch-action:manipulation;
+}
+.arcade-options-dialog .arcade-options-action:active{transform:translateY(2px);}
+.arcade-options-dialog .arcade-options-action:focus-visible{outline:3px solid #fff0a4;outline-offset:2px;}
+@media(min-width:561px){
+  /* The title art remains contained on wider desktop arcade cabinets. */
+  #cabinet #main-menu {max-width:100%;border-radius:inherit;}
+  #cabinet .main-menu-actions {top:54.7%;bottom:9.5%;}
+}
+@media(max-width:360px){
+  #cabinet .arcade-menu-button {font-size:clamp(10px,3.25vw,13px);border-radius:9px;}
+  #cabinet .arcade-menu-play {font-size:clamp(20px,6.5vw,24px);}
+  #cabinet .main-menu-actions {left:11%;right:11%;top:54.5%;bottom:10%;gap:5px;}
+  #cabinet .arcade-menu-button .arcade-icon {width:19px;height:19px;}
+}
+@media(max-height:670px){
+  #cabinet .arcade-menu-button {border-width:3px;border-radius:9px;}
+  #cabinet .main-menu-actions {gap:5px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  #cabinet .arcade-menu-button {scroll-behavior:auto;}
+}
