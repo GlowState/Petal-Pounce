@@ -1035,3 +1035,235 @@
     background-image:none!important;
   }
 }
+
+
+/* ============================================================================
+   PETAL POUNCE RC30 — ONE RESPONSIVE HUD ROW / COMPACT LIVES / CENTERED PAUSE
+   Shop now shares the #hud CSS grid with the actual score and flowers count.
+   This avoids three unrelated absolute positions fighting each other on phones.
+   All hit handlers and game logic remain unchanged.
+   ============================================================================ */
+@media (max-width:560px) {
+  #cabinet {
+    --rc30-row-top:calc(max(58px,env(safe-area-inset-top,0px)) + 12px);
+    --rc30-side:max(12px,env(safe-area-inset-left,0px));
+    --rc30-right:max(12px,env(safe-area-inset-right,0px));
+    --rc30-row-gap:clamp(6px,1.7vw,10px);
+  }
+
+  /* Shop is no longer in the top .cabinet-bar; that bar still holds the
+     real sound/pause controls at the foot of the screen. */
+  #cabinet .screen #hud {
+    position:absolute!important;
+    top:var(--rc30-row-top)!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    height:42px!important;
+    padding:0 var(--rc30-right) 0 var(--rc30-side)!important;
+    margin:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,.8fr)!important;
+    align-items:center!important;
+    gap:var(--rc30-row-gap)!important;
+    pointer-events:none!important;
+    overflow:visible!important;
+    box-sizing:border-box!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    z-index:61!important;
+  }
+  #cabinet .screen #hud[hidden] {display:none!important;}
+  #cabinet .screen #hud .cartridge,
+  #cabinet .screen #hud .hud-left,
+  #cabinet .screen #hud .hud-center {
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    width:100%!important;
+    height:42px!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+    flex:none!important;
+    box-sizing:border-box!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud .cartridge {grid-column:1!important;background:none!important;}
+  #cabinet .screen #hud .hud-left {grid-column:2!important;}
+  #cabinet .screen #hud .hud-center {grid-column:3!important;}
+  /* Keep badges small and identical in height, not full-width HUD overlays. */
+  #cabinet .screen #hud .hud-left,
+  #cabinet .screen #hud .hud-center {
+    gap:2px!important;
+    border:1px solid rgba(229,224,175,.25)!important;
+    border-radius:10px!important;
+    background:rgba(20,37,37,.58)!important;
+    box-shadow:0 2px 5px rgba(0,0,0,.13)!important;
+  }
+  #cabinet .screen #hud .hud-caption {
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    font-size:clamp(6px,1.8vw,8px)!important;
+    line-height:1.1!important;
+    letter-spacing:clamp(.2px,.25vw,1px)!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud .hud-left strong {
+    display:block!important;
+    margin:0!important;
+    font-size:clamp(16px,4.8vw,21px)!important;
+    line-height:1.08!important;
+    letter-spacing:0!important;
+    font-weight:900!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud .hud-center strong {
+    display:block!important;
+    font-size:clamp(14px,4.2vw,18px)!important;
+    margin:0!important;
+    line-height:1.08!important;
+    letter-spacing:0!important;
+    text-align:center!important;
+  }
+  #cabinet .screen #hud #open-shop {
+    position:relative!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:clamp(3px,1vw,6px)!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:42px!important;
+    min-height:42px!important;
+    padding:5px 5px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    font-size:clamp(9px,2.5vw,11px)!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+  #cabinet .screen #hud #open-shop svg {
+    flex:none!important;
+    width:clamp(14px,3.8vw,18px)!important;
+    height:clamp(14px,3.8vw,18px)!important;
+    max-width:18px!important;
+  }
+  #cabinet .screen #hud #open-shop span {
+    font-size:clamp(9px,2.5vw,11px)!important;
+    line-height:1.1!important;
+    letter-spacing:.5px!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud #open-shop #flower-balance,
+  #cabinet .screen #hud #open-shop strong {display:none!important;}
+  /* Keep the bloom-streak notification below the flowers box, never on score. */
+  #cabinet .screen #hud .hud-center #streak {
+    position:absolute!important;
+    top:calc(100% + 4px)!important;
+    right:0!important;
+    left:auto!important;
+    width:max-content!important;
+    max-width:min(70vw,230px)!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  #cabinet .screen #hud .hud-center #streak[hidden] {display:none!important;}
+  /* Former mirrored 'flowers found' readout remains intentionally hidden. */
+  #cabinet .screen #hud .hud-right[hidden] {display:none!important;}
+
+  /* Three bee icons only; retain the existing accessible ARIA label and
+     the same 3 images as lives are lost. Shrink-wrap the panel to the art. */
+  #cabinet .screen #lives {
+    position:absolute!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:max-content!important;
+    min-width:0!important;
+    max-width:calc(100vw - 24px)!important;
+    height:auto!important;
+    min-height:0!important;
+    left:var(--rc30-side)!important;
+    right:auto!important;
+    bottom:calc(4px + env(safe-area-inset-bottom,0px))!important;
+    margin:0!important;
+    padding:4px 5px!important;
+    gap:3px!important;
+    border-radius:7px!important;
+    box-sizing:border-box!important;
+    pointer-events:none!important;
+    z-index:91!important;
+  }
+  #cabinet .screen #lives[hidden] {display:none!important;}
+  #cabinet .screen #lives > .lives-count,
+  #cabinet .screen #lives > span {display:none!important;}
+  #cabinet .screen #lives img {
+    display:block!important;
+    width:clamp(17px,4.65vw,20px)!important;
+    height:clamp(17px,4.65vw,20px)!important;
+    flex:none!important;
+    margin:0!important;
+    object-fit:contain!important;
+  }
+
+  /* Lower both physical control regions slightly while preserving their
+     sizes, handler elements and relative distance to sound / pause. */
+  #cabinet .control-deck {bottom:calc(40px + env(safe-area-inset-bottom,0px))!important;}
+
+  /* Center the PAUSE popup on the whole playable area (not the old area
+     stopping 176px above the controls). Game Over remains unchanged. */
+  #cabinet .screen #overlay[data-mode="paused"]:not([hidden]) {
+    inset:0!important;
+    left:0!important;
+    right:0!important;
+    top:0!important;
+    bottom:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:calc(max(14px,env(safe-area-inset-top,0px)) + 8px) 14px calc(max(14px,env(safe-area-inset-bottom,0px)) + 8px)!important;
+    background:rgba(16,21,25,.19)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+  }
+  #cabinet .screen #overlay[data-mode="paused"] .menu-panel {
+    width:min(84vw,336px)!important;
+    max-width:calc(100vw - 28px)!important;
+    max-height:min(78dvh,490px)!important;
+    margin:auto!important;
+    background:rgba(79,84,89,.84)!important;
+    color:#fff9e9!important;
+    border-color:rgba(251,217,132,.85)!important;
+    -webkit-backdrop-filter:blur(10px)!important;
+    backdrop-filter:blur(10px)!important;
+    box-shadow:0 12px 32px rgba(0,0,0,.30)!important;
+  }
+  /* Critical: never reveal a paused overlay after JS marks it hidden. */
+  #cabinet .screen #overlay[hidden],
+  #cabinet .screen #overlay[data-mode="paused"][hidden] {display:none!important;pointer-events:none!important;}
+}
+@media (max-width:560px) and (min-height:760px) {
+  #cabinet .control-deck {bottom:calc(34px + env(safe-area-inset-bottom,0px))!important;}
+}
+@media (max-width:350px) {
+  #cabinet {
+    --rc30-side:max(9px,env(safe-area-inset-left,0px));
+    --rc30-right:max(9px,env(safe-area-inset-right,0px));
+    --rc30-row-gap:5px;
+  }
+  #cabinet .screen #hud .hud-left strong {font-size:15px!important;}
+  #cabinet .screen #hud .hud-center strong {font-size:14px!important;}
+}
