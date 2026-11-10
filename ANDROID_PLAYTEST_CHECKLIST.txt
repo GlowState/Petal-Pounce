@@ -1,0 +1,15 @@
+Petal Pounce RC40 Android QA checklist
+
+[ ] Launch offline (airplane mode) and start a game
+[ ] Change joystick Classic > Neon > Minimal and watch actual game control
+[ ] Close/reopen game; selected look survives
+[ ] Control thumb moves properly in all directions with Fly simultaneously held
+[ ] Fly button remains responsive while touching joystick
+[ ] Score, flower bank, unlocked bees, levels and trails survive app restart
+[ ] Try small Android phone, tall phone, tablet/foldable
+[ ] Pause, Game Over and dialogs do not obscure active touch targets
+[ ] App icon uses new neon bee art
+[ ] New Android build displays RC40, not RC38/RC39
+[ ] Signed AAB installed from Google Play internal test channel
+
+Web-site browser tests are not a substitute for these device checks.

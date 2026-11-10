@@ -30,11 +30,11 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.rgb(23, 30, 32));
-        getWindow().setNavigationBarColor(Color.rgb(23, 30, 32));
+        getWindow().setStatusBarColor(Color.rgb(8, 3, 40));
+        getWindow().setNavigationBarColor(Color.rgb(8, 3, 40));
 
         root = new FrameLayout(this);
-        root.setBackgroundColor(Color.rgb(23, 30, 32));
+        root.setBackgroundColor(Color.rgb(8, 3, 40));
         root.setOnApplyWindowInsetsListener((view, insets) -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 android.graphics.Insets safe = insets.getInsets(
@@ -61,7 +61,7 @@ public final class MainActivity extends Activity {
             .build();
 
         webView = new WebView(this);
-        webView.setBackgroundColor(Color.rgb(23, 30, 32));
+        webView.setBackgroundColor(Color.rgb(8, 3, 40));
         webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         webView.setLongClickable(false);
         webView.setHapticFeedbackEnabled(false);

@@ -1,4 +1,4 @@
-name: Android build
+name: Petal Pounce Android CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       signed_release:
-        description: Build the signed release AAB using repository secrets
+        description: 'Create a signed Google Play AAB (requires release secrets)'
         required: false
         type: boolean
         default: false
@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  android-debug:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -24,17 +24,31 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v3
+      - name: Android SDK 36
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - name: JavaScript regression tests
+      - name: Verify web/Android release assets
+        run: node scripts/verify-android-assets.mjs
+      - name: Regression tests
         run: node --test tests/*.test.mjs
-      - name: Android lint and debug bundle
-        run: gradle -p android-app lintDebug bundleDebug --stacktrace
+      - name: Check Android app and build debug APK/AAB
+        run: gradle -p android-app lintDebug assembleDebug bundleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: petal-pounce-debug-bundle
+          name: petal-pounce-debug-apk
+          path: android-app/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: petal-pounce-debug-aab
           path: android-app/app/build/outputs/bundle/debug/*.aab
+          if-no-files-found: error
 
   signed-release:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.signed_release }}
@@ -46,24 +60,38 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: android-actions/setup-android@v3
+      - name: Android SDK 36
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - name: Restore upload keystore
+      - name: Verify web/Android release assets
+        run: node scripts/verify-android-assets.mjs
+      - name: Tests
+        run: node --test tests/*.test.mjs
+      - name: Restore signing key
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          test -n "$KEYSTORE_BASE64"
+          test -n "$KEYSTORE_BASE64" || { echo 'Missing ANDROID_KEYSTORE_BASE64'; exit 1; }
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/petal-pounce-upload.jks"
-      - name: Build signed release bundle
+      - name: Build signed Play bundle
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/petal-pounce-upload.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: gradle -p android-app lintRelease bundleRelease --stacktrace
+        run: |
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          test -n "$ANDROID_KEY_PASSWORD"
+          gradle -p android-app lintRelease bundleRelease --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: petal-pounce-release-aab
+          name: petal-pounce-signed-release-aab
           path: android-app/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error

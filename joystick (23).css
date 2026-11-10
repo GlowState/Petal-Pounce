@@ -1,0 +1,1593 @@
+/* Update 11 - full-angle analog steering and a larger invisible thumb target. */
+/* The invisible hit area is 20–26px larger than the visible housing.
+   Captured pointers keep tracking after the finger leaves either circle. */
+.joystick-touch-zone {
+  position:relative; width:154px; height:154px; flex:none;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:none; user-select:none; -webkit-user-select:none;
+  -webkit-touch-callout:none; overscroll-behavior:contain;
+  cursor:crosshair; border-radius:50%; outline-offset:2px;
+}
+.joystick-touch-zone:focus-visible {outline:3px solid #ffd579;}
+.joystick-control {
+  position:relative; display:block; width:132px; height:132px; flex:none;
+  pointer-events:none;
+  border-radius:50%; border:2px solid #839173;
+  background:radial-gradient(circle at 32% 20%, #6a7a5b, #344538 45%, #1b2822 78%, #111b16 100%);
+  box-shadow:inset 0 2px 1px #e0e2ae77,inset 0 -7px 11px #07120da8,0 6px 0 #101b14,0 9px 14px #0008;
+  cursor:crosshair; touch-action:none; user-select:none; -webkit-user-select:none;
+  -webkit-touch-callout:none; outline-offset:5px; overscroll-behavior:contain;
+}
+
+.joystick-panel { position:absolute; inset:6px; border:1px solid #1a291e; border-radius:50%;
+  background:radial-gradient(circle at 50% 45%, #3b5141 0%,#23352b 58%,#18271f 100%);
+  box-shadow:inset 0 2px 8px #080f0caa,inset 0 -1px 1px #89937a44; pointer-events:none;
+}
+.joystick-well { position:absolute; inset:20px; border-radius:50%;
+  background:radial-gradient(circle at 45% 37%,#22332b,#0a1813 70%,#0d1e15);
+  border:2px solid #0c1710; box-shadow:inset 0 4px 8px #010703,0 1px 0 #98a28766; }
+.joystick-ring { position:absolute; inset:7px; border:1px solid #71816a59; border-radius:50%; }
+.joystick-center { position:absolute; width:4px; height:4px; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:50%;background:#fbd48066; }
+.joystick-stick {position:absolute; width:84px; height:94px; top:50%; left:50%; margin:-37px 0 0 -42px;
+  transform:translate3d(var(--stick-x,0px),var(--stick-y,0px),0);
+  filter:drop-shadow(1px 7px 4px #03090699); will-change:transform;
+  transition:transform .075s ease-out; }
+.joystick-touch-zone:not(.engaged) .joystick-stick { transition:transform .17s cubic-bezier(.2,.85,.2,1.07); }
+.joystick-stem {position:absolute; width:15px; height:27px; left:34px; top:50px; border-radius:6px;
+  background:linear-gradient(90deg,#586558,#c9d3ba 44%,#516558 80%);box-shadow:1px 1px 3px #051009;}
+.joystick-ball {position:absolute; top:0; left:5px; width:74px;height:74px;border-radius:50%;
+  background:radial-gradient(circle at 30% 23%,#fff9d6 0%,#ffdfa1 10%,#efba54 36%,#bf782a 75%,#773e1b 100%);
+  border:2px solid #94652d; box-shadow:inset 4px 4px 4px #fff5aa96,inset -5px -5px 7px #6f3613aa,0 3px 0 #13241b; }
+.joystick-ball:after { content:'';position:absolute;width:18px;height:8px;left:14px;top:11px;border-radius:50%;background:#fff6dad9;transform:rotate(-25deg);filter:blur(2px);}
+.joystick-touch-zone.engaged .joystick-control {border-color:#c6ba7c;box-shadow:inset 0 2px 1px #e2e9b48a,inset 0 -7px 11px #07120da8,0 6px 0 #101b14,0 9px 15px #0009;}
+.move-controls { min-width:0; flex:0 0 auto; }
+.control-deck {gap:14px;}
+@media(max-width:560px){
+  .control-deck { height:calc(157px + env(safe-area-inset-bottom)); gap:12px; }
+  .joystick-touch-zone {width:148px;height:148px;}
+  .joystick-control {width:122px; height:122px;}
+  .joystick-panel {inset:5px;}
+  .joystick-well {inset:19px;}
+  .fly-controls {flex:none;}
+}
+@media(max-width:365px){
+  .control-deck {height:calc(151px + env(safe-area-inset-bottom));gap:10px;}
+  .joystick-touch-zone {width:140px;height:140px;}
+  .joystick-control {width:112px;height:112px;}
+  .joystick-panel {inset:5px;}
+  .joystick-well {inset:17px;}
+}
+@media(prefers-reduced-motion:reduce){.joystick-stick{transition:none!important;}}
+
+
+/* Update 10: subtle side rails recall the cabinet bezel without reducing
+   the full-width garden. Purely decorative, never intercepts touches. */
+@media (max-width:560px) {
+  .screen-frame { position:relative; }
+  .screen-frame::before, .screen-frame::after {
+    content:"";
+    position:absolute;
+    top:0; bottom:0;
+    width:4px;
+    z-index:7;
+    pointer-events:none;
+    background:linear-gradient(90deg,#0b1813,#526454 45%,#15251c 100%);
+    box-shadow:0 0 4px #07110e77;
+  }
+  .screen-frame::before { left:0; border-right:1px solid #9cab8a66; }
+  .screen-frame::after  { right:0; border-left:1px solid #9cab8a66; }
+}
+
+/* Petal Pounce RC20 — full-bleed garden and floating controls.
+   VISUAL CSS ONLY. JS movement, collision, difficulty and pointer handlers
+   are not modified. Retain the existing left/right control touch zones. */
+
+/* Hide all legacy trim, frame rails, decorative control plates and masks. */
+#cabinet .cabinet-trim-art { display:none!important; }
+#cabinet .screen-frame::before,
+#cabinet .screen-frame::after { content:none!important; display:none!important; }
+#cabinet .control-deck,
+#cabinet .control-deck::before,
+#cabinet .control-deck::after { background-image:none!important; }
+#cabinet .control-deck::before,
+#cabinet .control-deck::after { content:none!important; display:none!important; }
+#cabinet .control-deck .move-controls::before,
+#cabinet .control-deck .move-controls::after,
+#cabinet .control-deck .fly-controls::before,
+#cabinet .control-deck .fly-controls::after { content:none!important; display:none!important; }
+
+/* Mobile: render the actual screen all the way to the viewport edges.
+   The controls now overlay its lower area rather than reserving a deck row. */
+@media (max-width:560px) {
+  html,body { margin:0; width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
+
+  #cabinet,
+  html.ios-standalone #cabinet {
+    position:fixed!important;
+    inset:0!important;
+    display:block!important;
+    width:100%!important;
+    height:100dvh!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    isolation:isolate!important;
+  }
+  /* Remove the iPhone Home Screen rail as well as the cabinet surround. */
+  html.ios-standalone #cabinet::before,
+  #cabinet::before { content:none!important; display:none!important; box-shadow:none!important; }
+
+  #cabinet .screen-frame {
+    position:absolute!important;
+    inset:0!important;
+    display:block!important;
+    flex:none!important;
+    width:100%!important;
+    height:100%!important;
+    min-height:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:none!important;
+    overflow:hidden!important;
+  }
+  #cabinet .screen-frame .screen {
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    aspect-ratio:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+  }
+  #cabinet .screen-vignette { border-radius:0!important; }
+
+  /* Utility bar stays readable, floating at the top of the garden. */
+  #cabinet .cabinet-bar { z-index:50!important; pointer-events:none!important; }
+  #cabinet .cabinet-bar button { pointer-events:auto!important; }
+
+  /* Transparent overlay, not a painted panel or a reserved bottom row. */
+  #cabinet .control-deck {
+    position:absolute!important;
+    left:0!important;
+    right:0!important;
+    top:auto!important;
+    bottom:calc(14px + env(safe-area-inset-bottom,0px))!important;
+    z-index:40!important;
+    display:block!important;
+    flex:none!important;
+    width:100%!important;
+    max-width:none!important;
+    height:clamp(126px,20dvh,160px)!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    gap:0!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:none!important;
+    background-color:transparent!important;
+    background-image:none!important;
+    overflow:visible!important;
+    isolation:auto!important;
+    pointer-events:none!important;
+  }
+  #cabinet .control-deck .move-controls,
+  #cabinet .control-deck .fly-controls {
+    position:absolute!important;
+    top:0!important;
+    bottom:0!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    isolation:auto!important;
+    pointer-events:none!important;
+  }
+  #cabinet .control-deck .move-controls { left:0!important; width:55%!important; }
+  #cabinet .control-deck .fly-controls { right:0!important; width:45%!important; display:grid!important; place-items:center!important; }
+
+  /* Keep the existing full-size joystick touch zone and pointer tracking. */
+  #cabinet .control-deck .joystick-touch-zone {
+    width:100%!important;
+    height:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+    pointer-events:auto!important;
+  }
+  /* Structural elements remain for unchanged game.mjs movement selectors. */
+  #cabinet .control-deck .joystick-control,
+  #cabinet .control-deck .joystick-panel {
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  #cabinet .control-deck .joystick-well { opacity:0!important; }
+  #cabinet .control-deck .joystick-touch-zone::after { content:none!important; }
+
+  /* ~24% smaller visible stick. Its movement transform variables still work. */
+  #cabinet .control-deck .joystick-stick {
+    width:88px!important;
+    height:88px!important;
+    margin:-44px 0 0 -44px!important;
+    border:0!important;
+    background:transparent url('./joystick-classic.png?v=68') center/contain no-repeat!important;
+    box-shadow:none!important;
+    filter:drop-shadow(0 4px 5px #00130c9a);
+    pointer-events:none!important;
+  }
+
+  /* Smaller circular Fly control; preserve button ID, handlers and hold feel. */
+  #cabinet .control-deck .fly-button {
+    width:108px!important;
+    height:108px!important;
+    max-width:none!important;
+    min-width:0!important;
+    min-height:0!important;
+    aspect-ratio:1!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    pointer-events:auto!important;
+  }
+  #cabinet .control-deck .fly-button::before {
+    inset:9%!important;
+    background:transparent url('./fly-classic.png?v=68') center/contain no-repeat!important;
+  }
+
+  /* Keep the on-screen life counter and temporary notices above the buttons. */
+  #cabinet .screen .lives { bottom:calc(194px + env(safe-area-inset-bottom,0px))!important; }
+  #cabinet .screen .toast { bottom:calc(210px + env(safe-area-inset-bottom,0px))!important; }
+  #cabinet .screen .garden-notification { bottom:calc(205px + env(safe-area-inset-bottom,0px))!important; }
+  #cabinet .screen .garden-label { bottom:calc(185px + env(safe-area-inset-bottom,0px))!important; }
+
+  /* Menus fit above the floating controls rather than being covered by them. */
+  #cabinet .screen .overlay {
+    bottom:calc(180px + env(safe-area-inset-bottom,0px))!important;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  #cabinet .screen .overlay .menu-panel {
+    max-height:100%;
+    overflow-y:auto;
+    scrollbar-width:none;
+  }
+  #cabinet .screen .overlay .menu-panel::-webkit-scrollbar { display:none; }
+}
+
+/* Clean out the old decorative imagery on desktop too, without changing
+   the desktop input mechanics or game size. */
+@media (min-width:561px) {
+  #cabinet { border:0!important; box-shadow:none!important; }
+  #cabinet .control-deck {
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  #cabinet .control-deck .move-controls::before,
+  #cabinet .control-deck .move-controls::after,
+  #cabinet .control-deck .fly-controls::before,
+  #cabinet .control-deck .fly-controls::after { content:none!important; display:none!important; }
+}
+
+
+/* ========================================================================
+   PETAL POUNCE RC21 — SPACED FLOATING CONTROLS + GLOWING UTILITIES + SCORE
+   VISUAL CSS ONLY: no game physics, canvas logic, pointer events or game JS.
+   Built on the existing RC20 full-bleed mobile presentation.
+   ======================================================================== */
+@media (max-width:560px) {
+  /* Keep the sky/garden genuinely edge-to-edge, without a frosted top bar. */
+  #cabinet .cabinet-bar,
+  html.ios-standalone #cabinet .cabinet-bar {
+    background:none!important;
+    background-color:transparent!important;
+    background-image:none!important;
+    border:0!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  #cabinet .screen .hud,
+  html.ios-standalone #cabinet .screen .hud {
+    position:absolute!important;
+    top:calc(61px + env(safe-area-inset-top,0px))!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    height:54px!important;
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    background:transparent!important;
+    background-image:none!important;
+    border:0!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    pointer-events:none!important;
+  }
+
+  /* The HUD starts hidden on the title screen; keep that state intact. */
+  #cabinet .screen .hud[hidden] { display:none!important; }
+
+  /* Put SCORE in the actual middle instead of left-aligning it.
+     Keep FLOWERS on the right, without hiding it or moving its DOM node. */
+  #cabinet .screen .hud .hud-left {
+    position:absolute!important;
+    top:0!important;
+    left:50%!important;
+    right:auto!important;
+    transform:translateX(-50%)!important;
+    width:auto!important;
+    min-width:0!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen .hud .hud-left .hud-caption {
+    font-size:8px!important;
+    letter-spacing:2px!important;
+    margin-bottom:3px!important;
+  }
+  #cabinet .screen .hud .hud-left strong {
+    display:block!important;
+    font-size:clamp(29px,7.7vw,38px)!important;
+    line-height:1.06!important;
+    letter-spacing:0!important;
+    font-weight:900!important;
+    font-variant-numeric:tabular-nums!important;
+    text-shadow:0 2px 3px #143b3399!important;
+  }
+  #cabinet .screen .hud .hud-center {
+    position:absolute!important;
+    top:5px!important;
+    right:max(12px,env(safe-area-inset-right,0px))!important;
+    left:auto!important;
+    transform:none!important;
+    text-align:right!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen .hud .hud-center .hud-caption {
+    font-size:6px!important;
+    letter-spacing:1px!important;
+    margin-bottom:5px!important;
+  }
+  #cabinet .screen .hud .hud-center strong {
+    font-size:clamp(14px,3.8vw,18px)!important;
+    line-height:1.1!important;
+  }
+  /* Don't allow a bloom streak badge to cover the centered score. */
+  #cabinet .screen .hud .streak-meter {
+    position:absolute!important;
+    top:47px!important;
+    right:0!important;
+    margin:0!important;
+  }
+
+  /* Raise the two controls slightly to leave space for Sound and Pause.
+     Do not shrink the existing joystick touch zone or replace the Fly button. */
+  #cabinet .control-deck {
+    bottom:calc(47px + env(safe-area-inset-bottom,0px))!important;
+    height:clamp(130px,19dvh,154px)!important;
+  }
+  /* Shift the ENTIRE input regions outward so visual and pointer centers agree.
+     Their widths and pointer handlers are still the RC20 values. */
+  #cabinet .control-deck .move-controls {
+    left:-12px!important;
+    width:55%!important;
+  }
+  #cabinet .control-deck .fly-controls {
+    right:-12px!important;
+    width:45%!important;
+  }
+  /* A small increase from RC20's 88px joystick + 108px Fly button. */
+  #cabinet .control-deck .joystick-stick {
+    width:99px!important;
+    height:99px!important;
+    margin:-49.5px 0 0 -49.5px!important;
+  }
+  #cabinet .control-deck .fly-button {
+    width:118px!important;
+    height:118px!important;
+    max-width:118px!important;
+  }
+
+  /* Utility buttons keep original #sound/#pause IDs, click handlers and states.
+     Only the visual positioning/styling changes. Other top bar buttons are
+     left alone, including the Shop control. */
+  #cabinet .cabinet-bar .tools {
+    position:fixed!important;
+    top:auto!important;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    left:50%!important;
+    right:auto!important;
+    width:max-content!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:20px!important;
+    transform:translateX(-50%)!important;
+    z-index:90!important;
+    pointer-events:auto!important;
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+  #cabinet .cabinet-bar .tools #sound,
+  #cabinet .cabinet-bar .tools #pause {
+    position:relative!important;
+    display:grid!important;
+    place-items:center!important;
+    flex:0 0 38px!important;
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    min-height:38px!important;
+    margin:0!important;
+    padding:0!important;
+    color:#fff!important;
+    background:rgba(17,35,35,.25)!important;
+    border:1px solid rgba(255,255,255,.75)!important;
+    border-radius:50%!important;
+    opacity:1!important;
+    box-shadow:0 0 0 1px #ffffff28,0 0 10px #ffffff80,0 0 19px #ffffff45!important;
+    filter:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    pointer-events:auto!important;
+    touch-action:manipulation;
+  }
+  #cabinet .cabinet-bar .tools #sound svg,
+  #cabinet .cabinet-bar .tools #pause svg {
+    width:18px!important;
+    height:18px!important;
+    color:#fff!important;
+    stroke:currentColor!important;
+    filter:drop-shadow(0 0 4px #fff)!important;
+  }
+  #cabinet .cabinet-bar .tools #pause:disabled {
+    opacity:.52!important;
+    pointer-events:none!important;
+  }
+  #cabinet .cabinet-bar .tools #sound:active,
+  #cabinet .cabinet-bar .tools #pause:not(:disabled):active {
+    background:rgba(255,255,255,.18)!important;
+    box-shadow:0 0 0 1px #ffffff85,0 0 17px #fff,0 0 27px #ffffff85!important;
+  }
+}
+
+
+/* ========================================================================
+   PETAL POUNCE RC22 — HUD POLISH / LIVES + SHOP REPOSITION
+   Visual-only follow-up to RC21. No gameplay, physics, collision, or input JS.
+   ======================================================================== */
+@media (max-width:560px) {
+  /* Move the centered score higher and make it just a touch smaller. */
+  #cabinet .screen .hud,
+  html.ios-standalone #cabinet .screen .hud {
+    top:calc(45px + env(safe-area-inset-top,0px))!important;
+    height:50px!important;
+  }
+  #cabinet .screen .hud .hud-left {
+    top:-1px!important;
+  }
+  #cabinet .screen .hud .hud-left .hud-caption {
+    font-size:7px!important;
+    letter-spacing:1.7px!important;
+    margin-bottom:2px!important;
+  }
+  #cabinet .screen .hud .hud-left strong {
+    font-size:clamp(27px,7.0vw,35px)!important;
+    line-height:1.02!important;
+    text-shadow:0 2px 3px #143b3390!important;
+  }
+  #cabinet .screen .hud .hud-center {
+    top:2px!important;
+    right:max(10px,env(safe-area-inset-right,0px))!important;
+  }
+  #cabinet .screen .hud .hud-center .hud-caption {
+    margin-bottom:3px!important;
+  }
+  #cabinet .screen .hud .streak-meter {
+    top:41px!important;
+  }
+
+  /* Keep the shop tucked farther left and remove the flower amount beside it. */
+  #cabinet .cabinet-bar,
+  html.ios-standalone #cabinet .cabinet-bar {
+    left:max(4px,env(safe-area-inset-left,0px))!important;
+    right:max(10px,env(safe-area-inset-right,0px))!important;
+    padding:0!important;
+    height:50px!important;
+  }
+  #cabinet .cabinet-bar .cartridge {
+    position:absolute!important;
+    left:max(4px,env(safe-area-inset-left,0px))!important;
+    top:6px!important;
+    margin:0!important;
+    flex:none!important;
+    width:auto!important;
+  }
+  #cabinet .cabinet-bar #open-shop {
+    padding:8px 12px!important;
+    gap:7px!important;
+    min-height:0!important;
+  }
+  #cabinet .cabinet-bar #open-shop #flower-balance,
+  #cabinet .cabinet-bar #open-shop strong {
+    display:none!important;
+  }
+  #cabinet .cabinet-bar #open-shop span {
+    font-size:10px!important;
+    letter-spacing:1px!important;
+  }
+
+  /* Move lives to the lower-left, beneath the main controls and left of Sound. */
+  #cabinet .screen .lives {
+    left:max(10px,env(safe-area-inset-left,0px))!important;
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    padding:5px 7px!important;
+    gap:4px!important;
+    border-radius:6px!important;
+    z-index:91!important;
+    background:rgba(27,56,45,.86)!important;
+    border:1px solid #e8dda540!important;
+    box-shadow:0 3px 8px #18352b30!important;
+  }
+  #cabinet .screen .lives > span {
+    margin-right:2px!important;
+    font-size:7px!important;
+    letter-spacing:.8px!important;
+  }
+  #cabinet .screen .lives img {
+    width:16px!important;
+    height:16px!important;
+  }
+
+  /* Keep floating utility buttons centered, above the safe-area edge. */
+  #cabinet .cabinet-bar .tools {
+    bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    gap:18px!important;
+    z-index:92!important;
+  }
+}
+
+
+/* ============================================================================
+   PETAL POUNCE RC25 — MENU VISIBILITY / RESPONSIVE BLACK & YELLOW OVERLAY
+   Visual presentation ONLY. No changes to movement, pause logic, or input events.
+   State CSS deliberately respects the `hidden` attribute set by game.mjs.
+   ============================================================================ */
+@media (max-width:560px) {
+  /* CRITICAL: the previous popup used display:flex!important when the game set
+     overlay.hidden=true. That made the overlay stay visible during gameplay. */
+  #cabinet .screen #overlay[hidden],
+  #cabinet .screen #overlay.state-overlay[hidden],
+  #cabinet .screen #overlay.title-overlay[hidden] {
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  /* The title, pause and game-over screens are ONLY shown when not hidden. */
+  #cabinet .screen #overlay:not([hidden]) {
+    position:absolute!important;
+    inset:0 0 calc(176px + env(safe-area-inset-bottom,0px)) 0!important;
+    box-sizing:border-box!important;
+    padding:clamp(10px,3vw,20px)!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    background:rgba(0,0,0,.17)!important;
+    backdrop-filter:blur(2px)!important;
+    -webkit-backdrop-filter:blur(2px)!important;
+  }
+  #cabinet .screen #overlay:not([hidden]) .menu-panel {
+    display:block!important;
+    position:relative!important;
+    flex:none!important;
+    box-sizing:border-box!important;
+    width:min(90vw,360px)!important;
+    max-width:calc(100vw - 28px)!important;
+    min-width:0!important;
+    max-height:calc(100% - 4px)!important;
+    height:auto!important;
+    margin:auto!important;
+    padding:clamp(14px,3.6vw,19px) clamp(11px,3vw,17px)!important;
+    border:1.5px solid #f3c44e!important;
+    border-radius:15px!important;
+    color:#fff8e9!important;
+    background:linear-gradient(160deg,#171717f5,#090909f6)!important;
+    box-shadow:0 12px 29px #0008,0 0 0 1px #ffe08c20 inset!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  #cabinet .screen #overlay .menu-panel::-webkit-scrollbar,
+  #cabinet .screen #overlay::-webkit-scrollbar { display:none!important; }
+
+  #cabinet .screen #overlay .menu-tag {
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0 auto 12px!important;
+    font-size:clamp(5px,1.4vw,7px)!important;
+    letter-spacing:clamp(.3px,.22vw,1.1px)!important;
+    line-height:1.5!important;
+    color:#ffdb7a!important;
+    text-shadow:none!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+    justify-content:center!important;
+  }
+  #cabinet .screen #overlay .menu-tag > span { flex:0 0 14px!important;width:14px!important;background:#f3c44e8c!important; }
+
+  /* Respect the natural line breaks in PETAL POUNCE and the pause heading.
+     Never force long words beyond the popup width. */
+  #cabinet .screen #overlay .menu-panel .game-title {
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 0 12px!important;
+    padding:0!important;
+    font-size:clamp(29px,8.7vw,44px)!important;
+    line-height:1.05!important;
+    letter-spacing:0!important;
+    text-align:center!important;
+    color:#ffda72!important;
+    -webkit-text-stroke:0!important;
+    text-shadow:0 3px 0 #775118!important;
+    white-space:normal!important;
+    overflow-wrap:break-word!important;
+    word-break:normal!important;
+    overflow-x:hidden!important;
+    transform:none!important;
+  }
+  #cabinet .screen #overlay.title-overlay .game-title .title-word,
+  #cabinet .screen #overlay .game-title .title-word {
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    font-size:inherit!important;
+    line-height:1.08!important;
+    letter-spacing:0!important;
+    overflow-wrap:break-word!important;
+  }
+  #cabinet .screen #overlay.title-overlay .game-title .title-word:first-child {
+    font-size:.64em!important;
+    letter-spacing:1px!important;
+    margin-bottom:3px!important;
+  }
+  #cabinet .screen #overlay.title-overlay .game-title .title-word-last {
+    font-size:clamp(29px,8.7vw,44px)!important;
+    margin-top:1px!important;
+    color:#ffdc78!important;
+    text-shadow:0 3px 0 #775118!important;
+  }
+  #cabinet .screen #overlay .menu-panel > p,
+  #cabinet .screen #overlay .menu-panel > p strong {
+    max-width:100%!important;
+    min-width:0!important;
+    font-size:clamp(10px,2.6vw,12px)!important;
+    line-height:1.5!important;
+    letter-spacing:0!important;
+    color:#fff9eb!important;
+    text-shadow:none!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+    word-break:normal!important;
+  }
+  #cabinet .screen #overlay .menu-panel > p { margin:0 auto 13px!important; }
+  #cabinet .screen #overlay .menu-panel > p.start-hint {
+    margin:7px auto 0!important;
+    font-size:7px!important;
+    color:#cdbb8a!important;
+  }
+  #cabinet .screen #overlay .play-button {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-around!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:45px!important;
+    margin:8px auto 0!important;
+    padding:9px 13px!important;
+    border:1px solid #ffde8d!important;
+    border-radius:8px!important;
+    background:linear-gradient(180deg,#ffe18a,#f4bd49)!important;
+    box-shadow:0 4px 0 #a47520,0 7px 14px #0007!important;
+    color:#1b190e!important;
+    text-shadow:none!important;
+    font-size:clamp(9px,2.5vw,12px)!important;
+    letter-spacing:.4px!important;
+    white-space:normal!important;
+  }
+  #cabinet .screen #overlay .secondary-button {
+    max-width:100%!important;
+    padding:5px 9px!important;
+    color:#f8d375!important;
+    border:0!important;
+    border-bottom:1px solid #e8ba4ca8!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    font-size:9px!important;
+    white-space:normal!important;
+  }
+  #cabinet .screen #overlay .meta-actions {
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:6px!important;
+    margin:10px auto 0!important;
+  }
+  #cabinet .screen #overlay .meta-actions[hidden] {display:none!important;}
+  #cabinet .screen #overlay .meta-button {
+    box-sizing:border-box!important;
+    min-width:0!important;
+    width:100%!important;
+    padding:10px 4px!important;
+    min-height:42px!important;
+    font-size:clamp(7px,2.15vw,9px)!important;
+    letter-spacing:0!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  /* Keep the original viewport-wide game visible behind the popup and controls. */
+  #cabinet .screen #overlay.state-overlay .menu-panel {max-width:min(90vw,352px)!important;}
+}
+@media (max-width:365px) {
+  #cabinet .screen #overlay .menu-panel .game-title,
+  #cabinet .screen #overlay.title-overlay .game-title .title-word-last {
+    font-size:clamp(28px,8.3vw,33px)!important;
+  }
+  #cabinet .screen #overlay:not([hidden]) .menu-panel { padding:11px 10px!important; }
+}
+
+
+
+/* ========================================================================
+   PETAL POUNCE RC26 — SYNCHRONIZED MENU VISIBILITY
+   Visual CSS only. The game module owns all menu state.
+   ======================================================================== */
+@media (max-width:560px) {
+  /* This rule MUST win over legacy full-screen menu display overrides. */
+  #cabinet .screen #overlay[hidden],
+  #cabinet .screen #overlay.title-overlay[hidden],
+  #cabinet .screen #overlay.state-overlay[hidden] {
+    display:none!important;
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+  #cabinet .screen #overlay:not([hidden]) {
+    visibility:visible!important;
+    opacity:1!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+  }
+  #cabinet .screen #overlay[data-mode="title"] .menu-panel {
+    max-width:min(90vw,360px)!important;
+  }
+  #cabinet .screen #overlay[data-mode="paused"] .menu-panel {
+    width:min(84vw,336px)!important;
+    max-width:calc(100vw - 30px)!important;
+    height:auto!important;
+    max-height:100%!important;
+    padding:clamp(16px,3.5vw,20px)!important;
+    overflow-x:hidden!important;
+    box-sizing:border-box!important;
+  }
+  #cabinet .screen #overlay[data-mode="paused"] .game-title {
+    font-size:clamp(30px,8.5vw,43px)!important;
+    line-height:1.02!important;
+    letter-spacing:0!important;
+    overflow-wrap:normal!important;
+    white-space:normal!important;
+    margin-bottom:12px!important;
+  }
+  #cabinet .screen #overlay[data-mode="paused"] #menu-description {
+    font-size:clamp(11px,2.7vw,13px)!important;
+    line-height:1.5!important;
+    letter-spacing:0!important;
+    margin-bottom:14px!important;
+    white-space:normal!important;
+    overflow-wrap:break-word!important;
+  }
+  #cabinet .screen #overlay[data-mode="paused"] #play {
+    min-width:0!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+    font-size:clamp(10px,2.6vw,12px)!important;
+  }
+  #cabinet .screen #overlay[data-mode="over"] .menu-panel {
+    width:min(90vw,360px)!important;
+    max-width:calc(100vw - 24px)!important;
+    overflow-x:hidden!important;
+  }
+  #cabinet .screen #overlay .menu-panel,
+  #cabinet .screen #overlay .menu-panel * {
+    max-inline-size:100%;
+  }
+}
+
+
+/* ======================================================================
+   PETAL POUNCE RC27 — REAL MAIN MENU
+   Pixel background is decorative; all buttons and the saved best are DOM.
+   Does not touch control hit areas, gameplay, collision or physics.
+   ====================================================================== */
+#cabinet #main-menu[hidden] { display:none!important; visibility:hidden!important; pointer-events:none!important; }
+#cabinet #main-menu {
+  position:absolute!important;
+  inset:0!important;
+  z-index:160!important;
+  display:block!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:#1289e5 url('./petal-pounce-main-menu.png') center/100% 100% no-repeat!important;
+  isolation:isolate;
+  touch-action:manipulation;
+}
+#cabinet[data-view="title"] .cabinet-bar,
+#cabinet[data-view="title"] .control-deck,
+#cabinet[data-view="title"] .screen .hud,
+#cabinet[data-view="title"] .screen .lives,
+#cabinet[data-view="title"] .screen .altitude,
+#cabinet[data-view="title"] .screen .garden-label {
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+#cabinet .main-menu-best {
+  position:absolute;
+  left:6%;
+  top:5.75%;
+  width:35%;
+  text-align:center;
+  color:#fff04e;
+  font-family:var(--mono,'Courier New',monospace);
+  font-size:clamp(14px, 5vw, 26px);
+  line-height:1.1;
+  letter-spacing:.03em;
+  font-weight:900;
+  font-variant-numeric:tabular-nums;
+  -webkit-text-stroke:.35px #0b0922;
+  text-shadow:2px 2px 0 #090718,-1px -1px 0 #090718,1px -1px 0 #090718,-1px 1px 0 #090718;
+  white-space:nowrap;
+  pointer-events:none;
+}
+#cabinet .main-menu-actions {
+  position:absolute;
+  left:12%;right:12%;
+  top:54.7%;bottom:10.1%;
+  display:grid;
+  grid-template-rows:1.23fr repeat(3,1fr);
+  gap:clamp(6px,1.1dvh,11px);
+  min-height:0;
+  align-items:stretch;
+}
+#cabinet .arcade-menu-button {
+  width:100%; min-width:0; height:100%; min-height:0;
+  box-sizing:border-box;
+  margin:0; padding:0 clamp(6px,2vw,16px);
+  display:flex; justify-content:center; align-items:center;
+  gap:clamp(7px,3vw,16px);
+  color:#fff4df;
+  font-family:var(--mono,'Courier New',monospace);
+  font-size:clamp(11px,3.3vw,22px);
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:0;
+  text-align:center;
+  white-space:nowrap;
+  -webkit-text-stroke:.25px #1b0c28;
+  text-shadow:2px 2px 0 #1b0734;
+  background:linear-gradient(#8526a8 0 9%,#742198 10% 25%,#57207f 26% 74%,#420e68 75% 100%);
+  border:clamp(3px,.8vw,5px) solid #ffc822;
+  border-radius:12px;
+  outline:2px solid #160b2d;
+  box-shadow:0 4px 0 #18072c, inset 0 3px 0 #eeb5ff5c, inset 0 -3px 0 #200736;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  user-select:none;
+  -webkit-user-select:none;
+  position:relative;
+  z-index:1;
+}
+#cabinet .arcade-menu-button .arcade-icon {
+  width:clamp(19px,5.7vw,33px);height:clamp(19px,5.7vw,33px);
+  flex:none;display:inline-block;
+  shape-rendering:crispEdges;
+  filter:drop-shadow(1px 2px 0 #150825);
+}
+#cabinet .arcade-menu-button .arcade-play-icon {
+  width:auto; height:auto;
+  font-size:clamp(18px,5.5vw,33px);
+  line-height:1;
+  color:#4d1172;
+  text-shadow:1px 1px 0 #ffe69a;
+  filter:none;
+}
+#cabinet .arcade-menu-play {
+  color:#351064;
+  font-size:clamp(22px,7vw,38px);
+  text-shadow:1px 2px 0 #f7d268;
+  border-color:#fff1ac;
+  background:linear-gradient(#fff2a5 0 8%,#ffe144 10% 47%,#ffc71b 49% 82%,#efa321 83% 100%);
+  box-shadow:0 5px 0 #18072c, inset 0 3px 0 #ffffff90, inset 0 -4px 0 #de8b1c;
+}
+#cabinet .arcade-menu-button:focus-visible { outline:3px solid #fff!important;outline-offset:5px; }
+#cabinet .arcade-menu-button:active { transform:translateY(3px); box-shadow:0 1px 0 #18072c;filter:brightness(1.07); }
+#cabinet .main-menu-build {
+  position:absolute;
+  right:3%;bottom:2.2%;
+  color:#ffffe6c7;
+  text-shadow:1px 1px #18393d;
+  font:700 clamp(8px,2vw,12px) var(--mono,monospace);
+  pointer-events:none;
+}
+/* Settings is a real native dialog, reused controls stay wired to the game. */
+.arcade-options-dialog .arcade-options-grid {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;margin:14px 0;
+}
+.arcade-options-dialog .arcade-options-action {
+  min-height:54px;min-width:0;
+  padding:12px 6px;
+  border:2px solid #ffda67;border-radius:7px;
+  background:linear-gradient(#52276e,#32184e);
+  color:#fff4da;
+  font:900 clamp(10px,2.7vw,14px) var(--mono,monospace);
+  cursor:pointer;touch-action:manipulation;
+}
+.arcade-options-dialog .arcade-options-action:active{transform:translateY(2px);}
+.arcade-options-dialog .arcade-options-action:focus-visible{outline:3px solid #fff0a4;outline-offset:2px;}
+@media(min-width:561px){
+  /* The title art remains contained on wider desktop arcade cabinets. */
+  #cabinet #main-menu {max-width:100%;border-radius:inherit;}
+  #cabinet .main-menu-actions {top:54.7%;bottom:9.5%;}
+}
+@media(max-width:360px){
+  #cabinet .arcade-menu-button {font-size:clamp(10px,3.25vw,13px);border-radius:9px;}
+  #cabinet .arcade-menu-play {font-size:clamp(20px,6.5vw,24px);}
+  #cabinet .main-menu-actions {left:11%;right:11%;top:54.5%;bottom:10%;gap:5px;}
+  #cabinet .arcade-menu-button .arcade-icon {width:19px;height:19px;}
+}
+@media(max-height:670px){
+  #cabinet .arcade-menu-button {border-width:3px;border-radius:9px;}
+  #cabinet .main-menu-actions {gap:5px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  #cabinet .arcade-menu-button {scroll-behavior:auto;}
+}
+
+/* PETAL POUNCE RC28 — iPhone status-area bleed.
+   Apple controls the clock, battery and signal indicators. This permits
+   the app to paint behind them, and keeps interactive elements below.
+   No gameplay input / collision / control behavior changes. */
+@media (max-width:560px) {
+  html.ios-standalone #cabinet .cabinet-bar {
+    top:env(safe-area-inset-top,0px)!important;
+  }
+  /* Avoid placing the score label/artwork beneath the iPhone cutout. */
+  html.ios-standalone #cabinet #main-menu {
+    inset:env(safe-area-inset-top,0px) 0 0 0!important;
+    height:calc(100% - env(safe-area-inset-top,0px))!important;
+  }
+  /* Continue the arcade menu's sky behind the system status icons. */
+  html.ios-standalone #cabinet[data-view="title"]::after {
+    content:""!important;
+    display:block!important;
+    position:absolute!important;
+    left:0;right:0;top:0;
+    height:calc(env(safe-area-inset-top,0px) + 2px)!important;
+    z-index:155!important;
+    pointer-events:none!important;
+    background:linear-gradient(180deg,#024db5 0%,#0352bf 100%)!important;
+  }
+}
+
+
+/* PETAL POUNCE RC29 — iPhone Home Screen bottom-chin blend.
+   iOS 26 can reserve an OS-painted strip beneath the web viewport, where
+   CSS cannot place actual app elements. Match its launch/page fallback to
+   the bottom of the Twilight garden instead of the old nearly black #171e20.
+   Do not extend the game canvas or move controls: gameplay/UI hit zones stay
+   exactly as they are in RC28. See WebKit bug 301994. */
+@media (max-width:560px) {
+  html.ios-standalone,
+  html.ios-standalone body {
+    background-color:#2c424d!important;
+    background-image:none!important;
+  }
+}
+
+
+/* ============================================================================
+   PETAL POUNCE RC30 — ONE RESPONSIVE HUD ROW / COMPACT LIVES / CENTERED PAUSE
+   Shop now shares the #hud CSS grid with the actual score and flowers count.
+   This avoids three unrelated absolute positions fighting each other on phones.
+   All hit handlers and game logic remain unchanged.
+   ============================================================================ */
+@media (max-width:560px) {
+  #cabinet {
+    --rc30-row-top:calc(max(58px,env(safe-area-inset-top,0px)) + 12px);
+    --rc30-side:max(12px,env(safe-area-inset-left,0px));
+    --rc30-right:max(12px,env(safe-area-inset-right,0px));
+    --rc30-row-gap:clamp(6px,1.7vw,10px);
+  }
+
+  /* Shop is no longer in the top .cabinet-bar; that bar still holds the
+     real sound/pause controls at the foot of the screen. */
+  #cabinet .screen #hud {
+    position:absolute!important;
+    top:var(--rc30-row-top)!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    height:42px!important;
+    padding:0 var(--rc30-right) 0 var(--rc30-side)!important;
+    margin:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,.8fr)!important;
+    align-items:center!important;
+    gap:var(--rc30-row-gap)!important;
+    pointer-events:none!important;
+    overflow:visible!important;
+    box-sizing:border-box!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+    z-index:61!important;
+  }
+  #cabinet .screen #hud[hidden] {display:none!important;}
+  #cabinet .screen #hud .cartridge,
+  #cabinet .screen #hud .hud-left,
+  #cabinet .screen #hud .hud-center {
+    position:relative!important;
+    left:auto!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:0!important;
+    width:100%!important;
+    height:42px!important;
+    margin:0!important;
+    padding:0!important;
+    transform:none!important;
+    flex:none!important;
+    box-sizing:border-box!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud .cartridge {grid-column:1!important;background:none!important;}
+  #cabinet .screen #hud .hud-left {grid-column:2!important;}
+  #cabinet .screen #hud .hud-center {grid-column:3!important;}
+  /* Keep badges small and identical in height, not full-width HUD overlays. */
+  #cabinet .screen #hud .hud-left,
+  #cabinet .screen #hud .hud-center {
+    gap:2px!important;
+    border:1px solid rgba(229,224,175,.25)!important;
+    border-radius:10px!important;
+    background:rgba(20,37,37,.58)!important;
+    box-shadow:0 2px 5px rgba(0,0,0,.13)!important;
+  }
+  #cabinet .screen #hud .hud-caption {
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    font-size:clamp(6px,1.8vw,8px)!important;
+    line-height:1.1!important;
+    letter-spacing:clamp(.2px,.25vw,1px)!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud .hud-left strong {
+    display:block!important;
+    margin:0!important;
+    font-size:clamp(16px,4.8vw,21px)!important;
+    line-height:1.08!important;
+    letter-spacing:0!important;
+    font-weight:900!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud .hud-center strong {
+    display:block!important;
+    font-size:clamp(14px,4.2vw,18px)!important;
+    margin:0!important;
+    line-height:1.08!important;
+    letter-spacing:0!important;
+    text-align:center!important;
+  }
+  #cabinet .screen #hud #open-shop {
+    position:relative!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:clamp(3px,1vw,6px)!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:42px!important;
+    min-height:42px!important;
+    padding:5px 5px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    font-size:clamp(9px,2.5vw,11px)!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+  #cabinet .screen #hud #open-shop svg {
+    flex:none!important;
+    width:clamp(14px,3.8vw,18px)!important;
+    height:clamp(14px,3.8vw,18px)!important;
+    max-width:18px!important;
+  }
+  #cabinet .screen #hud #open-shop span {
+    font-size:clamp(9px,2.5vw,11px)!important;
+    line-height:1.1!important;
+    letter-spacing:.5px!important;
+    white-space:nowrap!important;
+  }
+  #cabinet .screen #hud #open-shop #flower-balance,
+  #cabinet .screen #hud #open-shop strong {display:none!important;}
+  /* Keep the bloom-streak notification below the flowers box, never on score. */
+  #cabinet .screen #hud .hud-center #streak {
+    position:absolute!important;
+    top:calc(100% + 4px)!important;
+    right:0!important;
+    left:auto!important;
+    width:max-content!important;
+    max-width:min(70vw,230px)!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  #cabinet .screen #hud .hud-center #streak[hidden] {display:none!important;}
+  /* Former mirrored 'flowers found' readout remains intentionally hidden. */
+  #cabinet .screen #hud .hud-right[hidden] {display:none!important;}
+
+  /* Three bee icons only; retain the existing accessible ARIA label and
+     the same 3 images as lives are lost. Shrink-wrap the panel to the art. */
+  #cabinet .screen #lives {
+    position:absolute!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:max-content!important;
+    min-width:0!important;
+    max-width:calc(100vw - 24px)!important;
+    height:auto!important;
+    min-height:0!important;
+    left:var(--rc30-side)!important;
+    right:auto!important;
+    bottom:calc(4px + env(safe-area-inset-bottom,0px))!important;
+    margin:0!important;
+    padding:4px 5px!important;
+    gap:3px!important;
+    border-radius:7px!important;
+    box-sizing:border-box!important;
+    pointer-events:none!important;
+    z-index:91!important;
+  }
+  #cabinet .screen #lives[hidden] {display:none!important;}
+  #cabinet .screen #lives > .lives-count,
+  #cabinet .screen #lives > span {display:none!important;}
+  #cabinet .screen #lives img {
+    display:block!important;
+    width:clamp(17px,4.65vw,20px)!important;
+    height:clamp(17px,4.65vw,20px)!important;
+    flex:none!important;
+    margin:0!important;
+    object-fit:contain!important;
+  }
+
+  /* Lower both physical control regions slightly while preserving their
+     sizes, handler elements and relative distance to sound / pause. */
+  #cabinet .control-deck {bottom:calc(40px + env(safe-area-inset-bottom,0px))!important;}
+
+  /* Center the PAUSE popup on the whole playable area (not the old area
+     stopping 176px above the controls). Game Over remains unchanged. */
+  #cabinet .screen #overlay[data-mode="paused"]:not([hidden]) {
+    inset:0!important;
+    left:0!important;
+    right:0!important;
+    top:0!important;
+    bottom:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:calc(max(14px,env(safe-area-inset-top,0px)) + 8px) 14px calc(max(14px,env(safe-area-inset-bottom,0px)) + 8px)!important;
+    background:rgba(16,21,25,.19)!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+  }
+  #cabinet .screen #overlay[data-mode="paused"] .menu-panel {
+    width:min(84vw,336px)!important;
+    max-width:calc(100vw - 28px)!important;
+    max-height:min(78dvh,490px)!important;
+    margin:auto!important;
+    background:rgba(79,84,89,.84)!important;
+    color:#fff9e9!important;
+    border-color:rgba(251,217,132,.85)!important;
+    -webkit-backdrop-filter:blur(10px)!important;
+    backdrop-filter:blur(10px)!important;
+    box-shadow:0 12px 32px rgba(0,0,0,.30)!important;
+  }
+  /* Critical: never reveal a paused overlay after JS marks it hidden. */
+  #cabinet .screen #overlay[hidden],
+  #cabinet .screen #overlay[data-mode="paused"][hidden] {display:none!important;pointer-events:none!important;}
+}
+@media (max-width:560px) and (min-height:760px) {
+  #cabinet .control-deck {bottom:calc(34px + env(safe-area-inset-bottom,0px))!important;}
+}
+@media (max-width:350px) {
+  #cabinet {
+    --rc30-side:max(9px,env(safe-area-inset-left,0px));
+    --rc30-right:max(9px,env(safe-area-inset-right,0px));
+    --rc30-row-gap:5px;
+  }
+  #cabinet .screen #hud .hud-left strong {font-size:15px!important;}
+  #cabinet .screen #hud .hud-center strong {font-size:14px!important;}
+}
+
+
+/* ========================================================================
+   PETAL POUNCE RC31 — COMPACT MILESTONE AND ACHIEVEMENT NOTIFICATIONS
+   Styling only: preserves milestone count, scoring, queue, sound and timing.
+   Compact black translucent banner under Shop; not centered on gameplay.
+   ======================================================================== */
+#cabinet .screen #garden-notification {
+  position:absolute!important;
+  top:77px!important;
+  left:12px!important;
+  right:auto!important;
+  bottom:auto!important; /* Required: overrides earlier bottom:205px!important. */
+  box-sizing:border-box!important;
+  width:min(206px,calc(100% - 24px))!important;
+  max-width:calc(100% - 24px)!important;
+  min-width:0!important;
+  height:46px!important;
+  min-height:0!important;
+  grid-template-columns:29px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:7px!important;
+  padding:5px 8px!important;
+  border:1px solid rgba(255,229,156,.40)!important;
+  border-radius:10px!important;
+  background:rgba(0,0,0,.57)!important;
+  background-image:none!important;
+  box-shadow:0 4px 10px rgba(0,0,0,.17)!important;
+  color:#fff7db!important;
+  -webkit-backdrop-filter:blur(5px)!important;
+  backdrop-filter:blur(5px)!important;
+  pointer-events:none!important;
+  overflow:hidden!important;
+  z-index:72!important;
+}
+#cabinet .screen #garden-notification[hidden] {
+  display:none!important;
+}
+#cabinet .screen #garden-notification .garden-notice-medallion {
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+  width:28px!important;
+  height:28px!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:0!important;
+  border:1px solid rgba(255,229,156,.46)!important;
+  border-radius:50%!important;
+  background:rgba(0,0,0,.34)!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  font:900 15px/1 var(--mono)!important;
+  color:#ffdf8b!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.5)!important;
+}
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-medallion {
+  color:#e7c8ff!important;
+}
+#cabinet .screen #garden-notification .garden-notice-copy {
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  gap:3px!important;
+  min-width:0!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+}
+#cabinet .screen #garden-notification .garden-notice-copy strong,
+#cabinet .screen #garden-notification .garden-notice-copy.compact strong,
+#cabinet .screen #garden-notification .garden-notice-copy.extra-compact strong {
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  font:900 clamp(8px,2.3vw,10px)/1.08 var(--mono)!important;
+  letter-spacing:0!important;
+  color:#fff1c1!important;
+  text-shadow:none!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  text-overflow:clip!important;
+}
+#cabinet .screen #garden-notification .garden-notice-copy span,
+#cabinet .screen #garden-notification .garden-notice-copy.compact span,
+#cabinet .screen #garden-notification .garden-notice-copy.extra-compact span {
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  font:700 7px/1.14 var(--mono)!important;
+  letter-spacing:0!important;
+  color:rgba(255,250,232,.85)!important;
+  text-shadow:none!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  text-overflow:clip!important;
+}
+/* Less intrusive appearance/disappearance; original JS duration stays 2650ms. */
+#cabinet .screen #garden-notification.show {
+  animation:rc31-notice 2.65s ease-out both!important;
+}
+@keyframes rc31-notice {
+  0% {opacity:0;transform:translateY(-5px)}
+  10%,85% {opacity:1;transform:translateY(0)}
+  100% {opacity:0;transform:translateY(-4px)}
+}
+@media (max-width:560px) {
+  /* The Shop is the first 42px cell in the RC30 top HUD. */
+  #cabinet .screen #garden-notification {
+    left:var(--rc30-side,12px)!important;
+    top:calc(var(--rc30-row-top,70px) + 49px)!important;
+    width:min(206px,calc(100% - 24px))!important;
+    max-width:calc(100% - 24px)!important;
+  }
+}
+@media (max-width:365px) {
+  #cabinet .screen #garden-notification {
+    width:min(188px,calc(100% - 18px))!important;
+    height:44px!important;
+    grid-template-columns:26px minmax(0,1fr)!important;
+    gap:6px!important;
+    padding:4px 7px!important;
+  }
+  #cabinet .screen #garden-notification .garden-notice-medallion {
+    width:25px!important;
+    height:25px!important;
+    font-size:14px!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  #cabinet .screen #garden-notification.show {animation:none!important;}
+}
+
+
+/* ============================================================================
+   PETAL POUNCE RC32 — NEON MAIN MENU, NATIVE INTERACTIVE BUTTONS
+   Only #main-menu / its buttons; gameplay buttons, Pause and HUD are unchanged.
+   The background artwork has NO painted-on buttons. The score is live DOM text.
+   ============================================================================ */
+#cabinet #main-menu {
+  background:#05001b url('./petal-pounce-main-menu.png?v=84') center/100% 100% no-repeat!important;
+}
+#cabinet .neon-main-best {
+  position:absolute;
+  top:5.4%;left:35%;right:35%;
+  z-index:2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;
+  border-radius:8px;
+  padding:5px 2px;
+  background:rgba(3,1,31,.65);
+  border:1px solid rgba(0,229,255,.22);
+  box-shadow:0 0 14px rgba(0,226,255,.12);
+  pointer-events:none;
+}
+#cabinet .neon-main-best > span {
+  font:800 clamp(7px,1.8vw,10px)/1.1 var(--mono,'Courier New',monospace);
+  color:#9df9ff;
+  letter-spacing:.06em;
+  white-space:nowrap;
+}
+#cabinet .neon-main-best .main-menu-best {
+  position:static!important;
+  display:block!important;
+  text-align:center!important;
+  width:auto!important;
+  left:auto!important;top:auto!important;
+  color:#fff3ac!important;
+  font:900 clamp(12px,3.3vw,21px)/1.1 var(--mono,'Courier New',monospace)!important;
+  letter-spacing:0!important;
+  text-shadow:0 0 7px rgba(250,238,113,.63),1px 1px 0 #170735!important;
+  -webkit-text-stroke:0!important;
+}
+#cabinet .main-menu-actions {
+  position:absolute!important;
+  left:23.5%!important;
+  right:23.5%!important;
+  top:49.75%!important;
+  bottom:22.5%!important;
+  display:grid!important;
+  grid-template-rows:1.33fr repeat(3,1fr)!important;
+  gap:clamp(6px,1.2dvh,12px)!important;
+  min-height:0!important;
+  z-index:4;
+}
+#cabinet .arcade-menu-button {
+  --rc32-neon:#ff35f8;
+  width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+  display:flex!important;
+  align-items:center!important;justify-content:center!important;
+  position:relative!important;
+  isolation:isolate!important;
+  margin:0!important;padding:0 8px!important;
+  border:0!important;border-radius:0!important;
+  outline:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#fff4ff!important;
+  text-shadow:0 0 7px var(--rc32-neon),1px 1px 0 #040018!important;
+  -webkit-text-stroke:0!important;
+  font:900 clamp(12px,3.6vw,22px)/1.1 var(--mono,'Courier New',monospace)!important;
+  letter-spacing:.03em!important;
+  cursor:pointer;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  filter:drop-shadow(0 0 7px var(--rc32-neon));
+  transition:filter .12s ease,transform .12s ease;
+}
+#cabinet .arcade-menu-button::before,
+#cabinet .arcade-menu-button::after {
+  content:"";position:absolute;pointer-events:none;
+  clip-path:polygon(7% 0%,93% 0%,100% 25%,100% 75%,93% 100%,7% 100%,0% 75%,0% 25%);
+}
+#cabinet .arcade-menu-button::before {
+  inset:0;
+  background:var(--rc32-neon);
+  z-index:-2;
+}
+#cabinet .arcade-menu-button::after {
+  inset:3px;
+  background:linear-gradient(180deg,rgba(17,6,48,.94),rgba(2,1,27,.96));
+  z-index:-1;
+}
+#cabinet .arcade-menu-play,
+#cabinet .arcade-menu-settings {--rc32-neon:#00eaff;}
+#cabinet .arcade-menu-play {
+  color:#c8faff!important;
+  font-size:clamp(21px,6.7vw,39px)!important;
+}
+#cabinet .arcade-menu-shop,
+#cabinet .arcade-menu-credits {--rc32-neon:#ff35f8;}
+#cabinet .neon-button-content {
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(10px,3vw,16px);position:relative;z-index:3;
+  min-width:0;width:100%;
+  white-space:nowrap;
+}
+#cabinet .arcade-menu-button .arcade-icon {
+  width:clamp(17px,5vw,27px)!important;
+  height:clamp(17px,5vw,27px)!important;
+  flex:none!important;
+  color:inherit!important;
+  filter:drop-shadow(0 0 4px var(--rc32-neon))!important;
+}
+#cabinet .arcade-menu-button .arcade-play-icon {
+  display:inline-block!important;
+  width:auto!important;height:auto!important;
+  color:#ff4df3!important;
+  font-size:clamp(22px,6.5vw,36px)!important;
+  text-shadow:0 0 7px #ff3bf8!important;
+}
+#cabinet .arcade-menu-button:active {
+  transform:scale(.98)!important;
+  filter:drop-shadow(0 0 4px var(--rc32-neon)) brightness(1.2)!important;
+  box-shadow:none!important;
+}
+#cabinet .arcade-menu-button:focus-visible {
+  outline:2px solid white!important;
+  outline-offset:4px!important;
+}
+#cabinet .main-menu-build {
+  color:#96eefe!important;
+  text-shadow:0 0 5px #00dfff!important;
+  bottom:1.2%!important;
+  opacity:.7;
+}
+/* Match the iOS Home Screen status-safe strip to the neon navy instead of the old blue. */
+@media(max-width:560px) {
+  html.ios-standalone #cabinet[data-view="title"]::after {
+    background:linear-gradient(180deg,#03001b,#0b0331)!important;
+  }
+}
+@media(max-width:360px) {
+  #cabinet .main-menu-actions {left:21%!important;right:21%!important;gap:5px!important;}
+  #cabinet .arcade-menu-button {font-size:clamp(11px,3.3vw,14px)!important;}
+  #cabinet .arcade-menu-play {font-size:clamp(17px,6vw,24px)!important;}
+  #cabinet .arcade-menu-button .arcade-icon {width:18px!important;height:18px!important;}
+  #cabinet .neon-button-content {gap:9px;}
+}
+@media(max-height:660px) {
+  #cabinet .main-menu-actions {top:48.5%!important;bottom:18%!important;gap:5px!important;}
+}
+
+/* RC32 pause stacking: game controls are placed BEHIND the paused screen,
+   avoiding the joystick/Fly and utility buttons painting over the popup.
+   The pause dialog's own Keep Flying / End Run buttons remain interactive. */
+@media (max-width:560px) {
+  #cabinet[data-view="paused"] .screen-frame {
+    z-index:120!important;
+  }
+  #cabinet[data-view="paused"] .control-deck,
+  #cabinet[data-view="paused"] .cabinet-bar {
+    z-index:20!important;
+    pointer-events:none!important;
+  }
+}
+
+/* RC34 · Neon Garden — appearance only. Existing hit zones and layout unchanged. */
+#cabinet[data-garden="neon"] .screen .hud strong,
+#cabinet[data-garden="neon"] .screen .hud-center strong { color:#d7f9ff!important;text-shadow:0 0 6px #00ceff95,1px 2px #081123!important; }
+#cabinet[data-garden="neon"] .screen .streak-meter {
+  color:#f7dfff!important;background:rgba(16,12,44,.79)!important;
+  border:1px solid #dd55ed!important;box-shadow:0 0 7px #db27ed55!important;
+}
+#cabinet[data-garden="neon"] .screen .lives {
+  border-color:#41d8f9!important;background:rgba(8,14,37,.83)!important;
+  box-shadow:0 0 9px #22dcff48!important;
+}
+#cabinet[data-garden="neon"] .cabinet-bar #open-shop {
+  border-color:#ef43df!important;background:#100e27e6!important;color:#fff0ff!important;
+  box-shadow:0 0 8px #e629da69!important;
+}
+#cabinet[data-garden="neon"] .control-deck .joystick-control {
+  filter:drop-shadow(0 0 7px #1edcffe0)!important;
+}
+#cabinet[data-garden="neon"] .control-deck .fly-button {
+  filter:drop-shadow(0 0 7px #ff3cddbb)!important;
+}
+#cabinet[data-garden="neon"] .screen .garden-notification.show {
+  border-color:#db70e7!important;box-shadow:0 0 9px #eb44eb44!important;
+}

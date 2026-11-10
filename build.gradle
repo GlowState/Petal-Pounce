@@ -59,10 +59,44 @@ android {
     }
 }
 
+// Fail early if the Android wrapper would bundle stale or missing website files.
+tasks.register('verifyWebAssets') {
+    doLast {
+        def dist = rootProject.file('../dist')
+        def websiteRoot = rootProject.file('..')
+        def required = ['index.html', 'game.mjs', 'engine.mjs', 'scenery.mjs',
+            'flowers.mjs', 'hold-controls.mjs', 'profile.mjs', 'rc40.css',
+            'joystick.css', 'joystick-classic.png', 'fly-classic.png',
+            'petal-arcade.woff2', 'manifest.webmanifest', 'sw.js']
+        def missing = required.findAll { !new File(dist, it).isFile() }
+        if (!missing.isEmpty()) {
+            throw new GradleException('Android web assets missing from dist/: ' + missing.join(', '))
+        }
+        def paired = ['index.html', 'game.mjs', 'joystick.css', 'rc40.css',
+            'sw.js', 'manifest.webmanifest', 'rc39.css', 'rc38.css',
+            'neon-ui.css', 'scenery.mjs', 'profile.mjs']
+        def stale = paired.findAll { name ->
+            def left = new File(websiteRoot, name)
+            def right = new File(dist, name)
+            !left.isFile() || !right.isFile() || !java.util.Arrays.equals(left.bytes, right.bytes)
+        }
+        if (!stale.isEmpty()) {
+            throw new GradleException('Root/dist mismatch, refusing Android build: ' + stale.join(', '))
+        }
+        if (!new File(dist, 'index.html').text.contains('game.mjs?v=91')) {
+            throw new GradleException('Android app must package current Petal Pounce RC40 files')
+        }
+    }
+}
+
 tasks.register('syncWebAssets', Sync) {
     from rootProject.file('../dist')
     into generatedWebAssets
     exclude '**/.DS_Store'
+}
+
+tasks.named('syncWebAssets').configure {
+    dependsOn tasks.named('verifyWebAssets')
 }
 
 tasks.named('preBuild').configure {
