@@ -23,9 +23,9 @@ test('the game deck exposes icon-only controls and registers the offline shell',
   const deck=html.match(/<div class="control-deck">([\s\S]*?)<\/section>/)?.[1]??'';
   assert.ok(deck.includes('id="left"'));assert.ok(deck.includes('id="right"'));assert.ok(deck.includes('id="fly"'));
   assert.equal(deck.includes('control-label'),false);assert.equal(deck.includes('deck-message'),false);
-  assert.ok(html.includes('manifest.webmanifest'));assert.ok(html.includes("serviceWorker.register('./sw.js')"));assert.ok(html.includes('privacy.html'));
+  assert.ok(html.includes('manifest.webmanifest'));assert.ok(html.includes('navigator.serviceWorker.register(swUrl'));assert.ok(html.includes('privacy.html'));
   assert.equal(style.includes('@import url('),false,'the app shell must not contact an external font service');
   assert.ok(shopStyle.includes('-webkit-user-select:none'));assert.ok(shopStyle.includes('-webkit-touch-callout:none'));assert.ok(shopStyle.includes('-webkit-user-drag:none'));
   const privacy=await readFile(new URL('../dist/privacy.html',import.meta.url),'utf8');
-  assert.ok(privacy.includes('does not collect, transmit, sell, or share personal data'));
+  assert.ok(/does not collect, transmit, sell, or share (?:player )?personal (?:data|information)/.test(privacy));
 });

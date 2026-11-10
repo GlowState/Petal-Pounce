@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="./rc38.css?v=89">
   <link rel="stylesheet" href="./rc39.css?v=90">
   <link rel="stylesheet" href="./rc40.css?v=91">
+  <link rel="stylesheet" href="./rc41.css?v=92">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -187,7 +188,7 @@
               <button id="play" class="play-button">LET’S FLY <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC40 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC41 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Main Menu</button>
             </div>
           </div>
@@ -220,7 +221,7 @@
             <button id="main-menu-records" class="arcade-menu-button arcade-menu-records" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">★</span><span>HIGH SCORES</span></span></button>
             <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">⚙</span><span>OPTIONS</span></span></button>
           </nav>
-          <span class="main-menu-build" aria-label="Release version">RC40</span>
+          <span class="main-menu-build" aria-label="Release version">RC41</span>
         </section>
       </section>
 
@@ -328,7 +329,7 @@
       </details>
     </section>
     <p class="rc39-help-bottom"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
-    <button class="play-button rc39-help-done" id="got-it">GOT IT. LET’S BUZZ <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button>
+    <button class="play-button rc39-help-done" id="got-it">GOT IT? LET’S POUNCE. <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button>
   </dialog>
   <dialog id="shop-dialog" class="garden-shop rc37-dialog rc37-shop" aria-labelledby="shop-title">
     <button class="dialog-close" id="close-shop" aria-label="Close Flower Shop">×</button>
@@ -350,8 +351,8 @@
     <div class="shop-footer rc37-footer"><button id="shop-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
   <dialog id="records-dialog" class="progress-dialog rc37-dialog rc37-records" aria-labelledby="records-title">
-    <button class="dialog-close" id="close-records" aria-label="Close High Scores">×</button>
-    <h2 id="records-title" class="rc37-dialog-title">High Scores</h2>
+    <button class="dialog-close" id="close-records" aria-label="Close Records and Achievements">×</button>
+    <h2 id="records-title" class="rc37-dialog-title">Records</h2>
     <div class="rc37-tabs" role="tablist" aria-label="High scores and achievements">
       <button id="scores-tab-records" class="rc37-tab active" role="tab" aria-controls="scores-records-panel" aria-selected="true">RECORDS</button>
       <button id="scores-tab-achievements" class="rc37-tab" role="tab" aria-controls="scores-achievements-panel" aria-selected="false">ACHIEVEMENTS</button>
@@ -386,7 +387,7 @@
     <div class="rc37-credit-bee"><img src="./bee-life-neon.svg" alt="Petal Pounce bee life emblem"></div>
     <div class="progress-footer"><button id="credits-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=91"></script>
+  <script type="module" src="./game.mjs?v=92"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -394,7 +395,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=91';
+      const swUrl='./sw.js?v=92';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())

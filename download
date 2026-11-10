@@ -1,7 +1,8 @@
+# Protect Android signing credentials
 *.jks
 *.keystore
-*.apk
-*.aab
-.gradle/
-**/build/
 local.properties
+**/.gradle/
+**/build/
+.idea/
+.DS_Store
