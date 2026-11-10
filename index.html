@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="./shop.css?v=68">
   <link rel="stylesheet" href="./retro-arcade.css?v=68">
   <link rel="stylesheet" href="./zoom-B.css?v=68">
-  <link rel="stylesheet" href="./joystick.css?v=83">
+  <link rel="stylesheet" href="./joystick.css?v=84">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -182,7 +182,7 @@
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC31 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC32 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -207,14 +207,14 @@
         <!-- RC27: independent full-cabinet title screen. The pixel-art is a background asset;
              all buttons and the personal best are live HTML, never baked into the image. -->
         <section id="main-menu" class="main-menu" aria-label="Petal Pounce main menu">
-          <strong id="main-menu-best" class="main-menu-best" aria-label="Personal best score">000000</strong>
+          <div class="neon-main-best" aria-label="Saved personal best"><span>BEST SCORE</span><strong id="main-menu-best" class="main-menu-best">000000</strong></div>
           <nav class="main-menu-actions" aria-label="Main menu actions">
-            <button id="main-menu-play" class="arcade-menu-button arcade-menu-play" type="button"><span class="arcade-icon arcade-play-icon" aria-hidden="true">▶</span><span>PLAY</span></button>
-            <button id="main-menu-help" class="arcade-menu-button" type="button"><svg class="arcade-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 7h11l2 3 2-3h11v19H18l-2 2-2-2H3Z" fill="#fff0c5" stroke="#100921" stroke-width="3" stroke-linejoin="miter"/><path d="M16 10v17M6 12h7M19 12h7M6 17h7M19 17h7M6 22h7M19 22h7" fill="none" stroke="#8c4597" stroke-width="2"/></svg><span>HOW TO PLAY</span></button>
-            <button id="main-menu-records" class="arcade-menu-button" type="button"><svg class="arcade-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M8 4h16v6h5v7l-5 4h-5v4h5v4H8v-4h5v-4H8l-5-4v-7h5Z" fill="#ffd23c" stroke="#100921" stroke-width="3"/><path d="M10 7h12v9l-6 4-6-4Z" fill="#ffe97b"/><path d="M8 12H6v4l3 2m15-6h2v4l-3 2" fill="none" stroke="#100921" stroke-width="2"/></svg><span>HIGH SCORES</span></button>
-            <button id="main-menu-options" class="arcade-menu-button" type="button"><svg class="arcade-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M12 2h8l1 5 4 2 4-2 3 7-4 3v4l2 4-6 5-4-3h-7l-4 3-5-5 2-4v-5L2 13l4-6 5 2 2-2Z" fill="#fff2d4" stroke="#110c24" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="#50216d" stroke="#110c24" stroke-width="2"/></svg><span>OPTIONS</span></button>
+            <button id="main-menu-play" class="arcade-menu-button arcade-menu-play" type="button"><span class="neon-button-content"><span class="arcade-icon arcade-play-icon" aria-hidden="true">▶</span><span>PLAY</span></span></button>
+            <button id="main-menu-shop" class="arcade-menu-button arcade-menu-shop" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M2 5h5l3.5 17h15l3-12H9"/><path d="M11 22h14"/><circle cx="13" cy="27" r="2"/><circle cx="24" cy="27" r="2"/></svg><span>SHOP</span></span></button>
+            <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M12 3h8l1 4 4 2 4-1 2 7-4 2v4l3 3-5 5-4-2h-8l-4 2-5-5 3-3v-5l-3-2 2-7 4 2 3-2z"/><circle cx="16" cy="16" r="5"/></svg><span>SETTINGS</span></span></button>
+            <button id="main-menu-credits" class="arcade-menu-button arcade-menu-credits" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.7" aria-hidden="true"><circle cx="16" cy="16" r="12"/><path d="M16 14v10M16 9v2"/></svg><span>CREDITS</span></span></button>
           </nav>
-          <span class="main-menu-build" aria-label="Release version">RC31</span>
+          <span class="main-menu-build" aria-label="Release version">RC32</span>
         </section>
       </section>
 
@@ -230,6 +230,8 @@
     <div class="arcade-options-grid">
       <button type="button" id="options-sound" class="arcade-options-action">SOUND: OFF</button>
       <button type="button" id="options-shop" class="arcade-options-action">GARDEN SHOP</button>
+      <button type="button" id="options-help" class="arcade-options-action">HOW TO PLAY</button>
+      <button type="button" id="options-records" class="arcade-options-action">HIGH SCORES</button>
       <button type="button" id="options-achievements" class="arcade-options-action">ACHIEVEMENTS</button>
       <button type="button" id="options-credits" class="arcade-options-action">CREDITS</button>
     </div>
@@ -294,11 +296,11 @@
     <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
     <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
     <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
-    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC31</strong></div></div>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC32</strong></div></div>
     <p class="progress-intro">Thank you for taking one more flight.</p>
     <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=83"></script>
+  <script type="module" src="./game.mjs?v=84"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -306,7 +308,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=83';
+      const swUrl='./sw.js?v=84';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())

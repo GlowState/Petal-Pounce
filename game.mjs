@@ -5,7 +5,7 @@ import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=68';
 import { paintFlower } from './flowers.mjs?v=68';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC31';
+const APP_VERSION = '1.0 RC32';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog','options-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -508,7 +508,8 @@ function openRecords() { renderRecords(); $('records-dialog').showModal(); }
 function openAchievements() { renderAchievements(); $('achievements-dialog').showModal(); }
 function openCredits() { $('credits-version').textContent = `PETAL POUNCE · ${APP_VERSION}`; $('credits-dialog').showModal(); }
 $('open-records').addEventListener('click', openRecords);
-$('main-menu-records').addEventListener('click', openRecords);
+$('options-records').addEventListener('click', () => { $('options-dialog').close(); openRecords(); });
+$('main-menu-credits').addEventListener('click', openCredits);
 $('open-achievements').addEventListener('click', openAchievements);
 $('close-records').addEventListener('click', () => $('records-dialog').close());
 $('records-done').addEventListener('click', () => $('records-dialog').close());
@@ -599,7 +600,7 @@ function openHelp() {
   $('help-dialog').showModal();
 }
 $('help').addEventListener('click', openHelp);
-$('main-menu-help').addEventListener('click', openHelp);
+$('options-help').addEventListener('click', () => { $('options-dialog').close(); openHelp(); });
 $('close-help').addEventListener('click', () => $('help-dialog').close());
 $('got-it').addEventListener('click', () => $('help-dialog').close());
 $('help-dialog').addEventListener('close', () => {
@@ -637,6 +638,7 @@ function openShop() {
   renderShop();$('shop-dialog').showModal();
 }
 $('open-shop').addEventListener('click',openShop);
+$('main-menu-shop').addEventListener('click', openShop);
 $('close-shop').addEventListener('click',()=>$('shop-dialog').close());
 $('shop-done').addEventListener('click',()=>$('shop-dialog').close());
 $('shop-dialog').addEventListener('close',()=>{
