@@ -1,0 +1,285 @@
+/*
+ * PETAL POUNCE — NEON UI ADDON A
+ * Visual layer only. No gameplay, physics, controls, progression or canvas rules.
+ */
+
+:root {
+  --neon-night:#05001b;
+  --neon-night-2:#0a0431;
+  --neon-panel:rgba(5,1,32,.91);
+  --neon-panel-soft:rgba(11,6,48,.78);
+  --neon-cyan:#00eaff;
+  --neon-cyan-soft:#9df9ff;
+  --neon-pink:#ff35f8;
+  --neon-pink-soft:#ffb4ff;
+  --neon-gold:#ffe878;
+  --neon-copy:#e8faff;
+  --neon-muted:#a7c8d7;
+  --neon-shadow:0 0 7px currentColor,0 0 18px rgba(0,234,255,.34);
+}
+
+/* Every non-gameplay page shares the home-screen garden artwork. */
+dialog,
+#cabinet .screen #overlay:not([data-mode="title"]) {
+  color:var(--neon-copy)!important;
+  background-color:var(--neon-night)!important;
+  background-image:
+    linear-gradient(rgba(5,0,27,.55),rgba(5,0,27,.77)),
+    url('./neon-ui-backdrop.png?v=85')!important;
+  background-position:center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+
+dialog {
+  box-sizing:border-box!important;
+  border:2px solid var(--neon-cyan)!important;
+  border-radius:12px!important;
+  box-shadow:
+    0 0 0 2px rgba(255,53,248,.72),
+    0 0 20px rgba(0,234,255,.54),
+    0 0 42px rgba(255,53,248,.30),
+    inset 0 0 26px rgba(0,234,255,.08)!important;
+}
+
+dialog::backdrop {
+  background:rgba(1,0,14,.82)!important;
+  backdrop-filter:blur(7px) saturate(1.25)!important;
+}
+
+dialog .eyebrow,
+dialog .hud-caption,
+dialog .flower-variety,
+dialog .garden-price-note,
+dialog .shop-status,
+dialog .shop-footer>span {
+  color:var(--neon-cyan-soft)!important;
+  text-shadow:0 0 7px rgba(0,234,255,.72)!important;
+}
+
+dialog h2,
+dialog h3,
+#cabinet .screen #overlay:not([data-mode="title"]) .game-title {
+  color:#fff!important;
+  text-shadow:
+    0 0 3px #fff,
+    0 0 9px var(--neon-cyan),
+    0 0 18px var(--neon-pink)!important;
+  -webkit-text-stroke:0!important;
+}
+
+dialog .progress-intro,
+dialog>p,
+dialog .help-row p,
+dialog .achievement-copy p,
+dialog .quick-start-card p,
+dialog .shop-intro,
+dialog .shop-status,
+#cabinet .screen #overlay:not([data-mode="title"]) #menu-description {
+  color:var(--neon-copy)!important;
+  text-shadow:0 1px 2px #020014!important;
+}
+
+/* Neon card system across Settings, Help, Shop, Records, Achievements and tutorial. */
+dialog .arcade-options-action,
+dialog .help-row,
+dialog .record-card,
+dialog .achievement-card,
+dialog .achievement-summary,
+dialog .quick-start-card,
+dialog .credits-list>div,
+dialog .shop-card,
+dialog .shop-wallet {
+  border:1px solid rgba(0,234,255,.66)!important;
+  border-radius:8px!important;
+  background:linear-gradient(145deg,rgba(11,5,49,.92),rgba(2,1,26,.88))!important;
+  box-shadow:
+    0 0 10px rgba(0,234,255,.17),
+    inset 0 0 12px rgba(255,53,248,.06)!important;
+  color:var(--neon-copy)!important;
+}
+
+dialog .arcade-options-action:nth-child(even),
+dialog .record-card:nth-child(even),
+dialog .achievement-card:nth-child(even),
+dialog .quick-start-card:nth-child(even),
+dialog .shop-card:nth-child(even) {
+  border-color:rgba(255,53,248,.72)!important;
+  box-shadow:0 0 10px rgba(255,53,248,.17),inset 0 0 12px rgba(0,234,255,.06)!important;
+}
+
+dialog .help-row>span,
+dialog .record-card span,
+dialog .quick-start-card>span,
+dialog .credits-list span,
+dialog .shop-card h3,
+dialog .achievement-copy h3,
+dialog .achievement-summary strong {
+  color:var(--neon-cyan-soft)!important;
+  text-shadow:0 0 6px rgba(0,234,255,.58)!important;
+}
+
+dialog .record-card strong,
+dialog .shop-wallet strong,
+dialog .achievement-reward,
+dialog .credits-list strong,
+dialog .equipped-badge {
+  color:var(--neon-gold)!important;
+  text-shadow:0 0 8px rgba(255,232,120,.62)!important;
+}
+
+dialog .achievement-badge {
+  border:2px solid var(--neon-pink)!important;
+  background:rgba(14,4,49,.92)!important;
+  color:var(--neon-gold)!important;
+  box-shadow:0 0 10px rgba(255,53,248,.65),inset 0 0 9px rgba(0,234,255,.20)!important;
+}
+
+dialog .achievement-progress {
+  background:#020015!important;
+  border:1px solid rgba(0,234,255,.35)!important;
+}
+
+dialog .achievement-progress span {
+  background:linear-gradient(90deg,var(--neon-cyan),var(--neon-pink))!important;
+  box-shadow:0 0 8px var(--neon-pink)!important;
+}
+
+dialog .shop-card canvas {
+  border:1px solid rgba(255,53,248,.55)!important;
+  border-radius:6px!important;
+  box-shadow:0 0 12px rgba(255,53,248,.20)!important;
+}
+
+/* Reusable chamfered home-screen button language. */
+dialog .play-button,
+dialog .garden-action,
+dialog .classic-equip,
+dialog .achievement-equip,
+#cabinet .screen #overlay:not([data-mode="title"]) .play-button,
+#cabinet .screen #overlay:not([data-mode="title"]) .secondary-button {
+  --menu-neon:var(--neon-cyan);
+  position:relative!important;
+  isolation:isolate!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#f6feff!important;
+  text-shadow:0 0 7px var(--menu-neon),1px 1px 0 #020014!important;
+  box-shadow:none!important;
+  filter:drop-shadow(0 0 6px rgba(0,234,255,.68))!important;
+  clip-path:polygon(7% 0,93% 0,100% 24%,100% 76%,93% 100%,7% 100%,0 76%,0 24%)!important;
+  background-image:
+    linear-gradient(var(--neon-panel),var(--neon-panel)),
+    linear-gradient(90deg,var(--menu-neon),var(--neon-pink))!important;
+  background-origin:border-box!important;
+  background-clip:padding-box,border-box!important;
+  border:3px solid transparent!important;
+}
+
+dialog .garden-action,
+dialog .achievement-equip,
+dialog .classic-equip,
+#cabinet .screen #overlay:not([data-mode="title"]) .secondary-button {
+  --menu-neon:var(--neon-pink);
+}
+
+dialog button:disabled {
+  opacity:.52!important;
+  filter:saturate(.45)!important;
+}
+
+dialog button:not(:disabled):active,
+#cabinet .screen #overlay:not([data-mode="title"]) button:active {
+  transform:translateY(2px) scale(.985)!important;
+  filter:brightness(1.2) drop-shadow(0 0 5px currentColor)!important;
+}
+
+dialog button:focus-visible,
+#cabinet .screen #overlay:not([data-mode="title"]) button:focus-visible {
+  outline:2px solid #fff!important;
+  outline-offset:3px!important;
+}
+
+dialog .dialog-close {
+  width:40px!important;
+  height:40px!important;
+  border:2px solid var(--neon-pink)!important;
+  border-radius:50%!important;
+  background:rgba(5,1,31,.94)!important;
+  color:#fff!important;
+  box-shadow:0 0 12px rgba(255,53,248,.72),inset 0 0 8px rgba(0,234,255,.16)!important;
+  text-shadow:0 0 6px var(--neon-pink)!important;
+}
+
+/* Pause, revival and game-over overlays now belong to the same neon menu family. */
+#cabinet .screen #overlay:not([data-mode="title"]) {
+  backdrop-filter:blur(4px) saturate(1.2)!important;
+}
+
+#cabinet .screen #overlay[data-mode="paused"]:not([hidden]),
+#cabinet .screen #overlay[data-mode="over"]:not([hidden]) {
+  background:
+    linear-gradient(rgba(5,0,27,.48),rgba(5,0,27,.72)),
+    url('./neon-ui-backdrop.png?v=85') center/cover no-repeat!important;
+}
+
+#cabinet .screen #overlay:not([data-mode="title"]) .menu-panel {
+  border:2px solid var(--neon-cyan)!important;
+  border-radius:12px!important;
+  background:linear-gradient(160deg,rgba(10,4,46,.94),rgba(2,1,25,.96))!important;
+  box-shadow:
+    0 0 0 2px rgba(255,53,248,.58),
+    0 0 23px rgba(0,234,255,.40),
+    inset 0 0 18px rgba(255,53,248,.08)!important;
+}
+
+#cabinet .screen #overlay[data-mode="paused"] .menu-panel {
+  overflow:hidden!important;
+}
+
+#cabinet .screen #overlay[data-mode="paused"] .game-title {
+  overflow:visible!important;
+}
+
+#cabinet .screen #overlay:not([data-mode="title"]) .menu-tag {
+  color:var(--neon-cyan-soft)!important;
+  text-shadow:0 0 6px rgba(0,234,255,.66)!important;
+}
+
+/* Scrollbars stay visible but use the same home-screen colors. */
+dialog,
+dialog * {
+  scrollbar-color:var(--neon-pink) rgba(3,1,26,.72);
+  scrollbar-width:thin;
+}
+
+dialog::-webkit-scrollbar,
+dialog *::-webkit-scrollbar {width:7px;height:7px}
+dialog::-webkit-scrollbar-track,
+dialog *::-webkit-scrollbar-track {background:rgba(3,1,26,.72)}
+dialog::-webkit-scrollbar-thumb,
+dialog *::-webkit-scrollbar-thumb {
+  border-radius:8px;
+  background:linear-gradient(var(--neon-cyan),var(--neon-pink));
+  box-shadow:0 0 7px rgba(255,53,248,.68);
+}
+
+@media(max-width:560px) {
+  dialog {
+    width:min(94vw,700px)!important;
+    max-height:88dvh!important;
+    padding:24px 15px 20px!important;
+  }
+  dialog.garden-shop {padding:22px 12px 18px!important}
+  dialog .dialog-close {width:36px!important;height:36px!important}
+  dialog .help-row {padding:10px!important}
+  dialog .arcade-options-grid {gap:8px!important}
+  dialog .arcade-options-action {min-height:48px!important}
+}
+
+@media(prefers-reduced-motion:reduce) {
+  dialog *,
+  #cabinet .screen #overlay:not([data-mode="title"]) * {transition:none!important;animation:none!important}
+}
+

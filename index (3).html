@@ -3,22 +3,136 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#171e20">
+  <meta name="theme-color" content="#2c424d">
+  <!-- Match the garden floor where iOS paints an unreachable Home Screen bottom band. -->
+  <style>html,body{background-color:#2c424d}</style>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="application-name" content="Petal Pounce">
   <meta name="description" content="Fly through endless gardens in Petal Pounce. Bank flowers, unlock permanent backgrounds and keep your favorite garden equipped. Three lives, one sweet adventure.">
   <title>Petal Pounce — The wildflower chase</title>
-  <script>if(new URLSearchParams(location.search).get('app')==='android')document.documentElement.classList.add('android-shell')</script>
+  <script>
+    (()=>{
+      const root=document.documentElement;
+      if(new URLSearchParams(location.search).get('app')==='android')root.classList.add('android-shell');
+      if(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)root.classList.add('ios-standalone');
+    })();
+  </script>
   <link rel="icon" href="./bee.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./style.css?v=16">
-  <link rel="stylesheet" href="./shop.css?v=16">
-  <link rel="stylesheet" href="./retro-arcade.css?v=17">
-  <link rel="stylesheet" href="./zoom-B.css?v=19">
-  <link rel="stylesheet" href="./joystick.css?v=26">
+  <link rel="manifest" href="./manifest.webmanifest?v=81">
+  <link rel="stylesheet" href="./style.css?v=68">
+  <link rel="stylesheet" href="./shop.css?v=68">
+  <link rel="stylesheet" href="./retro-arcade.css?v=68">
+  <link rel="stylesheet" href="./zoom-B.css?v=68">
+  <link rel="stylesheet" href="./joystick.css?v=84">
+  <link rel="stylesheet" href="./neon-ui.css?v=85">
+  <style>
+    .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
+    .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
+    .new-best-callout,.best-gap-callout{display:inline-block;margin-bottom:3px;font:700 11px var(--mono);letter-spacing:1.3px;color:#ffe18b}.new-best-callout{animation:new-best-pulse .75s ease-in-out infinite alternate;text-shadow:0 0 10px #ffe18b99}.best-gap-callout{color:#d5e5c7}
+    .garden-notification{position:absolute;z-index:72;right:12px;bottom:12px;width:min(224px,calc(100% - 132px));height:74px;box-sizing:border-box;display:grid;grid-template-columns:50px minmax(0,1fr);align-items:center;gap:8px;padding:7px 10px 7px 7px;border:2px solid #ffe49a;border-radius:37px 11px 11px 37px;background:linear-gradient(145deg,#fff0ae,#efbd56);box-shadow:0 6px 0 #966423,0 9px 22px #07100b80,0 0 18px #ffe38a42;color:#273c2f;pointer-events:none;overflow:hidden}
+    .garden-notification[hidden]{display:none!important}.garden-notification.show{animation:garden-notice 2.65s cubic-bezier(.2,.8,.2,1) both}.garden-notice-medallion{display:grid;place-items:center;width:46px;height:46px;box-sizing:border-box;border:2px solid #fff0a4;border-radius:50%;background:#4d6548;color:#e6b5ff;font:900 23px/1 var(--mono);text-shadow:0 2px #2b3f2c;box-shadow:inset 0 0 0 3px #354b37,0 2px 0 #9d6f2f,0 0 13px #e8bcff75}.garden-notification[data-kind="achievement"] .garden-notice-medallion{color:#fff1a0}
+    .garden-notice-copy{min-width:0;display:grid;align-content:center;gap:6px;overflow:hidden}.garden-notice-copy strong,.garden-notice-copy span{display:block;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:clip}.garden-notice-copy strong{font:900 12px/1.05 var(--mono);letter-spacing:.55px;color:#263b2e;text-shadow:0 1px #fff3bd}.garden-notice-copy span{font:800 9px/1.05 var(--mono);letter-spacing:.25px;color:#4a4932}.garden-notice-copy.compact strong{font-size:11px;letter-spacing:.2px}.garden-notice-copy.compact span{font-size:8px;letter-spacing:0}.garden-notice-copy.extra-compact strong{font-size:10px;letter-spacing:0}.garden-notice-copy.extra-compact span{font-size:7px;letter-spacing:0}
+    .meta-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,552px);margin:12px auto 0}.meta-button{min-height:46px;padding:10px 12px;border:2px solid #65725d;border-radius:6px;background:linear-gradient(#354638,#26362c);box-shadow:0 5px 0 #15241c;color:#f6efcf;font:800 12px var(--mono);letter-spacing:1.5px;text-shadow:1px 2px #18251d;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}.meta-button:active{transform:translateY(3px);box-shadow:0 2px 0 #15241c}.meta-button:focus-visible{outline:3px solid #ffe081;outline-offset:3px}
+    .feedback-flash{position:absolute;inset:0;z-index:58;pointer-events:none;opacity:0}.feedback-flash.show.hit{animation:feedback-hit .52s ease-out}.feedback-flash.show.near{animation:feedback-near .36s ease-out}.feedback-flash.show.wind{animation:feedback-wind .5s ease-out}.feedback-flash.show.beetle{animation:feedback-beetle .42s ease-out}.title-version{margin:5px auto 0;padding:4px 8px;border:0;background:transparent;color:#bdcbb7;font:700 7px var(--mono);letter-spacing:1.4px;text-decoration:underline;text-underline-offset:3px;cursor:pointer;touch-action:manipulation}.title-version:hover{color:#fff0a4}.title-version:focus-visible{outline:2px solid #ffe081;outline-offset:2px}
+    dialog.progress-dialog{width:min(92vw,700px);max-height:min(86vh,760px);padding:28px;border:2px solid #718064;border-radius:12px;background:linear-gradient(160deg,#24362d,#15231c);box-shadow:0 22px 70px #07100bd9;color:#f7f0d4}.progress-dialog::backdrop{background:#07100bc9;backdrop-filter:blur(4px)}.progress-dialog h2{margin:2px 0 8px;color:#ffe18a;font:900 clamp(25px,6vw,42px) var(--display);letter-spacing:1px}.progress-intro{margin:0 0 18px;color:#ceddc5;line-height:1.5}.records-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.record-card{padding:14px;border:1px solid #65725d;border-radius:7px;background:#1a2b22}.record-card span{display:block;color:#b9c9b1;font:700 9px var(--mono);letter-spacing:1.3px}.record-card strong{display:block;margin-top:7px;color:#fff0a4;font:900 24px var(--mono);letter-spacing:1px}.achievement-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:10px 12px;border:1px solid #61705a;border-radius:7px;background:#182920}.achievement-summary strong{color:#ffe18a;font:900 12px var(--mono);letter-spacing:1.2px}.classic-equip{min-height:38px;padding:7px 10px;border:1px solid #78856f;border-radius:5px;background:#304337;color:#f6efcf;font:700 9px var(--mono);letter-spacing:1px;touch-action:manipulation}.classic-equip:disabled{opacity:.65}.achievements-list{display:grid;gap:9px}.achievement-card{padding:12px;border:1px solid #596855;border-radius:8px;background:#192b22}.achievement-card.locked{filter:saturate(.5);opacity:.72}.achievement-heading{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}.achievement-badge{display:grid;place-items:center;width:38px;height:38px;border:2px solid #687860;border-radius:50%;background:#2b4032;color:#d9e4d0;font:900 15px var(--mono)}.achievement-card.unlocked .achievement-badge{border-color:#ffe18a;background:#526247;color:#ffe99c;box-shadow:0 0 15px #ffe58a45}.achievement-copy h3{margin:0;color:#f7efd0;font:900 12px var(--mono);letter-spacing:.7px}.achievement-copy p{margin:4px 0 0;color:#bccab5;font-size:13px;line-height:1.35}.achievement-progress{height:5px;margin:10px 0 8px;border-radius:5px;background:#0e1d16;overflow:hidden}.achievement-progress span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#7ca567,#ffe18a);transition:width .3s ease}.achievement-footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.achievement-reward{display:block;color:#ffe08a;font:700 9px var(--mono);letter-spacing:.7px}.achievement-equip{min-width:72px;min-height:36px;padding:7px;border:1px solid #7f8b75;border-radius:5px;background:#33483a;color:#fff0d0;font:700 8px var(--mono);letter-spacing:.7px;touch-action:manipulation}.achievement-equip:disabled{opacity:.55}.progress-footer{display:flex;justify-content:flex-end;margin-top:18px}.progress-footer .play-button{width:auto;min-width:230px;margin:0}
+    .quick-start-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}.quick-start-card{padding:14px;border:1px solid #65725d;border-radius:8px;background:#182a21}.quick-start-card span{display:block;margin-bottom:6px;color:#ffe18a;font:900 10px var(--mono);letter-spacing:1px}.quick-start-card p{margin:0;color:#d2ddca;font-size:13px;line-height:1.45}.credits-list{display:grid;gap:9px;margin:18px 0}.credits-list div{display:flex;justify-content:space-between;gap:18px;padding:11px;border-bottom:1px solid #53604f}.credits-list span{color:#b9c8b1;font:700 9px var(--mono);letter-spacing:1px}.credits-list strong{color:#fff0a4;text-align:right}.credits-version{color:#e8c4ff;font:800 10px var(--mono);letter-spacing:1.5px}
+    @keyframes streak-pop{from{transform:scale(.8);opacity:.2}to{transform:scale(1);opacity:1}}@keyframes new-best-pulse{to{transform:scale(1.04);filter:brightness(1.18)}}
+    @keyframes garden-notice{0%{opacity:0;transform:translate(18px,12px) scale(.88)}10%{opacity:1;transform:translate(0,0) scale(1.035)}17%,82%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(10px,8px) scale(.96)}}@keyframes feedback-hit{0%{opacity:.82;background:#ff5d5540;box-shadow:inset 0 0 0 9px #ff9b76,inset 0 0 70px #d62d2d}100%{opacity:0;background:transparent;box-shadow:inset 0 0 0 0 transparent}}@keyframes feedback-near{0%{opacity:.72;box-shadow:inset 0 0 38px #fff09e,inset 0 0 0 3px #fff4bd}100%{opacity:0;box-shadow:inset 0 0 0 transparent}}@keyframes feedback-wind{0%{opacity:.55;box-shadow:inset 30px 0 55px #c9edff88,inset -30px 0 55px #c9edff88}100%{opacity:0;box-shadow:inset 0 0 0 transparent}}@keyframes feedback-beetle{0%{opacity:.68;box-shadow:inset 0 15px 36px #ffb866aa,inset 0 0 0 2px #ffd280}100%{opacity:0;box-shadow:inset 0 0 0 transparent}}
+    @media(max-width:560px){.streak-meter{font-size:6px;letter-spacing:.4px;padding:2px 4px}.new-best-callout,.best-gap-callout{font-size:9px}.meta-actions{gap:7px;margin-top:9px}.meta-button{min-height:42px;font-size:9px;letter-spacing:1px}.garden-notification{right:9px;bottom:9px;width:min(218px,calc(100% - 126px));height:70px;grid-template-columns:47px minmax(0,1fr);gap:6px;padding-right:8px}.garden-notice-medallion{width:44px;height:44px;font-size:22px}.records-grid{gap:7px}.record-card{padding:10px}.record-card strong{font-size:19px}.achievement-heading{gap:9px}.achievement-footer{align-items:flex-start;flex-direction:column}.achievement-equip{align-self:flex-start}.progress-dialog{padding:22px 16px}.progress-footer .play-button{width:100%;min-width:0}.quick-start-grid{grid-template-columns:1fr;gap:7px}.quick-start-card{padding:11px}.credits-list div{align-items:flex-start;flex-direction:column;gap:4px}.credits-list strong{text-align:left}}
+    @media(max-width:365px){.garden-notification{bottom:72px;width:min(210px,calc(100% - 18px))}}
+    @media(max-width:560px){
+      .cabinet-bar{background:transparent;border-radius:0;box-shadow:none;backdrop-filter:none}
+      .best-label{display:none!important}
+      .tools{margin-left:auto}
+      .tools .icon-button{filter:drop-shadow(0 2px 3px #07100bcc)}
+      .lives{left:12px;bottom:12px;padding:6px 8px;gap:4px;border-radius:5px}
+      .lives .lives-count{font-size:17px}
+      .lives>span{font-size:7px;letter-spacing:.8px;margin-right:2px}
+      .lives img{width:16px;height:16px}
+    }
+    /* RC16: one continuous Bee Garden cabinet. This layer is decorative only;
+       gameplay input geometry and the game simulation remain unchanged. */
+    .cabinet{
+      border:3px solid #ff3f8f!important;
+      box-shadow:inset 0 0 0 1px #f2be42,0 0 0 1px #641535,0 20px 54px #0006,0 0 18px #ff3f8f2e!important;
+    }
+    .cabinet-trim-art{position:absolute;inset:0;z-index:40;pointer-events:none;overflow:hidden;border-radius:inherit}
+    .cabinet-trim-art .trim-honey{position:absolute;top:5px;width:34px;height:24px;opacity:.62;filter:drop-shadow(0 0 3px #f0b73355)}
+    .cabinet-trim-art .trim-honey path{fill:none;stroke:#f5bd36;stroke-width:1.7;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .cabinet-trim-art .trim-honey-left{left:5px}.cabinet-trim-art .trim-honey-right{right:5px;transform:scaleX(-1)}
+    .cabinet-trim-art .trim-flight{position:absolute;top:24%;bottom:25%;width:12px;opacity:.38}
+    .cabinet-trim-art .trim-flight::before,.cabinet-trim-art .trim-flight::after{content:"";position:absolute;border:1px solid #f2bd42;border-left:0;border-radius:0 100% 100% 0}
+    .cabinet-trim-art .trim-flight::before{inset:2% 1px 48% 3px}.cabinet-trim-art .trim-flight::after{inset:50% 3px 3% 1px;transform:scaleX(-1)}
+    .cabinet-trim-art .trim-flight-left{left:1px}.cabinet-trim-art .trim-flight-right{right:1px;transform:scaleX(-1)}
+    .control-deck{
+      position:relative;
+      isolation:isolate;
+      overflow:hidden;
+      padding:0!important;
+      gap:0!important;
+      border:0!important;
+      background:#10251d url('./control-panel-base.png?v=68') center/100% 100% no-repeat!important;
+      box-shadow:inset 0 1px 0 #fff2a3,0 -3px 12px #07100baa!important;
+    }
+    .control-deck::before,.control-deck::after{content:none!important}
+    .control-deck .move-controls,
+    .control-deck .fly-controls{position:absolute!important;z-index:2;top:0;bottom:0;margin:0!important;background:transparent!important}
+    .control-deck .move-controls{left:0;width:55%}
+    .control-deck .fly-controls{right:0;width:45%;display:grid!important;place-items:center!important}
+    .control-deck .joystick-touch-zone{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+    .control-deck .joystick-control{opacity:1!important;pointer-events:none!important;background:transparent!important}
+    .control-deck .joystick-panel{background:transparent!important;box-shadow:none!important}
+    .control-deck .joystick-well{opacity:0!important}
+    .control-deck .joystick-stick{
+      width:116px!important;height:116px!important;margin:-58px 0 0 -58px!important;
+      border:0!important;background:transparent url('./joystick-classic.png?v=68') center/contain no-repeat!important;
+      box-shadow:none!important;filter:drop-shadow(0 5px 5px #07100b99);will-change:transform,filter;
+      transition:transform .11s cubic-bezier(.2,.85,.3,1),filter .11s ease!important
+    }
+    .control-deck .joystick-stick>*{display:none!important}
+    .control-deck .joystick-touch-zone.engaged .joystick-stick{filter:brightness(1.08) drop-shadow(0 6px 7px #07100bb3);transition:none!important}
+    .control-deck .joystick-touch-zone::after{
+      content:"";position:absolute;left:10%;top:9%;width:78%;aspect-ratio:1;border-radius:50%;
+      opacity:0;pointer-events:none;background:radial-gradient(circle,#ffd45d24 0 40%,#ffc22b1c 58%,transparent 72%);
+      box-shadow:0 0 28px #ffc02b00;transition:opacity .12s ease,box-shadow .12s ease
+    }
+    .control-deck .joystick-touch-zone.engaged::after{opacity:1;box-shadow:0 0 28px #ffc02b55}
+    .control-deck .fly-button{
+      position:relative!important;display:grid!important;place-items:center!important;
+      width:min(82%,132px)!important;height:auto!important;aspect-ratio:1;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
+      border:0!important;border-radius:50%!important;background:transparent!important;color:transparent!important;box-shadow:none!important;
+      -webkit-tap-highlight-color:transparent
+    }
+    .control-deck .fly-button::before{
+      content:"";position:absolute;inset:9%;pointer-events:none;border-radius:50%;
+      background:transparent url('./fly-classic.png?v=68') center/100% 100% no-repeat;
+      filter:drop-shadow(0 6px 6px #07100b99);will-change:transform,filter;
+      transition:transform .09s ease-out,filter .09s ease-out
+    }
+    .control-deck .fly-button .wing-icon{opacity:0!important}
+    .control-deck .fly-button:active,.control-deck .fly-button.pressed{transform:none!important;background:transparent!important;box-shadow:none!important}
+    .control-deck .fly-button:active::before,.control-deck .fly-button.pressed::before{
+      transform:translateY(4px) scale(.94);filter:brightness(1.12) drop-shadow(0 2px 3px #07100baa)
+    }
+    @media(max-width:560px){
+      .control-deck{min-height:0!important}
+      .control-deck .joystick-touch-zone::after{left:9%;top:8%;width:80%}
+      .control-deck .fly-button{width:min(86%,132px)!important;height:auto!important}
+    }
+    @media(max-width:560px){
+      html.ios-standalone body{background:#171e20}
+      html.ios-standalone .cabinet{top:0;bottom:0;height:auto;padding:0}
+      html.ios-standalone .cabinet::before{content:"";position:absolute;z-index:12;top:0;left:0;right:0;height:4px;pointer-events:none;background:linear-gradient(180deg,#0b1813,#526454 45%,#15251c);box-shadow:0 1px 0 #9cab8a66,0 2px 4px #07110e77}
+      html.ios-standalone .cabinet-bar{top:0}
+      html.ios-standalone .screen-frame{background:#171e20}
+      html.ios-standalone .hud{top:54px}
+      html.ios-standalone .cabinet::before{background:linear-gradient(180deg,#ff6cab,#ff3f8f 52%,#9e2458);box-shadow:0 1px 0 #ffd36f99,0 2px 5px #07110e77}
+    }
+    @media(prefers-reduced-motion:reduce){.streak-meter,.new-best-callout,.garden-notification.show,.feedback-flash.show{animation:none}}
+  </style>
 </head>
 <body>
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -38,25 +152,38 @@
     </header>
 
     <main>
-      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge the thorns.</p></div>
+      <div class="intro"><div><p class="eyebrow">A LITTLE BUZZ. A LOT OF TROUBLE.</p><h1>The garden is your arcade<span>.</span></h1></div><p class="intro-note">Chase flowers.<br>Dodge thorn islands.</p></div>
 
-      <section class="cabinet" id="cabinet" aria-label="Petal Pounce arcade game">
-        <div class="cabinet-bar"><div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
+      <section class="cabinet" id="cabinet" data-view="title" aria-label="Petal Pounce arcade game">
+        <div class="cabinet-trim-art" aria-hidden="true">
+          <svg class="trim-honey trim-honey-left" viewBox="0 0 48 30"><path d="M3 15 9 5h12l6 10-6 10H9Zm18-10h12l6 10-6 10H21l-6-10Z"/></svg>
+          <svg class="trim-honey trim-honey-right" viewBox="0 0 48 30"><path d="M3 15 9 5h12l6 10-6 10H9Zm18-10h12l6 10-6 10H21l-6-10Z"/></svg>
+          <span class="trim-flight trim-flight-left"></span><span class="trim-flight trim-flight-right"></span>
+        </div>
+        <div class="cabinet-bar"><div class="best-label">PERSONAL BEST <strong id="best">000000</strong></div><div class="tools"><button id="sound" class="icon-button" aria-label="Turn sound on" title="Turn sound on"><svg><use href="#i-muted"/></svg></button><button id="pause" class="icon-button" aria-label="Pause game" title="Pause (P)" disabled><svg><use href="#i-pause"/></svg></button><button id="fullscreen" class="icon-button" aria-label="Enter fullscreen" title="Fullscreen"><svg><use href="#i-expand"/></svg></button></div></div>
         <div class="screen-frame"><div class="screen" id="screen">
-          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. Collect flowers and avoid purple thorns."></canvas>
+          <canvas id="game" width="610" height="480" aria-label="Bee arcade playfield. Tilt the joystick in any direction to steer and fine-tune glide, and hold Fly to rise. The camera follows the bee's highest climb. Collect flowers and avoid mossy floating islands with sharp rocks and patrolling beetles."></canvas>
           <div class="screen-vignette" aria-hidden="true"></div>
+          <div class="feedback-flash" id="feedback-flash" aria-hidden="true"></div>
           <div class="hud" id="hud" hidden>
-            <div class="hud-left"><span class="hud-caption">HONEY</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">DISTANCE</span><strong id="timer">0m</strong></div><div class="hud-right"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">16</span></strong></div>
+            <div class="cartridge"><button id="open-shop" class="shop-trigger" aria-label="Open garden shop. 0 flowers saved" title="Garden shop"><svg aria-hidden="true"><use href="#i-flower"/></svg><strong id="flower-balance">0</strong><span>SHOP</span></button></div>
+            <div class="hud-left"><span class="hud-caption">SCORE</span><strong id="score">000000</strong></div><div class="hud-center"><span class="hud-caption" id="level-label">FLOWERS</span><strong id="timer">000</strong><span class="streak-meter" id="streak" hidden>BLOOM STREAK 5 · ×2</span></div><div class="hud-right" hidden aria-hidden="true"><span class="hud-caption">FLOWERS FOUND</span><strong><svg><use href="#i-flower"/></svg><span id="remaining">0</span></strong></div>
+          </div>
+          <div class="garden-notification" id="garden-notification" role="status" aria-live="assertive" aria-atomic="true" hidden>
+            <span class="garden-notice-medallion" id="garden-notice-icon" aria-hidden="true">✿</span>
+            <span class="garden-notice-copy" id="garden-notice-copy"><strong id="garden-notice-title">25 BLOOMS!</strong><span id="garden-notice-detail">+100 BONUS</span></span>
           </div>
           <div class="lives" id="lives" hidden role="status" aria-live="polite" aria-atomic="true" aria-label="3 lives remaining"></div>
           <div class="altitude" id="altitude" hidden aria-hidden="true"><span id="altitude-fill"></span></div>
-          <div class="overlay title-overlay" id="overlay">
+          <div class="overlay title-overlay" id="overlay" data-mode="title" hidden>
             <div class="menu-panel" id="menu-panel">
               <div class="menu-tag" id="menu-tag"><span></span> THE ENDLESS GARDEN RUN <span></span></div>
               <h2 id="menu-title" class="game-title"><span class="title-word">PETAL</span><span class="title-word title-word-last">POUNCE</span></h2>
-              <p id="menu-description">One endless run. Every meter counts.<br><strong>Three lives. Dodge the thorns. Go farther.</strong></p>
+              <p id="menu-description">Collect flowers. Dodge islands and beetles.<br><strong>3 lives. No finish line.</strong></p>
               <button id="play" class="play-button">LET’S FLY <span>↗</span></button>
+              <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
+              <button id="open-credits" class="title-version">v1.0 RC32 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Back to title</button>
             </div>
           </div>
@@ -78,25 +205,56 @@
           </div>
           <div class="fly-controls"><button id="fly" class="fly-button" aria-label="Hold to fly upward" title="Hold to fly"><svg class="wing-icon" aria-hidden="true"><use href="#i-wings"/></svg></button></div>
         </div>
+        <!-- RC27: independent full-cabinet title screen. The pixel-art is a background asset;
+             all buttons and the personal best are live HTML, never baked into the image. -->
+        <section id="main-menu" class="main-menu" aria-label="Petal Pounce main menu">
+          <div class="neon-main-best" aria-label="Saved personal best"><span>BEST SCORE</span><strong id="main-menu-best" class="main-menu-best">000000</strong></div>
+          <nav class="main-menu-actions" aria-label="Main menu actions">
+            <button id="main-menu-play" class="arcade-menu-button arcade-menu-play" type="button"><span class="neon-button-content"><span class="arcade-icon arcade-play-icon" aria-hidden="true">▶</span><span>PLAY</span></span></button>
+            <button id="main-menu-shop" class="arcade-menu-button arcade-menu-shop" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M2 5h5l3.5 17h15l3-12H9"/><path d="M11 22h14"/><circle cx="13" cy="27" r="2"/><circle cx="24" cy="27" r="2"/></svg><span>SHOP</span></span></button>
+            <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" aria-hidden="true"><path d="M12 3h8l1 4 4 2 4-1 2 7-4 2v4l3 3-5 5-4-2h-8l-4 2-5-5 3-3v-5l-3-2 2-7 4 2 3-2z"/><circle cx="16" cy="16" r="5"/></svg><span>SETTINGS</span></span></button>
+            <button id="main-menu-credits" class="arcade-menu-button arcade-menu-credits" type="button"><span class="neon-button-content"><svg class="arcade-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.7" aria-hidden="true"><circle cx="16" cy="16" r="12"/><path d="M16 14v10M16 9v2"/></svg><span>CREDITS</span></span></button>
+          </nav>
+          <span class="main-menu-build" aria-label="Release version">RC32</span>
+        </section>
       </section>
 
-      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Follow the scattered leaves through the garden.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Thorns grow longer and denser with distance.</span></p></div><div><span class="guide-number">03</span><p><strong>Watch the forecast.</strong><span>High winds can push from either side.</span></p></div></div>
+      <div class="field-guide"><div><span class="guide-number">01</span><p><strong>Bank every flower.</strong><span>Follow the scattered leaves through the garden.</span></p></div><div><span class="guide-number">02</span><p><strong>Read every opening.</strong><span>Thorn islands grow longer and denser with distance.</span></p></div><div><span class="guide-number">03</span><p><strong>Watch the forecast.</strong><span>High winds can push from either side.</span></p></div></div>
       <footer><span>MADE FOR THE JOY OF ONE MORE GO.</span><span class="fan-note">Small wings. Wild gardens. Sweet victories. · <a href="./privacy.html">Privacy</a></span><span>EST. 2026 <span class="footer-flower">✳</span></span></footer>
     </main>
   </div>
 
+  <dialog id="options-dialog" class="progress-dialog arcade-options-dialog" aria-labelledby="options-title">
+    <button id="close-options" class="dialog-close" type="button" aria-label="Close options">×</button>
+    <p class="eyebrow">THE HIVE CONTROLS</p><h2 id="options-title">Options.</h2>
+    <p class="progress-intro">Your settings and flowers stay on this device.</p>
+    <div class="arcade-options-grid">
+      <button type="button" id="options-sound" class="arcade-options-action">SOUND: OFF</button>
+      <button type="button" id="options-shop" class="arcade-options-action">GARDEN SHOP</button>
+      <button type="button" id="options-help" class="arcade-options-action">HOW TO PLAY</button>
+      <button type="button" id="options-records" class="arcade-options-action">HIGH SCORES</button>
+      <button type="button" id="options-achievements" class="arcade-options-action">ACHIEVEMENTS</button>
+      <button type="button" id="options-credits" class="arcade-options-action">CREDITS</button>
+    </div>
+    <div class="progress-footer"><button type="button" id="options-done" class="play-button">BACK TO MAIN MENU <span>↗</span></button></div>
+  </dialog>
   <dialog id="help-dialog" aria-labelledby="help-title">
     <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
     <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Fly upward through one endless garden with no levels or finish line. Flowers rest on leaves scattered across the whole garden. Horizontal thorn branches shape the route, while occasional high-wind scenes gently push the bee left or right.</p>
+    <p>Fly upward through one endless garden with no levels or finish line. The camera moves only when you climb. Gather flowers, dodge sharp floating islands, and watch for faster beetles patrolling from side to side. Beetle encounters become more frequent as you climb. Occasional high-wind scenes gently push the bee left or right.</p>
     <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Steering responds to left or right tilt at any angle, including near the top or bottom. Tilt farther for more speed; diagonal steering is slightly gentler. The enlarged touch area makes thumb repositioning easier. Release to center. Keyboard: ← → or A / D.</p></div>
     <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
     <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
-    <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flowers can appear anywhere across the screen. Floating branches, edge-grown vines, thorn gates, thickets and calm stretches create a changing route, but the flower path always remains reachable.</p></div>
+    <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flowers can appear anywhere across the screen. Mossy islands, edge-grown ledges, rock-tooth gates, dense formations and calm stretches create a changing route, but the flower path always remains reachable.</p></div>
+    <div class="help-row"><span>STREAKS</span><p><strong>Chain every bloom</strong>Collect 5 flowers without a miss or hit for ×2 score, 12 for ×3 and 25 for ×4. The multiplier changes score only—every collected bloom keeps its normal shop value.</p></div>
+    <div class="help-row"><span>MILESTONES</span><p><strong>Reach the next marker</strong>Every 25 collected flowers triggers a celebration and score bonus without pausing the run. Bonuses grow from +100 at 25 flowers to +500 at 125 flowers and beyond. Milestones never restore lives or multiply your flower bank.</p></div>
+    <div class="help-row"><span>CLOSE CALL</span><p><strong>Brush past danger</strong>Pass just outside an island or beetle hitbox for a one-time +5 bonus. The same hazard cannot be farmed repeatedly.</p></div>
+    <div class="help-row"><span>CLIMB</span><p><strong>You set the pace</strong>The screen follows only the highest point you reach and never moves upward on its own. The garden naturally shifts through calmer stretches, building pressure, short challenges and recovery space. If you fall completely below the screen after climbing, you lose one life and revive automatically at a visible safe point.</p></div>
     <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
     <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60 flowers or Glowwood for 120. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
-    <div class="help-row"><span>P / ESC</span><p><strong>Take a breather</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Each flower also earns 10 honey for your run score. See how far you can fly. Banked flowers and unlocked gardens survive losing a life, game over, and starting a new run. A new run starts with three lives.</p>
+    <div class="help-row"><span>RECORDS</span><p><strong>Build your garden legacy</strong>Records, achievements, unlocked bee styles and equipped rewards are saved on this device. Cosmetic bee rewards never change gameplay.</p></div>
+    <div class="help-row"><span>P / ESC</span><p><strong>Tuckered out?</strong>The game pauses when you switch away.</p></div>
+    <p class="help-note">Pick a flower for at least 10 points. Bloom Streak multipliers raise run score only. If a bloom slips below the screen as you climb, you lose 10 points, the streak resets and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
     <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
     <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span>↗</span></button>
   </dialog>
@@ -108,14 +266,55 @@
     <p id="shop-status" class="shop-status" role="status">Your chosen garden stays equipped for every run.</p>
     <div class="shop-footer"><span>Flowers &amp; unlocks saved on this device.</span><button id="shop-done" class="play-button">BACK TO THE GARDEN <span>↗</span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=38"></script>
+  <dialog id="records-dialog" class="progress-dialog" aria-labelledby="records-title">
+    <button class="dialog-close" id="close-records" aria-label="Close records">×</button>
+    <p class="eyebrow">YOUR GARDEN LEGACY</p><h2 id="records-title">Records.</h2>
+    <p class="progress-intro">Every run adds to your story. These records stay saved on this device.</p>
+    <div class="records-grid" id="records-grid"></div>
+    <div class="progress-footer"><button id="records-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  </dialog>
+  <dialog id="achievements-dialog" class="progress-dialog" aria-labelledby="achievements-title">
+    <button class="dialog-close" id="close-achievements" aria-label="Close achievements">×</button>
+    <p class="eyebrow">BLOOM BADGES</p><h2 id="achievements-title">Achievements.</h2>
+    <p class="progress-intro">Master the garden to unlock hand-drawn bee colors and trails. Rewards are cosmetic only.</p>
+    <div class="achievement-summary"><strong id="achievement-count">0 / 7 UNLOCKED</strong><button id="equip-classic" class="classic-equip">EQUIP CLASSIC BEE</button></div>
+    <div class="achievements-list" id="achievements-list"></div>
+    <div class="progress-footer"><button id="achievements-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  </dialog>
+  <dialog id="first-flight-dialog" class="progress-dialog" aria-labelledby="first-flight-title">
+    <button class="dialog-close" id="close-first-flight" aria-label="Close first flight guide">×</button>
+    <p class="eyebrow">YOUR FIRST FLIGHT</p><h2 id="first-flight-title">Four things. Then fly.</h2>
+    <p class="progress-intro">Petal Pounce is easy to learn and meant to get tougher naturally as you climb.</p>
+    <div class="quick-start-grid">
+      <div class="quick-start-card"><span>1 · STEER</span><p>Tilt the joystick left or right. Tilting up or down gently adjusts your glide.</p></div>
+      <div class="quick-start-card"><span>2 · FLY</span><p>Hold the large wing button to rise. Release it to descend onto leaves.</p></div>
+      <div class="quick-start-card"><span>3 · SURVIVE</span><p>You have three lives. Leaves become safe revival points after you touch them.</p></div>
+      <div class="quick-start-card"><span>4 · COLLECT</span><p>Flowers build score and streaks. Letting one pass costs 10 points and breaks the streak.</p></div>
+    </div>
+    <div class="progress-footer"><button id="first-flight-go" class="play-button">I’M READY. LET’S FLY <span>↗</span></button></div>
+  </dialog>
+  <dialog id="credits-dialog" class="progress-dialog" aria-labelledby="credits-title">
+    <button class="dialog-close" id="close-credits" aria-label="Close credits">×</button>
+    <p class="eyebrow">SMALL WINGS. WILD GARDENS.</p><h2 id="credits-title">Credits.</h2>
+    <p class="progress-intro">An original hand-drawn endless garden arcade game created by GlowState.</p>
+    <div class="credits-list"><div><span>GAME</span><strong>Petal Pounce</strong></div><div><span>DESIGN &amp; DIRECTION</span><strong>GlowState</strong></div><div><span>ART STYLE</span><strong>Cute hand-drawn garden arcade</strong></div><div><span>RELEASE</span><strong id="credits-version" class="credits-version">PETAL POUNCE · v1.0 RC32</strong></div></div>
+    <p class="progress-intro">Thank you for taking one more flight.</p>
+    <div class="progress-footer"><button id="credits-done" class="play-button">BACK TO TITLE <span>↗</span></button></div>
+  </dialog>
+  <script type="module" src="./game.mjs?v=84"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
       document.querySelector('.tools').prepend(document.getElementById('help'));
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
-    if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
+      const swUrl='./sw.js?v=84';
+      navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
+        .catch(()=>navigator.serviceWorker.register(swUrl))
+        .then(registration=>registration.update())
+        .catch(()=>{});
+    });
   </script>
 </body>
 </html>
