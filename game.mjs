@@ -6,7 +6,7 @@ import { paintFlower } from './flowers.mjs?v=68';
 import { paintNeonLeaf, paintNeonThorn, paintNeonBeetle, paintNeonBeeGlow } from './neon-art.mjs?v=85';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC38';
+const APP_VERSION = '1.0 RC39';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','first-flight-dialog','credits-dialog','options-dialog','customize-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);

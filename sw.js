@@ -1,6 +1,6 @@
-const BUILD='89';
-const CACHE='petal-pounce-v89-rc38-shop-cosmetics';
-const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=85','./neon-ui.css?v=87','./rc37.css?v=88','./rc38.css?v=89','./bee-life-neon.svg','./neon-ui-backdrop.png?v=87','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=89','./engine.mjs?v=68','./scenery.mjs?v=85','./flowers.mjs?v=68','./neon-art.mjs?v=85','./hold-controls.mjs?v=68','./profile.mjs?v=85','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./petal-pounce-main-menu.png?v=84','./manifest.webmanifest?v=81','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const BUILD='90';
+const CACHE='petal-pounce-v90-rc39-help-icon-polish';
+const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=85','./neon-ui.css?v=87','./rc37.css?v=88','./rc38.css?v=89','./rc39.css?v=90','./rc39.css?v=90','./bee-life-neon.svg','./neon-ui-backdrop.png?v=87','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=90','./engine.mjs?v=68','./scenery.mjs?v=85','./flowers.mjs?v=68','./neon-art.mjs?v=85','./hold-controls.mjs?v=68','./profile.mjs?v=85','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./petal-pounce-main-menu.png?v=84','./manifest.webmanifest?v=90','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(

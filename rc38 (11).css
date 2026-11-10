@@ -1,0 +1,134 @@
+/* PETAL POUNCE RC38 — presentation, product catalog and preview artwork.
+   NO changes to the game engine, hitboxes, physics, scoring, difficulty or touch controls. */
+:root{--r38-pink:#ff38f0;--r38-cyan:#00eaff;--r38-white:#f6fdff}
+
+/* High score is meant to float, with a cool-to-warm arcade glow. */
+#cabinet .neon-main-best .main-menu-best,
+#cabinet .best-label strong,
+dialog.rc37-records .record-card strong{
+  color:#a6f9ff!important;
+  background:linear-gradient(108deg,#52f7ff 6%,#f8ffff 46%,#ff62f2 93%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+  filter:drop-shadow(0 0 4px #00eaffaa) drop-shadow(0 0 6px #ff35ed77)!important;
+  text-shadow:none!important;
+}
+
+/* Floating pink X; 42px invisible tap target retained for mobile accessibility. */
+dialog .dialog-close,
+dialog.garden-shop .dialog-close,
+dialog.progress-dialog .dialog-close {
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+  display:grid!important;place-items:center!important;
+  padding:0!important;margin:0!important;
+  color:#ff42ef!important;
+  background:transparent!important;
+  border:0!important;border-radius:0!important;
+  box-shadow:none!important;
+  font:400 29px/1 Arial,sans-serif!important;
+  text-shadow:0 0 5px #ff35f8,0 0 15px #ff35f8b8!important;
+  opacity:.96!important;
+}
+dialog .dialog-close:focus-visible{outline:2px solid #00eaff!important;outline-offset:-4px!important;border-radius:7px!important}
+dialog .dialog-close:active{opacity:1!important}
+
+
+/* New life emblem is a single transparent pink/cyan-outline bee image. */
+.neon-bee-life{
+  display:inline-grid!important;place-items:center!important;
+  width:29px!important;height:29px!important;min-width:29px!important;flex:0 0 29px!important;
+  padding:0!important;margin-left:9px!important;
+  background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+.neon-bee-life img{width:28px!important;height:28px!important;object-fit:contain!important;filter:drop-shadow(0 0 4px #00eaff77) drop-shadow(0 0 5px #ff35f88a)!important}
+#cabinet .screen #lives img{
+  width:24px!important;height:24px!important;object-fit:contain!important;
+  filter:drop-shadow(0 0 5px #ff38ed77) drop-shadow(0 0 5px #00eaff77)!important;
+}
+#cabinet .screen #lives img.lost{filter:grayscale(1) brightness(.7)!important;opacity:.27!important}
+.rc37-credit-bee{border:0!important;background:transparent!important;box-shadow:none!important;width:76px!important;height:65px!important}
+.rc37-credit-bee img{width:66px!important;height:62px!important;filter:drop-shadow(0 0 8px #ff35f8a3)!important}
+
+/* Individual bee labels are crisp white, not pink. */
+.rc37-bee-name{color:#fff!important;text-shadow:0 0 7px #fbffff,0 0 16px #00eaffb5,0 0 22px #ff35e88c!important}
+dialog.rc37-shop #shop-title{color:#ff75f5!important;text-shadow:0 0 5px #ff35f8,0 0 14px #ff35f8cc,0 0 27px #ff35f855!important}
+
+/* Flower Shop category tabs: clear neon segmentation and compact products. */
+.rc38-shop-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:5px 0 14px;width:100%}
+.rc38-shop-tab{display:grid;place-items:center;min-width:0;min-height:43px;border:1px solid #00eaff90;border-radius:9px;background:rgba(7,4,45,.84);color:#d9faff;box-shadow:inset 0 0 8px #00eaff20;font:800 clamp(10px,2.8vw,13px)/1.1 var(--mono,monospace);letter-spacing:.06em;cursor:pointer}
+.rc38-shop-tab.active,.rc38-shop-tab[aria-selected="true"]{border-color:#ff35f8;color:#fff;box-shadow:0 0 11px #ff35f87c,inset 0 0 9px #ff35f833;background:#291046}
+#shop-grid[hidden],#shop-bee-grid[hidden],#shop-trail-grid[hidden]{display:none!important}
+.rc38-shop-product-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rc38-shop-product{display:flex;flex-direction:column;min-width:0;padding:5px 4px 8px;gap:6px;background:#08052fd9;border:1px solid #00eaff80;border-radius:9px;color:#eafbff;cursor:pointer}
+.rc38-shop-product.selected{border-color:#ff35f8;box-shadow:0 0 9px #ff35f888}
+.rc38-shop-product.equipped{border-color:#ffe688}
+.rc38-shop-product strong{text-align:center;font:700 clamp(9px,2.2vw,12px)/1.25 var(--mono,monospace)!important;color:#f4fcff!important;overflow-wrap:anywhere;min-height:2.2em}
+.rc38-product-picture{position:relative;display:block;aspect-ratio:1.16/1;overflow:hidden;border-radius:5px;border:1px solid #00eaff40;background:radial-gradient(ellipse at center,#180d55,#070424)}
+.rc38-product-picture canvas{width:100%;height:100%;display:block;object-fit:cover}
+.rc38-product-lock{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(16px,5.5vw,28px);background:rgba(2,1,29,.48);filter:drop-shadow(0 0 5px #ff35f8)}
+.rc38-shop .rc37-shop-selection,.rc37-shop .rc37-shop-selection{gap:7px!important;margin-top:14px!important}
+#shop-selected-description{line-height:1.45!important;max-width:400px;padding:2px 0;white-space:normal}
+
+/* True level art from live scenery renderer; no generic swatches. */
+.rc38-level-preview{display:block;position:relative;width:100%;aspect-ratio:1.15/1;overflow:hidden;border-radius:8px;border:1px solid #00eaff7c;background:#050329}
+.rc38-level-preview canvas{width:100%;height:100%;display:block;object-fit:cover}
+.rc37-custom-option{padding:6px 4px 9px!important;min-height:114px!important}
+.rc37-custom-option strong{font-size:clamp(9px,2.35vw,12px)!important}
+
+/* Button previews reuse the exact in-game original image sprites. CSS matches
+   current normal / neon / minimal visual treatments; these are not buttons. */
+.rc37-control-styles{gap:8px!important}
+.rc37-look-option{padding:10px 4px!important;min-height:155px!important;gap:9px!important}
+.rc37-look-art.rc38-actual-control{
+  width:clamp(68px,21vw,92px)!important;height:clamp(68px,21vw,92px)!important;
+  display:grid!important;place-items:center!important;
+  border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;
+}
+.rc38-actual-control img{display:block;object-fit:contain;width:100%;height:100%;filter:drop-shadow(0 3px 4px #09061799)}
+.rc38-actual-control.look-neon img{filter:drop-shadow(0 0 11px #ff35f8) hue-rotate(45deg) saturate(1.8) drop-shadow(0 0 8px #00eaff)}
+.rc38-actual-control.look-minimal img{filter:grayscale(.9) brightness(1.3);opacity:.48}
+
+/* Game Over: center across WHOLE screen, not only the area above gameplay
+   controls. Keep Play Again / Main Menu clickable. Does not affect Pause. */
+@media(max-width:560px){
+  #cabinet[data-view="over"] .screen-frame{z-index:120!important}
+  #cabinet[data-view="over"] .control-deck,
+  #cabinet[data-view="over"] .cabinet-bar{opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:10!important}
+  #cabinet[data-view="over"] .screen #hud,
+  #cabinet[data-view="over"] .screen #lives,
+  #cabinet[data-view="over"] .screen #altitude,
+  #cabinet[data-view="over"] .screen #garden-notification,
+  #cabinet[data-view="over"] .screen #garden-label{visibility:hidden!important;pointer-events:none!important}
+  #cabinet[data-view="over"] .screen #overlay[data-mode="over"]:not([hidden]){
+    position:absolute!important;inset:0!important;
+    left:0!important;top:0!important;right:0!important;bottom:0!important;
+    width:100%!important;height:100%!important;max-height:none!important;
+    padding:calc(max(15px,env(safe-area-inset-top,0px)) + 9px) 14px calc(max(15px,env(safe-area-inset-bottom,0px)) + 9px)!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+    box-sizing:border-box!important;z-index:140!important;
+    background:linear-gradient(rgba(5,0,27,.65),rgba(5,0,27,.77)),url('./neon-ui-backdrop.png?v=87') center/cover no-repeat!important;
+  }
+  #cabinet[data-view="over"] .screen #overlay[data-mode="over"] .menu-panel{
+    width:min(90vw,370px)!important;max-width:calc(100vw - 28px)!important;
+    max-height:min(83dvh,700px)!important;height:auto!important;
+    margin:auto!important;overflow-x:hidden!important;overflow-y:auto!important;
+    padding:clamp(13px,3.5vw,20px)!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+}
+
+/* Fit the ten-bee selection collection into three rows on ordinary phones.
+   Use three columns on narrower phones so names remain legible. */
+@media(min-width:370px){
+  #shop-bee-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #shop-bee-grid .rc38-shop-product strong{font-size:clamp(8px,2vw,11px)!important}
+}
+/* Keep the existing gold Classic sprite intact, but give the optional Neon
+   appearance the blue/magenta lighting the rest of this world uses. */
+#cabinet[data-fly-look="neon"] .control-deck .fly-button::before{
+  filter:hue-rotate(195deg) saturate(1.65) drop-shadow(0 0 8px #00eaff) drop-shadow(0 0 8px #ff35f8)!important;
+}
+.rc38-actual-control.look-neon img{
+  filter:hue-rotate(195deg) saturate(1.65) drop-shadow(0 0 8px #00eaff) drop-shadow(0 0 8px #ff35f8)!important;
+}
