@@ -5,7 +5,7 @@ import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=68';
 import { paintFlower } from './flowers.mjs?v=68';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC27';
+const APP_VERSION = '1.0 RC29';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','achievements-dialog','first-flight-dialog','credits-dialog','options-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
