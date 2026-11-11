@@ -1,0 +1,29 @@
+PETAL POUNCE RC45 — MILESTONE BORDER FIX (PHONE PATCH)
+===================================================
+Root cause: the RC42 border existed, but the joystick layout's high-priority
+!important rules silently overrode it. RC45 uses a more specific milestone-only
+CSS rule with !important. All achievement popups keep their existing style.
+
+THIS IS ONE SMALL ZIP, NOT THE ENTIRE APP.
+It is meant to be applied on top of RC44. RC44 already includes RC43 safe
+respawns and the clean, subtle garden backgrounds. DO NOT REUPLOAD RC43.
+
+From your phone, unzip this ZIP, then update these three files at the repository
+root and the SAME three in the dist/ folder:
+
+  index.html              dist/index.html
+  rc42.css                dist/rc42.css
+  sw.js                   dist/sw.js
+
+That is SIX files total. Keep all other files as they are, including engine.mjs,
+game.mjs, joystick.css and scenery.mjs. Don't remove any other files.
+
+RC45 changes only milestone appearance: a narrow cyan edge, subtle pink rim,
+and restrained glow. It does not change the timer, popup position, actual
+milestone trigger, achievements, leaf artwork or any physics, scores or respawns.
+The style URL has a new version (?v=96) and service-worker BUILD 96 to prompt
+an update on installed mobile versions. Reload or reopen the app after all
+six files deploy. Android builds read dist/, so they get the matching CSS.
+
+This is a fix for the milestone box (25 BLOOMS!, 50 BLOOMS!, 75 BLOOMS!, etc.)
+while playing. Other popup types retain their old appearance.
