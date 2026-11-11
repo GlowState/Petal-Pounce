@@ -1,0 +1,25 @@
+/* Petal Pounce RC41 — visual headings and title polish only.
+   No movement, gameplay, collision, or input rules are modified. */
+
+/* All panel titles share the same small white-and-cyan neon halo. */
+#options-dialog #options-title,
+#shop-dialog #shop-title,
+#customize-dialog #customize-title,
+#records-dialog #records-title,
+#credits-dialog #credits-title,
+#help-dialog #help-title,
+#first-flight-dialog #first-flight-title {
+  text-shadow: 0 0 4px rgba(255,255,255,.46),
+               0 0 10px rgba(0,234,255,.29) !important;
+}
+
+/* Shop heading must match Options, not the prior saturated pink override. */
+#shop-dialog #shop-title {
+  color:#c5f8ff !important;
+}
+
+/* State-screen headings get a similarly restrained highlight. */
+#cabinet .state-overlay .game-title {
+  text-shadow:0 0 4px rgba(255,255,255,.40),
+              0 0 11px rgba(0,234,255,.25) !important;
+}

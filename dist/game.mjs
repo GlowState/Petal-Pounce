@@ -1,12 +1,12 @@
 import { Game, WIDTH, FIXED_STEP, MAX_LIVES, advanceCamera } from './engine.mjs?v=68';
-import { GardenScenery, GARDENS, gardenById } from './scenery.mjs?v=85';
+import { GardenScenery, GARDENS, gardenById, GARDEN_GLOW } from './scenery.mjs?v=93';
 import { HoldControls } from './hold-controls.mjs?v=68';
-import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=85';
-import { paintFlower } from './flowers.mjs?v=68';
-import { paintNeonLeaf, paintNeonThorn, paintNeonBeetle, paintNeonBeeGlow } from './neon-art.mjs?v=85';
+import { FlowerProfile, PROFILE_KEY } from './profile.mjs?v=93';
+import { paintFlower } from './flowers.mjs?v=93';
+import { paintNeonLeaf, paintNeonThorn, paintNeonBeetle, paintNeonBeeGlow, paintGardenLeafTrim, paintGardenThornTrim } from './neon-art.mjs?v=93';
 
 const $ = id => document.getElementById(id);
-const APP_VERSION = '1.0 RC38';
+const APP_VERSION = '1.0 RC42';
 const FIRST_FLIGHT_KEY = 'petal-pounce-first-flight-v1';
 const MODAL_IDS = ['help-dialog','shop-dialog','records-dialog','first-flight-dialog','credits-dialog','options-dialog','customize-dialog'];
 const blockingDialogOpen = () => MODAL_IDS.some(id => $(id)?.open);
@@ -557,6 +557,7 @@ function renderAchievements() {
 let scoreTab='records';
 function selectScoreTab(tab) {
   scoreTab=tab==='achievements'?'achievements':'records';
+  $('records-title').textContent = scoreTab==='records'?'Records':'Achievements';
   $('scores-records-panel').hidden=scoreTab!=='records';
   $('scores-achievements-panel').hidden=scoreTab!=='achievements';
   for(const target of ['records','achievements']){
@@ -1095,6 +1096,8 @@ function drawLeaf(p, offset = camera) {
     ctx.fillRect(w/2-1,-8,3,8);
   }
   ctx.restore();
+  const garden=currentGarden();
+  if(garden.id!=='neon')paintGardenLeafTrim(ctx,p,y,{id:garden.id,glowColors:GARDEN_GLOW[garden.id]});
 }
 
 function drawFlower(f, offset = camera) {
@@ -1268,6 +1271,8 @@ function drawThorn(t) {
   if(t.edge!=='left')ctx.fillRect(-cap,-2,3,2);
   if(t.edge!=='right')ctx.fillRect(w+cap-3,0,3,2);
   ctx.restore();
+  const garden=currentGarden();
+  if(garden.id!=='neon')paintGardenThornTrim(ctx,t,camera,{id:garden.id,glowColors:GARDEN_GLOW[garden.id]});
 }
 
 function drawBeetle(beetle) {

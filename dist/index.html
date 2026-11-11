@@ -19,9 +19,9 @@
       if(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)root.classList.add('ios-standalone');
     })();
   </script>
-  <link rel="icon" href="./bee.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="./icon-192.png">
-  <link rel="manifest" href="./manifest.webmanifest?v=81">
+  <link rel="icon" href="./icon-192.png?v=90" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./icon-192.png?v=90">
+  <link rel="manifest" href="./manifest.webmanifest?v=90">
   <link rel="stylesheet" href="./style.css?v=68">
   <link rel="stylesheet" href="./shop.css?v=68">
   <link rel="stylesheet" href="./retro-arcade.css?v=68">
@@ -30,6 +30,10 @@
   <link rel="stylesheet" href="./neon-ui.css?v=87">
   <link rel="stylesheet" href="./rc37.css?v=88">
   <link rel="stylesheet" href="./rc38.css?v=89">
+  <link rel="stylesheet" href="./rc39.css?v=90">
+  <link rel="stylesheet" href="./rc40.css?v=91">
+  <link rel="stylesheet" href="./rc41.css?v=92">
+  <link rel="stylesheet" href="./rc42.css?v=93">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -185,7 +189,7 @@
               <button id="play" class="play-button">LET’S FLY <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button>
               <div class="meta-actions" id="meta-actions"><button id="open-records" class="meta-button">RECORDS</button><button id="open-achievements" class="meta-button">ACHIEVEMENTS</button></div>
               <p class="start-hint" id="start-hint">PRESS ENTER TO START</p>
-              <button id="open-credits" class="title-version">v1.0 RC38 · CREDITS</button>
+              <button id="open-credits" class="title-version">v1.0 RC41 · CREDITS</button>
               <button id="secondary" class="secondary-button" hidden>Main Menu</button>
             </div>
           </div>
@@ -218,7 +222,7 @@
             <button id="main-menu-records" class="arcade-menu-button arcade-menu-records" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">★</span><span>HIGH SCORES</span></span></button>
             <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">⚙</span><span>OPTIONS</span></span></button>
           </nav>
-          <span class="main-menu-build" aria-label="Release version">RC38</span>
+          <span class="main-menu-build" aria-label="Release version">RC42</span>
         </section>
       </section>
 
@@ -271,25 +275,62 @@
     </div>
     <div class="progress-footer"><button type="button" id="options-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
-  <dialog id="help-dialog" aria-labelledby="help-title">
-    <button class="dialog-close" id="close-help" aria-label="Close instructions">×</button>
-    <p class="eyebrow">THE FIELD GUIDE</p><h2 id="help-title">Find your wings.</h2>
-    <p>Fly upward through one endless garden with no levels or finish line. The camera moves only when you climb. Gather flowers, dodge sharp floating islands, and watch for faster beetles patrolling from side to side. Beetle encounters become more frequent as you climb. Occasional high-wind scenes gently push the bee left or right.</p>
-    <div class="help-row"><span>JOYSTICK</span><p><strong>Tilt in any direction</strong>Left/right steers, up/down fine-tunes your glide (up = more lift, down = quicker drop). Keep holding Fly to climb. Your thumb can travel outside the joystick without losing control. Steering responds to left or right tilt at any angle, including near the top or bottom. Tilt farther for more speed; diagonal steering is slightly gentler. The enlarged touch area makes thumb repositioning easier. Release to center. Keyboard: ← → or A / D.</p></div>
-    <div class="help-row"><span>SPACE / ↑</span><p><strong>Hold to fly</strong>Release to descend. Leaves give you a bounce and a safe place to return.</p></div>
-    <div class="help-row"><span>3 LIVES</span><p><strong>Carry your lives forward</strong>Start with three lives. There are no extra lives or level resets. Lose a life and you revive automatically at your last leaf, with brief protection.</p></div>
-    <div class="help-row"><span>RHYTHM</span><p><strong>Read the garden</strong>Leaves and flowers can appear anywhere across the screen. Mossy islands, edge-grown ledges, rock-tooth gates, dense formations and calm stretches create a changing route, but the flower path always remains reachable.</p></div>
-    <div class="help-row"><span>STREAKS</span><p><strong>Chain every bloom</strong>Collect 5 flowers without a miss or hit for ×2 score, 12 for ×3 and 25 for ×4. The multiplier changes score only—every collected bloom keeps its normal shop value.</p></div>
-    <div class="help-row"><span>MILESTONES</span><p><strong>Reach the next marker</strong>Every 25 collected flowers triggers a celebration and score bonus without pausing the run. Bonuses grow from +100 at 25 flowers to +500 at 125 flowers and beyond. Milestones never restore lives or multiply your flower bank.</p></div>
-    <div class="help-row"><span>CLOSE CALL</span><p><strong>Brush past danger</strong>Pass just outside an island or beetle hitbox for a one-time +5 bonus. The same hazard cannot be farmed repeatedly.</p></div>
-    <div class="help-row"><span>CLIMB</span><p><strong>You set the pace</strong>The screen follows only the highest point you reach and never moves upward on its own. The garden naturally shifts through calmer stretches, building pressure, short challenges and recovery space. If you fall completely below the screen after climbing, you lose one life and revive automatically at a visible safe point.</p></div>
-    <div class="help-row"><span>HIGH WINDS</span><p><strong>Counter-steer the gust</strong>Wind cannot appear before 450m and remains uncommon early in a run. Calm periods shorten gradually with distance, but occasional extra-long calm breaks can happen anywhere. After “Caution: High Winds” appears, you have three seconds to prepare for a 20–30 second left or right push.</p></div>
-    <div class="help-row"><span>FLOWER SHOP</span><p><strong>Pick a permanent garden</strong>Every normal bloom adds one flower to your bank. Twilight and Classic are free. Unlock Flower Garden for 60, Glowwood for 120, or Neon Garden for 180 flowers. Equip any owned garden for every run. Unlocks and flowers are saved on this device.</p></div>
-    <div class="help-row"><span>RECORDS</span><p><strong>Build your garden legacy</strong>Records, achievements, unlocked bee styles and equipped rewards are saved on this device. Cosmetic bee rewards never change gameplay.</p></div>
-    <div class="help-row"><span>P / ESC</span><p><strong>Tuckered out?</strong>The game pauses when you switch away.</p></div>
-    <p class="help-note">Pick a flower for at least 10 points. Bloom Streak multipliers raise run score only. If a bloom slips below the screen as you climb, you lose 10 points, the streak resets and the flower is gone for that run. Your score can go below zero. Banked flowers and unlocked gardens carry over between runs.</p>
-    <p class="help-note"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
-    <button class="play-button" id="got-it">GOT IT. LET’S BUZZ <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button>
+  <dialog id="help-dialog" class="rc39-help-dialog" aria-labelledby="help-title">
+    <button class="dialog-close" id="close-help" type="button" aria-label="Close How to Play">×</button>
+    <h2 id="help-title" class="rc39-help-title">How to Play</h2>
+    <p class="rc39-help-intro">Tap any topic to see how it works.</p>
+    <section class="rc39-help-list" aria-label="Gameplay guide topics">
+      <details class="rc39-help-item" id="help-topic-joystick">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">✥</span><span class="rc39-help-heading">JOYSTICK</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Steer and glide</strong><p>Tilt the joystick left or right to steer. Tilting upward adds a little lift; tilting downward helps you descend. Lean farther to turn faster. Your thumb can move beyond the visible joystick while you hold it. Keyboard: ← / → or A / D.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-fly">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">✧</span><span class="rc39-help-heading">FLY BUTTON</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Climb and descend</strong><p>Hold Fly to climb. Release to fall toward a leaf. Adjust your direction and glide with the joystick to land safely. On a keyboard, hold Space or ↑ to fly.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-flower">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">✿</span><span class="rc39-help-heading">FLOWERS &amp; SCORE</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Collect blooms</strong><p>Collect flowers (or glowing mushrooms in Glowwood) to increase your score and saved flower balance. A missed collectible costs 10 points and breaks your streak. Saved flowers can be used for cosmetic items in Flower Shop.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-life">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">♡</span><span class="rc39-help-heading">LIVES &amp; CHECKPOINTS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Three chances</strong><p>Each run begins with three lives. Touching a leaf sets a safe return point. When you lose a life, your bee returns to the latest safe checkpoint with brief protection. Losing all three lives ends the run.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-hazard">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">⚠</span><span class="rc39-help-heading">LEAVES &amp; HAZARDS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Choose your route</strong><p>Land on leaves to rest and bounce. Steer around thorn-covered islands and moving beetles. The course changes as you climb; the route is designed to be navigable, even through harder stretches.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-sparkles">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">✦</span><span class="rc39-help-heading">BLOOM STREAKS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Build your multiplier</strong><p>Collect flowers without missing one or taking a hit to build a streak: 5 flowers earns ×2, 12 earns ×3, and 25 earns ×4 score. A multiplier changes points, not the number of flowers added to your shop balance.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-star">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">★</span><span class="rc39-help-heading">MILESTONES</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Celebrate every 25</strong><p>Every 25 flowers collected in a run triggers a milestone celebration and points bonus. Milestones do not restore lives or multiply saved flowers.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-warning">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">◇</span><span class="rc39-help-heading">CLOSE CALLS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Earn risk-reward points</strong><p>Fly close to an obstacle or beetle without touching it to earn a one-time +5 close-call bonus. You cannot repeatedly earn points from the same hazard.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-wind">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">≋</span><span class="rc39-help-heading">HIGH WINDS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Watch for the warning</strong><p>A warning gives you a few seconds before a stronger left or right gust. Counter-steer with the joystick until the wind settles. Gusts become possible later in a run, with calmer stretches between them.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-shop">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">▣</span><span class="rc39-help-heading">FLOWER SHOP</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Unlock cosmetics</strong><p>Visit Flower Shop to unlock Levels, Bees, and Trails with your saved flowers. Choose owned designs in Customize. Achievement reward bees remain tied to their original challenges.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-trophy">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">♜</span><span class="rc39-help-heading">HIGH SCORES &amp; ACHIEVEMENTS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Track your progress</strong><p>Open High Scores from the main menu. Use the Records and Achievements tabs to see your best runs, challenges, and unlocked bee styles. Cosmetics do not change performance.</p></div>
+      </details>
+      <details class="rc39-help-item" id="help-topic-pause">
+        <summary><span class="rc39-help-symbol" aria-hidden="true">Ⅱ</span><span class="rc39-help-heading">PAUSE &amp; RETURN</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
+        <div class="rc39-help-copy"><strong>Take a break</strong><p>Tap Pause to stop the run, then resume when ready. The game also pauses when you switch away. You can return to the main menu from the pause screen.</p></div>
+      </details>
+    </section>
+    <p class="rc39-help-bottom"><a id="privacy-in-app" href="./privacy.html">Privacy policy</a></p>
+    <button class="play-button rc39-help-done" id="got-it">GOT IT? LET’S POUNCE. <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button>
   </dialog>
   <dialog id="shop-dialog" class="garden-shop rc37-dialog rc37-shop" aria-labelledby="shop-title">
     <button class="dialog-close" id="close-shop" aria-label="Close Flower Shop">×</button>
@@ -311,8 +352,8 @@
     <div class="shop-footer rc37-footer"><button id="shop-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
   <dialog id="records-dialog" class="progress-dialog rc37-dialog rc37-records" aria-labelledby="records-title">
-    <button class="dialog-close" id="close-records" aria-label="Close High Scores">×</button>
-    <h2 id="records-title" class="rc37-dialog-title">High Scores</h2>
+    <button class="dialog-close" id="close-records" aria-label="Close Records and Achievements">×</button>
+    <h2 id="records-title" class="rc37-dialog-title">Records</h2>
     <div class="rc37-tabs" role="tablist" aria-label="High scores and achievements">
       <button id="scores-tab-records" class="rc37-tab active" role="tab" aria-controls="scores-records-panel" aria-selected="true">RECORDS</button>
       <button id="scores-tab-achievements" class="rc37-tab" role="tab" aria-controls="scores-achievements-panel" aria-selected="false">ACHIEVEMENTS</button>
@@ -347,7 +388,7 @@
     <div class="rc37-credit-bee"><img src="./bee-life-neon.svg" alt="Petal Pounce bee life emblem"></div>
     <div class="progress-footer"><button id="credits-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=89"></script>
+  <script type="module" src="./game.mjs?v=93"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -355,7 +396,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=89';
+      const swUrl='./sw.js?v=93';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())

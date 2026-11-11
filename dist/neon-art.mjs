@@ -100,3 +100,52 @@ export function paintNeonBeeGlow(c,b,offset) {
   c.beginPath();c.ellipse(0,-1,17,23,0,0,PI2);c.stroke();
   c.restore();
 }
+
+
+// RC42 cosmetic trims for the four existing non-neon gardens. Drawing is
+// bounded to the original leaf/hazard art. No collision bodies are modified.
+export function paintGardenLeafTrim(c,p,y,theme) {
+  if(!theme || theme.id==='neon')return;
+  const accent=theme.glowColors;
+  if(!accent)return;
+  const w=Math.max(14,Math.round(p.w));
+  c.save();c.translate(Math.round(p.x+w/2),Math.round(y));
+  if(p.flip)c.scale(-1,1);
+  c.translate(-w/2,0);
+  c.shadowColor=accent.leaf;c.shadowBlur=4;c.strokeStyle=accent.leaf;
+  c.globalAlpha=theme.id==='classic'?.63:.82;c.lineWidth=1.5;c.lineCap='round';
+  c.beginPath();c.moveTo(Math.min(18,w*.20),-2);
+  c.lineTo(Math.min(43,w*.34),-9);
+  c.lineTo(Math.max(w*.5,w-24),-12);
+  c.lineTo(w-10,-7);c.stroke();
+  c.shadowBlur=0;c.globalAlpha=.43;c.strokeStyle=accent.light;c.lineWidth=.9;
+  c.beginPath();c.moveTo(22,8);c.lineTo(Math.max(23,w-20),8);c.stroke();
+  if(p.launch){c.globalAlpha=.7;c.fillStyle=accent.light;c.fillRect(w/2-4,-5,8,2);}
+  c.restore();
+}
+
+export function paintGardenThornTrim(c,t,camera,theme) {
+  if(!theme || theme.id==='neon')return;
+  const accent=theme.glowColors;
+  if(!accent)return;
+  const h=Math.max(9,t.h),w=Math.max(10,t.endX-t.x||t.w);
+  c.save();c.beginPath();
+  // Clip to the unchanged hazard capsule outlines so the trim never extends
+  // the visible danger shape outside its original collision boundary.
+  for(const segment of t.segments||[t]){
+    const hh=Math.max(9,segment.h);
+    c.roundRect(segment.x-hh,segment.y-camera-hh,
+      segment.endX-segment.x+2*hh,2*hh,hh);
+  }c.clip();
+  c.translate(t.x,t.y-camera);
+  c.globalAlpha=theme.id==='classic'?.67:.81;
+  c.shadowColor=accent.danger;c.shadowBlur=5;c.strokeStyle=accent.danger;
+  c.lineWidth=1.6;c.lineCap='round';
+  c.beginPath();c.moveTo(2,-h*.56);c.lineTo(w-2,-h*.56);c.stroke();
+  c.globalAlpha=.48;c.shadowBlur=0;
+  c.strokeStyle=accent.danger;c.lineWidth=1.1;
+  for(let x=15;x<w-5;x+=39){
+    c.beginPath();c.moveTo(x,h*.32);c.lineTo(x+5,h*.51);c.stroke();
+  }
+  c.restore();
+}
