@@ -6,12 +6,22 @@ export const GARDENS = [
   { id:'blossom', name:'Flower Garden', price:60, night:false, sky:['#afdbe6','#f4e4d9','#f9d4b3'],
     flower:{name:'Rose daisies',shape:'daisy',petal:'#ed79aa',light:'#ffe0ec',glow:'#ef9bc9',center:'#ffd369',spark:'#fff9d6',stem:'#568965'}, hint:'#4d6875' },
   { id:'glowwood', name:'Glowwood Forest', price:120, night:true, sky:['#081d35','#154450','#2d696b'],
-    flower:{name:'Glowbells',shape:'bell',petal:'#67d8ee',light:'#c9ffff',glow:'#62e4ff',center:'#adfff1',spark:'#f0fff9',stem:'#6fc6b0'}, hint:'#a8e9da' },
+    flower:{name:'Glowshrooms',shape:'mushroom',petal:'#67e9ee',light:'#eaffff',glow:'#52faff',center:'#bafff1',spark:'#ffffff',stem:'#7ee9dc'}, hint:'#a8e9da' },
   { id:'classic', name:'Classic Garden', price:0, night:false, sky:['#75bab7','#91cfbf','#c3d9ad'],
-    flower:{name:'White daisies',shape:'classic',petal:'#eff2d7',light:'#fff9e4',glow:null,center:'#f8c555',spark:'#ffe99c',stem:'#456f38'}, hint:'#3c7356' },
+    flower:{name:'White daisies',shape:'classic',petal:'#eff2d7',light:'#fff9e4',glow:'#fff0ab',center:'#f8c555',spark:'#ffe99c',stem:'#456f38'}, hint:'#3c7356' },
   { id:'neon', name:'Neon Garden', price:180, night:true, sky:['#070b23','#121333','#18183a'],
     flower:{name:'Neon blossoms',shape:'daisy',petal:'#ff55da',light:'#ffbcf1',glow:'#eb48f6',center:'#ffe270',spark:'#fff6da',stem:'#34ddf8'}, hint:'#96f4ff' }
 ];
+
+// RC42: Colors are exclusively for canvas decoration. Collision and physics
+// still come from engine.mjs; these do not change the hitbox geometry.
+export const GARDEN_GLOW = Object.freeze({
+  twilight:{leaf:'#aca9ff',danger:'#ff77cd',light:'#e1c4ff'},
+  blossom:{leaf:'#ffc5e5',danger:'#ec5caa',light:'#ffb6db'},
+  glowwood:{leaf:'#58f7d9',danger:'#f17fea',light:'#7cfdeb'},
+  classic:{leaf:'#eff2bd',danger:'#f2a089',light:'#fff3c1'},
+  neon:{leaf:'#24eaff',danger:'#ff4ada',light:'#9df9ff'}
+});
 
 export const gardenById = id => GARDENS.find(garden=>garden.id===id)??GARDENS[0];
 
@@ -57,6 +67,9 @@ function mushroom(c,x,y,r,color) {
   c.beginPath();c.moveTo(x+r*.1,y);c.quadraticCurveTo(x-r*.1,y+r*.65,x+r*.12,y+r);c.stroke();
   const fill=c.createLinearGradient(x,y-r,x,y+r*.25);fill.addColorStop(0,color+'bb');fill.addColorStop(1,'#285e77');
   c.beginPath();c.moveTo(x-r,y);c.bezierCurveTo(x-r*.72,y-r*1.1,x+r*.65,y-r*1.1,x+r,y);c.quadraticCurveTo(x,y+r*.35,x-r,y);c.fillStyle=fill;c.fill();
+  // Bioluminescent cap rim: background-only decoration, never a hit target.
+  c.save();c.shadowColor=color;c.shadowBlur=6;c.strokeStyle=color+'ba';c.lineWidth=1.5;
+  c.beginPath();c.moveTo(x-r*.89,y-r*.08);c.bezierCurveTo(x-r*.60,y-r*.93,x+r*.64,y-r*.93,x+r*.89,y-r*.08);c.stroke();c.restore();
   ellipse(c,x,y,r,r*.16,color+'77');
   for(const [dx,dy,s] of [[-.48,-.25,.09],[.05,-.52,.12],[.48,-.22,.07]])ellipse(c,x+dx*r,y+dy*r,r*s,r*s*.6,'#b7fff6aa');
   c.strokeStyle=color+'77';c.lineWidth=1;
@@ -88,6 +101,12 @@ export class GardenScenery {
       }else{
         const colors=theme.id==='twilight'?['#356075','#284953']:theme.id==='glowwood'?['#367577','#205451']:theme.id==='blossom'?['#8cb69a','#668e7b']:['#9bb788','#70956e'];
         hills(c,w,h,groundY-10,17,1,colors[0]);hills(c,w,h,groundY+8,12,3,colors[1]);
+        const accent=GARDEN_GLOW[theme.id];
+        c.save();c.strokeStyle=accent.leaf+'7d';c.shadowColor=accent.leaf;c.shadowBlur=4;c.lineWidth=1.4;
+        c.beginPath();for(let x=0;x<=w+20;x+=15){
+          const y=groundY-10+Math.sin(x/125+1)*17+Math.cos(x/230+1)*8.5;
+          if(x===0)c.moveTo(x,y);else c.lineTo(x,y);
+        }c.stroke();c.restore();
       }
     }
     c.restore();
@@ -101,6 +120,32 @@ export class GardenScenery {
     else if(theme.id==='glowwood')this.glowwood(c,w,h);
     else if(theme.id==='neon')this.neon(c,w,h);
     else this.classic(c,w,h);
+    this.paintArcadeAtmosphere(c,theme,w,h);
+  }
+
+  // Gentle per-garden lighting is cached with each background, so it does
+  // not add per-frame glow work or create confusing false collectibles.
+  paintArcadeAtmosphere(c,theme,w,h) {
+    if(theme.id==='neon')return; // Neon Garden retains its stronger look.
+    const accent=GARDEN_GLOW[theme.id];
+    c.save();
+    // A subtle arc on each edge ties the environments to the main menu.
+    for (const side of [0,1]) {
+      const x=side?w-10:10;
+      c.globalAlpha=theme.id==='classic'?.16:.23;
+      c.shadowColor=accent.light;c.shadowBlur=8;c.strokeStyle=accent.light;c.lineWidth=1.4;
+      c.beginPath();c.moveTo(x,h*.15);c.quadraticCurveTo(x+(side?-22:22),h*.48,x,h*.79);c.stroke();
+    }
+    c.globalAlpha=1;c.shadowBlur=0;
+    // Sparse tiny star/dust pinpoints are background decorations, not pickups.
+    const seed={twilight:91,blossom:65,glowwood:117,classic:73}[theme.id];
+    const rng=random(seed);
+    for(let i=0;i<9;i++){
+      const x=(i%2===0?rng()*w*.17:w*.82+rng()*w*.17),y=h*(.21+rng()*.62);
+      c.globalAlpha=theme.id==='classic'?.31:.36;
+      sparkle(c,x,y,1.25,accent.light);
+    }
+    c.restore();
   }
 
   // A spare, readable neon sky. Static clouds/moon are far behind moving hazards.
@@ -168,6 +213,7 @@ export class GardenScenery {
       bloom(c,x,y,r,['#fff6e8','#f3b8c9','#c9c0ea'][i%3],'#d8b671',.3+rng()*.18);
     }
     for(let i=0;i<13;i++)bloom(c,i*w/12,h-7+Math.sin(i*2)*13,11+i%3*5,i%2?'#f9cad3':'#fff2d5','#dab678',.65);
+    glow(c,w*.89,h*.83,44,'#ffb7ed','14');
   }
 
   glowwood(c,w,h) {
@@ -191,6 +237,8 @@ export class GardenScenery {
     }
     mushroom(c,45,h*.84,56,'#77e9df');mushroom(c,w-39,h*.67,43,'#a8bdff');
     mushroom(c,98,h*.94,24,'#82cde8');mushroom(c,w-106,h*.93,31,'#70dac9');
+    mushroom(c,w*.13,h*.48,13,'#7bffea');mushroom(c,w*.91,h*.37,12,'#c39cff');
+    mushroom(c,w*.05,h*.63,10,'#6af4ff');
     for(let i=0;i<17;i++){
       const x=(i*67+29)%w,y=h-8-Math.sin(i)*15;
       ellipse(c,x,y,4,1.5,'#a2eadc39');
@@ -198,6 +246,7 @@ export class GardenScenery {
   }
 
   classic(c,w,h) {
+    glow(c,w*.13,h*.19,90,'#fff6c1','26');
     c.fillStyle='#ffedbc22';c.fillRect(60,46,71,71);c.fillStyle='#f9e6a344';c.fillRect(70,56,51,51);
     const rng=random(219);
     for(let i=0;i<13;i++){

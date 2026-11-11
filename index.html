@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="./rc39.css?v=90">
   <link rel="stylesheet" href="./rc40.css?v=91">
   <link rel="stylesheet" href="./rc41.css?v=92">
+  <link rel="stylesheet" href="./rc42.css?v=93">
   <style>
     .streak-meter{display:block;margin-top:3px;padding:2px 5px;border:1px solid #ffe49a80;border-radius:3px;background:#203a2e99;color:#fff2aa;font:700 7px var(--mono);letter-spacing:.7px;text-shadow:1px 1px #263f31;white-space:nowrap;animation:streak-pop .24s ease-out}
     .streak-meter[data-multiplier="3"]{color:#ffd47b;border-color:#ffd47ba0}.streak-meter[data-multiplier="4"]{color:#fff4bd;border-color:#fff4bd;box-shadow:0 0 10px #ffe58b88}
@@ -221,7 +222,7 @@
             <button id="main-menu-records" class="arcade-menu-button arcade-menu-records" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">★</span><span>HIGH SCORES</span></span></button>
             <button id="main-menu-options" class="arcade-menu-button arcade-menu-settings" type="button"><span class="neon-button-content"><span class="arcade-icon" aria-hidden="true">⚙</span><span>OPTIONS</span></span></button>
           </nav>
-          <span class="main-menu-build" aria-label="Release version">RC41</span>
+          <span class="main-menu-build" aria-label="Release version">RC42</span>
         </section>
       </section>
 
@@ -289,7 +290,7 @@
       </details>
       <details class="rc39-help-item" id="help-topic-flower">
         <summary><span class="rc39-help-symbol" aria-hidden="true">✿</span><span class="rc39-help-heading">FLOWERS &amp; SCORE</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
-        <div class="rc39-help-copy"><strong>Collect blooms</strong><p>Collect flowers to increase your score and your saved flower balance. A missed flower costs 10 points and breaks your streak. Saved flowers can be used for cosmetic items in Flower Shop.</p></div>
+        <div class="rc39-help-copy"><strong>Collect blooms</strong><p>Collect flowers (or glowing mushrooms in Glowwood) to increase your score and saved flower balance. A missed collectible costs 10 points and breaks your streak. Saved flowers can be used for cosmetic items in Flower Shop.</p></div>
       </details>
       <details class="rc39-help-item" id="help-topic-life">
         <summary><span class="rc39-help-symbol" aria-hidden="true">♡</span><span class="rc39-help-heading">LIVES &amp; CHECKPOINTS</span><span class="rc39-help-chevron" aria-hidden="true"></span></summary>
@@ -387,7 +388,7 @@
     <div class="rc37-credit-bee"><img src="./bee-life-neon.svg" alt="Petal Pounce bee life emblem"></div>
     <div class="progress-footer"><button id="credits-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=92"></script>
+  <script type="module" src="./game.mjs?v=93"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -395,7 +396,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=92';
+      const swUrl='./sw.js?v=93';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
