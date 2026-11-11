@@ -821,6 +821,12 @@ export class Game {
 
   revive() {
     if (this.mode !== 'reviving') return;
+    // A revival can be triggered by tests, an interruption or a paused game
+    // without the normal camera-preparation frame. Never spawn into empty air.
+    if (!this.checkpointHasLeaf(this.checkpoint)) {
+      const aroundY = this.checkpoint?.y ?? this.bee.y;
+      this.moveCheckpointIntoView(aroundY - 300, aroundY + 300);
+    }
     const point = this.checkpoint;
     this.bee = { x: point.x, y: point.y, vx: 0, vy: -90, face: 1 };
     this.invulnerable = 2.75;
@@ -843,8 +849,19 @@ export class Game {
     return clearance;
   }
 
+  // A checkpoint must be backed by a real, collidable platform. Previously,
+  // the fallback could choose an arbitrary clear point in the air. The player
+  // would fall again without pressing Fly, wasting the next life.
+  checkpointHasLeaf(point) {
+    if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
+    return this.level.platforms.some(leaf =>
+      leaf.y - point.y >= 19 && leaf.y - point.y <= 44
+      && point.x >= leaf.x + 9 && point.x <= leaf.x + leaf.w - 9
+    );
+  }
+
   checkpointIsSafeAndVisible(point, cameraTop, cameraBottom) {
-    if (!point) return false;
+    if (!this.checkpointHasLeaf(point)) return false;
     const height = cameraBottom - cameraTop;
     return point.y >= cameraTop + Math.min(52, height * .12)
       && point.y <= cameraBottom - Math.min(72, height * .16)
@@ -855,36 +872,49 @@ export class Game {
     const top = Number(cameraTop) || 0;
     const bottom = Math.max(top + 1, Number(cameraBottom) || top + 1);
     const height = bottom - top;
-    const targetY = top + height * .64;
-    const visibleLeaves = this.level.platforms.filter(platform => !platform.launch
-      && platform.y >= top + Math.min(80, height * .18)
-      && platform.y <= bottom - Math.min(52, height * .12));
-    const candidates = visibleLeaves.flatMap(leaf => [
-      { x: leaf.x + leaf.w * .5, y: leaf.y - 28, leaf },
-      { x: leaf.x + leaf.w * .3, y: leaf.y - 28, leaf },
-      { x: leaf.x + leaf.w * .7, y: leaf.y - 28, leaf }
-    ]).filter(point => this.respawnClearance(point.x, point.y) >= 0)
+    const targetY = top + height * .56;
+
+    // Search all retained platforms, not only ones currently on screen.
+    // The camera is reframed on the selected checkpoint by the rendering loop.
+    // This also handles an old checkpoint whose leaf has been pruned.
+    const candidates = this.level.platforms.flatMap(leaf => [
+      { x: leaf.x + leaf.w * .5, y: leaf.y - (leaf.launch ? 34 : 28) },
+      { x: leaf.x + leaf.w * .3, y: leaf.y - (leaf.launch ? 34 : 28) },
+      { x: leaf.x + leaf.w * .7, y: leaf.y - (leaf.launch ? 34 : 28) }
+    ]).filter(point => this.checkpointHasLeaf(point)
+      && this.respawnClearance(point.x, point.y) >= 0)
       .sort((a, b) => Math.abs(a.y - targetY) - Math.abs(b.y - targetY));
-    if (candidates.length) {
-      const point = candidates[0];
-      this.checkpoint = { x: point.x, y: point.y };
+    // Do not send an advanced player thousands of pixels back to a distant
+    // retained leaf. If none is reasonably close to this camera window,
+    // create a rescue leaf nearby instead.
+    if (candidates.length && Math.abs(candidates[0].y - targetY) <= height * 1.35) {
+      this.checkpoint = candidates[0];
       return;
     }
-    // Rare fallback for an unusually open camera: choose the point with the
-    // greatest measured clearance instead of blindly reusing the bee's X.
-    const openPoints = [.28, .5, .72].flatMap(xRatio => [.48, .62, .74].map(yRatio => ({
-      x: WIDTH * xRatio,
-      y: top + height * yRatio
-    }))).sort((a, b) => this.respawnClearance(b.x, b.y) - this.respawnClearance(a.x, a.y));
-    this.checkpoint = openPoints[0];
+
+    // Extreme fallback: if all retained leaves are blocked or absent, add a
+    // visible rescue leaf. Only runs during a life-loss recovery; no normal
+    // level generation, obstacle density, physics or scoring is modified.
+    const openPoints = [.2,.3,.4,.5,.6,.7,.8].flatMap(xRatio =>
+      [.30,.40,.50,.60,.70,.80].map(yRatio => ({
+        x: WIDTH * xRatio, y: top + height * yRatio
+      })));
+    openPoints.sort((a, b) =>
+      Math.min(this.respawnClearance(b.x,b.y),this.respawnClearance(b.x,b.y+28)) -
+      Math.min(this.respawnClearance(a.x,a.y),this.respawnClearance(a.x,a.y+28)));
+    const point = openPoints[0];
+    const width = 112;
+    const x = Math.max(22, Math.min(WIDTH - 22 - width, point.x - width / 2));
+    const leaf = { x, y: point.y + 28, w: width, rescue: true };
+    this.level.platforms.push(leaf);
+    this.checkpoint = { x: x + width / 2, y: leaf.y - 28 };
   }
 
   prepareRevive(cameraTop, cameraBottom) {
     if (this.mode !== 'reviving' || this.revivePrepared) return false;
     const top = Number(cameraTop) || 0;
     const bottom = Math.max(top + 1, Number(cameraBottom) || top + 1);
-    // Preserve the last leaf the player touched whenever it is still visible
-    // and clear. Only relocate when camera progression or a hazard made it unsafe.
+    // Preserve the player's last safe leaf whenever it remains on screen.
     if (!this.checkpointIsSafeAndVisible(this.checkpoint, top, bottom)) {
       this.moveCheckpointIntoView(top, bottom);
     }

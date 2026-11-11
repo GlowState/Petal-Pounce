@@ -388,7 +388,7 @@
     <div class="rc37-credit-bee"><img src="./bee-life-neon.svg" alt="Petal Pounce bee life emblem"></div>
     <div class="progress-footer"><button id="credits-done" class="play-button">MAIN MENU <span class="neon-bee-life" aria-hidden="true"><img src="./bee-life-neon.svg" alt=""></span></button></div>
   </dialog>
-  <script type="module" src="./game.mjs?v=93"></script>
+  <script type="module" src="./game.mjs?v=95"></script>
   <script>
     const androidShell=document.documentElement.classList.contains('android-shell');
     if(androidShell){
@@ -396,7 +396,7 @@
       document.getElementById('privacy-in-app').href='./privacy.html?app=android';
     }
     if (!androidShell&&'serviceWorker' in navigator) addEventListener('load', () => {
-      const swUrl='./sw.js?v=93';
+      const swUrl='./sw.js?v=95';
       navigator.serviceWorker.register(swUrl,{updateViaCache:'none'})
         .catch(()=>navigator.serviceWorker.register(swUrl))
         .then(registration=>registration.update())
