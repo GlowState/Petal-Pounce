@@ -1,25 +1,34 @@
-/* RC42 – Glow accents and milestone panel: visual only. */
-/* Only milestone notices get the small dual-color main-menu-inspired rim. */
-#garden-notification[data-kind="milestone"] {
-  border:1.5px solid #5cecff;
-  background:linear-gradient(135deg,#14274b 0%,#23183e 70%,#331947 100%);
-  color:#f1fdff;
-  box-shadow:0 0 0 1px #ff7bdb6b,0 0 9px #34dfff59,0 5px 17px #07102caa;
+/* RC45: Milestone-only neon styling.
+   The joystick HUD stylesheet deliberately uses !important for all toast panels.
+   Match its selector and override only the flower milestone state.
+   No geometry, layout, controls or game mechanics are changed here. */
+#cabinet .screen #garden-notification[data-kind="milestone"] {
+  border:1.5px solid #66efff !important;
+  border-radius:10px !important;
+  background:linear-gradient(135deg,rgba(11,26,52,.91),rgba(34,18,60,.90)) !important;
+  background-image:linear-gradient(135deg,rgba(11,26,52,.91),rgba(34,18,60,.90)) !important;
+  color:#f2fdff !important;
+  box-shadow:0 0 0 1px rgba(255,119,219,.62),0 0 8px rgba(43,217,255,.42),0 4px 10px rgba(0,0,0,.25) !important;
 }
-#garden-notification[data-kind="milestone"] .garden-notice-medallion {
-  border:1.5px solid #7beeff;
-  background:linear-gradient(140deg,#11294b,#2f1948);
-  color:#ffadeb;
-  text-shadow:0 0 6px #ff85db9c;
-  box-shadow:inset 0 0 0 2px #182440,0 0 7px #5eeeff65;
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-medallion {
+  border:1px solid #7feaff !important;
+  background:rgba(26,20,54,.82) !important;
+  background-image:none !important;
+  color:#ffa5e6 !important;
+  text-shadow:0 0 5px rgba(255,155,225,.45) !important;
+  box-shadow:0 0 5px rgba(99,230,255,.42) !important;
 }
-#garden-notification[data-kind="milestone"] .garden-notice-copy strong {
-  color:#f1fcff;
-  text-shadow:0 0 3px #d6faff70;
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-copy strong,
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-copy.compact strong,
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-copy.extra-compact strong {
+  color:#f2fdff !important;
+  text-shadow:0 0 3px rgba(139,230,255,.34) !important;
 }
-#garden-notification[data-kind="milestone"] .garden-notice-copy span {
-  color:#fab1ed;
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-copy span,
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-copy.compact span,
+#cabinet .screen #garden-notification[data-kind="milestone"] .garden-notice-copy.extra-compact span {
+  color:#ffa9e9 !important;
 }
-@media (prefers-reduced-motion:reduce) {
-  #garden-notification[data-kind="milestone"] {transition:none}
+@media(prefers-reduced-motion:reduce){
+  #cabinet .screen #garden-notification[data-kind="milestone"]{transition:none}
 }
