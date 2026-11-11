@@ -1,0 +1,31 @@
+/* Petal Pounce RC40: joystick customization VISUAL fix only.
+   RC37 was filtering .joystick-control, which is visually transparent in mobile
+   mode; the actual gold joystick image lives on #joystick-stick.
+   No hit zone, pointer handler, steering math, or movement variable changed. */
+
+/* Classic restores the original bright gold image. */
+#cabinet[data-joystick-look="classic"] .control-deck .joystick-stick {
+  opacity:1!important;
+  filter:drop-shadow(0 4px 5px rgba(0,19,12,.60))!important;
+}
+/* Neon transforms the visible face to electric cyan / lavender with magenta
+   rim bloom. The same physical joystick remains the input target. */
+#cabinet[data-joystick-look="neon"] .control-deck .joystick-stick {
+  opacity:.96!important;
+  filter:hue-rotate(137deg) saturate(2.45) brightness(1.21)
+    drop-shadow(0 0 6px rgba(0,234,255,.92))
+    drop-shadow(0 0 9px rgba(255,53,248,.64))!important;
+}
+/* Minimal is monochrome, softer and less luminous, not simply the same gold. */
+#cabinet[data-joystick-look="minimal"] .control-deck .joystick-stick {
+  opacity:.66!important;
+  filter:grayscale(1) brightness(1.43) contrast(.91)
+    drop-shadow(0 1px 3px rgba(255,255,255,.23))!important;
+}
+/* On phones the joystick-classic.png background IS the face. The old HTML
+   ball and stem sit above that image; hide their decoration only on phone
+   layouts so the face actually matches the Customize preview. */
+@media(max-width:560px){
+  #cabinet .control-deck .joystick-stick > .joystick-ball,
+  #cabinet .control-deck .joystick-stick > .joystick-stem {visibility:hidden!important;}
+}

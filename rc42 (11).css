@@ -1,0 +1,25 @@
+/* RC42 – Glow accents and milestone panel: visual only. */
+/* Only milestone notices get the small dual-color main-menu-inspired rim. */
+#garden-notification[data-kind="milestone"] {
+  border:1.5px solid #5cecff;
+  background:linear-gradient(135deg,#14274b 0%,#23183e 70%,#331947 100%);
+  color:#f1fdff;
+  box-shadow:0 0 0 1px #ff7bdb6b,0 0 9px #34dfff59,0 5px 17px #07102caa;
+}
+#garden-notification[data-kind="milestone"] .garden-notice-medallion {
+  border:1.5px solid #7beeff;
+  background:linear-gradient(140deg,#11294b,#2f1948);
+  color:#ffadeb;
+  text-shadow:0 0 6px #ff85db9c;
+  box-shadow:inset 0 0 0 2px #182440,0 0 7px #5eeeff65;
+}
+#garden-notification[data-kind="milestone"] .garden-notice-copy strong {
+  color:#f1fcff;
+  text-shadow:0 0 3px #d6faff70;
+}
+#garden-notification[data-kind="milestone"] .garden-notice-copy span {
+  color:#fab1ed;
+}
+@media (prefers-reduced-motion:reduce) {
+  #garden-notification[data-kind="milestone"] {transition:none}
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" role="img" aria-label="Neon bee life">
+<defs><filter id="glow" x="-65%" y="-65%" width="230%" height="230%"><feGaussianBlur in="SourceGraphic" stdDeviation="2.6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+<g filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M48 43C29 16 9 16 11 35c2 16 18 24 31 22 M52 43c19-27 39-27 37-8-2 16-18 24-31 22" stroke="#00E9FF" stroke-width="3.8"/>
+  <path d="M44 46C33 39 23 29 23 24 M56 46c11-7 21-17 21-22" stroke="#91F9FF" stroke-width="2.1"/>
+  <path d="M39 42c-6-20-11-24-16-24 M61 42c6-20 11-24 16-24" stroke="#FF36EE" stroke-width="3"/>
+  <circle cx="22" cy="18" r="3.4" stroke="#FF36EE" stroke-width="2"/><circle cx="78" cy="18" r="3.4" stroke="#FF36EE" stroke-width="2"/>
+  <path d="M50 35c-13 0-22 11-22 26 0 13 10 28 22 31 12-3 22-18 22-31 0-15-9-26-22-26Z" stroke="#FF36EE" stroke-width="4"/>
+  <path d="M30 56h40M32 71h36" stroke="#00E9FF" stroke-width="4"/>
+  <path d="M40 43l3 0M57 43l3 0" stroke="#E8FFFF" stroke-width="4"/>
+  <path d="M44 50c3 3 9 3 12 0" stroke="#E8FFFF" stroke-width="2.8"/>
+</g></svg>
