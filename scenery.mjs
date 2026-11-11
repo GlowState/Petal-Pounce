@@ -129,12 +129,19 @@ export class GardenScenery {
     if(theme.id==='neon')return; // Neon Garden retains its stronger look.
     const accent=GARDEN_GLOW[theme.id];
     c.save();
-    // A subtle arc on each edge ties the environments to the main menu.
-    for (const side of [0,1]) {
-      const x=side?w-10:10;
-      c.globalAlpha=theme.id==='classic'?.16:.23;
-      c.shadowColor=accent.light;c.shadowBlur=8;c.strokeStyle=accent.light;c.lineWidth=1.4;
-      c.beginPath();c.moveTo(x,h*.15);c.quadraticCurveTo(x+(side?-22:22),h*.48,x,h*.79);c.stroke();
+    // RC44: atmospheric glow lives strictly in the cached background.
+    // Broad, low-opacity gradients replace the line accents along edges;
+    // nothing is drawn over interactive leaves or hazards.
+    const pools = [
+      {x:w*.18,y:h*.25,r:Math.max(w*.46,h*.39),opacity:theme.id==='classic'?'16':'20'},
+      {x:w*.84,y:h*.72,r:Math.max(w*.48,h*.43),opacity:theme.id==='classic'?'10':'17'}
+    ];
+    for(const pool of pools){
+      const fog=c.createRadialGradient(pool.x,pool.y,0,pool.x,pool.y,pool.r);
+      fog.addColorStop(0,accent.light+pool.opacity);
+      fog.addColorStop(.5,accent.light+'0b');
+      fog.addColorStop(1,accent.light+'00');
+      c.fillStyle=fog;c.fillRect(0,0,w,h);
     }
     c.globalAlpha=1;c.shadowBlur=0;
     // Sparse tiny star/dust pinpoints are background decorations, not pickups.

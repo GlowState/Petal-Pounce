@@ -1,0 +1,38 @@
+PETAL POUNCE RC44 — PHONE-FRIENDLY VISUAL CLEANUP + RC43 SAFETY FIX
+===================================================================
+ONE ZIP ONLY. You do NOT need to download RC43 separately.
+
+This is a SMALL UPDATE PACK (not a standalone project).
+It contains only the files that changed compared with the RC42 version
+currently on GitHub, plus the RC43 respawn fix you requested.
+
+WHAT'S IN THIS UPDATE
+- Removes the thin neon lines/stripes drawn over landing leaves and thorns.
+- Applies faint colored lighting to each garden's BACKGROUND instead.
+- Preserves Glowwood's glowing mushrooms and the milestone neon border.
+- Includes the RC43 rescue-leaf respawn and camera safety fixes.
+- Does not change movement, joystick, Fly, scoring, normal hazard difficulty,
+  random level generation or collectible hitboxes.
+
+PHONE INSTALL (existing GlowState/Petal-Pounce repository)
+1. Download this ONE ZIP file, unzip it on your phone.
+2. On GitHub, go to GlowState/Petal-Pounce (main branch).
+3. Replace the files in the same paths as inside this ZIP:
+   engine.mjs, game.mjs, scenery.mjs, index.html, sw.js
+   and the same five under dist/.
+4. To keep Android CI validation correct, also replace
+   scripts/verify-android-assets.mjs and tests/engine.test.mjs.
+5. Do not remove unrelated files or move the contents of dist/ to root.
+6. Reload your live game. RC44 uses web cache BUILD 95.
+7. Rebuild Android AFTER updating dist/, since it packages files from dist/.
+
+This pack assumes RC42 or RC43 is already installed. If you have RC43
+already, this still safely replaces the required files with the RC44 versions.
+GitHub mobile cannot deploy a .zip by itself; upload the files inside it
+using their correct folder paths. Only these twelve replacement paths are needed.
+
+TESTING
+- Node regression suite from the complete merged repository.
+- Android asset consistency checker.
+- Optional visual screenshot comparison.
+- No real Android APK was built or device-tested in this session.

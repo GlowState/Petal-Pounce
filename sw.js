@@ -1,6 +1,6 @@
-const BUILD='93';
-const CACHE='petal-pounce-v93-rc42-garden-glow';
-const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=85','./neon-ui.css?v=87','./rc37.css?v=88','./rc38.css?v=89','./rc39.css?v=90','./rc40.css?v=91','./rc41.css?v=92','./rc42.css?v=93','./bee-life-neon.svg','./neon-ui-backdrop.png?v=87','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=93','./engine.mjs?v=68','./scenery.mjs?v=93','./flowers.mjs?v=93','./neon-art.mjs?v=93','./hold-controls.mjs?v=68','./profile.mjs?v=93','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./petal-pounce-main-menu.png?v=84','./manifest.webmanifest?v=90','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const BUILD='95';
+const CACHE='petal-pounce-v95-rc44-background-cleanup';
+const SHELL=['./','./index.html','./privacy.html','./style.css?v=68','./retro-arcade.css?v=68','./zoom-B.css?v=68','./joystick.css?v=85','./neon-ui.css?v=87','./rc37.css?v=88','./rc38.css?v=89','./rc39.css?v=90','./rc40.css?v=91','./rc41.css?v=92','./rc42.css?v=93','./bee-life-neon.svg','./neon-ui-backdrop.png?v=87','./petal-arcade.woff2','./shop.css?v=68','./game.mjs?v=95','./engine.mjs?v=94','./scenery.mjs?v=95','./flowers.mjs?v=93','./neon-art.mjs?v=93','./hold-controls.mjs?v=68','./profile.mjs?v=93','./bee.svg','./control-panel-base.png?v=68','./joystick-classic.png?v=68','./fly-classic.png?v=68','./petal-pounce-main-menu.png?v=84','./manifest.webmanifest?v=90','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(
